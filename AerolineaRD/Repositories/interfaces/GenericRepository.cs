@@ -1,7 +1,5 @@
 ﻿using AerolineaRD.Data;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 public class GenericRepository<T> : IGenericRepository<T> where T : class
 {
