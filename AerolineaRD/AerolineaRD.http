@@ -1,0 +1,6 @@
+@AerolineaRD_HostAddress = http://localhost:5216
+
+GET {{AerolineaRD_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
