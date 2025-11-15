@@ -1,6 +1,5 @@
 ﻿using AerolineaRD.Data.DTOs;
 using AerolineaRD.Services.interfaces;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AerolineaRD.Controllers
