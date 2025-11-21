@@ -22,6 +22,13 @@ namespace AerolineaRD.Entity
         [MaxLength(20)]
         public string? MetodoPago { get; set; }
 
+        [Column("FechaEmision")]
+        public DateTime FechaEmision { get; set; } = DateTime.Now;
+
+        [Column("EstadoPago")]
+        [MaxLength(20)]
+        public string? EstadoPago { get; set; } = "Pendiente"; // "Pendiente", "Pagado", "Reembolsado"
+
         [ForeignKey(nameof(CodReserva))]
         public Reserva? Reserva { get; set; }
     }

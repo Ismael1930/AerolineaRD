@@ -1,4 +1,3 @@
-
 namespace AerolineaRD.Data.DTOs
 {
     public class VueloResponseDto
@@ -6,6 +5,10 @@ namespace AerolineaRD.Data.DTOs
         public int Id { get; set; }
         public string? NumeroVuelo { get; set; }
         public DateTime Fecha { get; set; }
+        public TimeSpan HoraSalida { get; set; }
+        public TimeSpan HoraLlegada { get; set; }
+        public int Duracion { get; set; } // Duración en minutos
+        public decimal PrecioBase { get; set; }
         public string? OrigenCodigo { get; set; }
         public string? OrigenNombre { get; set; }
         public string? OrigenCiudad { get; set; }
@@ -14,5 +17,7 @@ namespace AerolineaRD.Data.DTOs
         public string? DestinoCiudad { get; set; }
         public int AsientosDisponibles { get; set; }
         public List<string>? ClasesDisponibles { get; set; }
+        public string? TipoVuelo { get; set; } // "SoloIda" o "IdaYVuelta"
+        public DateTime? FechaRegreso { get; set; } // Solo para vuelos de ida y vuelta
     }
 }

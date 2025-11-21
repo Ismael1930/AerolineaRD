@@ -1,7 +1,5 @@
-
 using AerolineaRD.Data.DTOs;
 using AerolineaRD.Services.interfaces;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AerolineaRD.Controllers
@@ -27,23 +25,6 @@ namespace AerolineaRD.Controllers
             {
                 var vuelos = await _vueloService.BuscarVuelosAsync(filtros);
                 return Ok(new { success = true, data = vuelos, count = vuelos.Count });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { success = false, message = ex.Message });
-            }
-        }
-
-        /// <summary>
-        /// Obtener lista de aeropuertos disponibles
-        /// </summary>
-        [HttpGet("aeropuertos")]
-        public async Task<IActionResult> ObtenerAeropuertos()
-        {
-            try
-            {
-                var aeropuertos = await _vueloService.ObtenerAeropuertosAsync();
-                return Ok(new { success = true, data = aeropuertos });
             }
             catch (Exception ex)
             {

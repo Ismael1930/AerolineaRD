@@ -1,4 +1,7 @@
 using AerolineaRD.Data;
+using AerolineaRD.Mappings;
+using AerolineaRD.Repositories.Implements;
+using AerolineaRD.Repositories.interfaces;
 using AerolineaRD.Services;
 using AerolineaRD.Services.interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -9,11 +12,41 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Add AutoMapper
+builder.Services.AddAutoMapper(typeof(MappingProfile));
+
+// Add Generic Repository
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+
+// Add Repositories
+builder.Services.AddScoped<IVueloRepository, VueloRepository>();
+builder.Services.AddScoped<IAeropuertoRepository, AeropuertoRepository>();
+builder.Services.AddScoped<IReservaRepository, ReservaRepository>();
+builder.Services.AddScoped<IPasajeroRepository, PasajeroRepository>();
+builder.Services.AddScoped<IEquipajeRepository, EquipajeRepository>();
+builder.Services.AddScoped<IFacturaRepository, FacturaRepository>();
+builder.Services.AddScoped<IAeronaveRepository, AeronaveRepository>();
+builder.Services.AddScoped<ITripulacionRepository, TripulacionRepository>();
+builder.Services.AddScoped<IEstadoVueloRepository, EstadoVueloRepository>();
+builder.Services.AddScoped<INotificacionRepository, NotificacionRepository>();
+builder.Services.AddScoped<ITicketSoporteRepository, TicketSoporteRepository>();
+builder.Services.AddScoped<IClienteRepository, ClienteRepository>();
+builder.Services.AddScoped<IAsientoRepository, AsientoRepository>(); 
+
+// Add Services
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IVueloService, VueloService>();
-
+builder.Services.AddScoped<IAeropuertoService, AeropuertoService>();
+builder.Services.AddScoped<IReservaService, ReservaService>();
+builder.Services.AddScoped<IPasajeroService, PasajeroService>();
+builder.Services.AddScoped<IEquipajeService, EquipajeService>();
+builder.Services.AddScoped<IFacturaService, FacturaService>();
+builder.Services.AddScoped<IAeronaveService, AeronaveService>();
+builder.Services.AddScoped<ITripulacionService, TripulacionService>();
+builder.Services.AddScoped<IEstadoVueloService, EstadoVueloService>();
+builder.Services.AddScoped<INotificacionService, NotificacionService>();
+builder.Services.AddScoped<ITicketSoporteService, TicketSoporteService>();
+builder.Services.AddScoped<IClienteService, ClienteService>();
 
 // Configuración de Entity Framework con SQLite
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -68,10 +101,14 @@ var app = builder.Build();
 // EJECUTAR SEEDER AL INICIO
 using (var scope = app.Services.CreateScope())
 {
-    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    var services = scope.ServiceProvider;
     try
     {
-        await DbSeeder.SeedAsync(context);
+        var context = services.GetRequiredService<AppDbContext>();
+        var userManager = services.GetRequiredService<UserManager<IdentityUser>>();
+        var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+        
+        await DbSeeder.SeedAsync(context, userManager, roleManager);
     }
     catch (Exception ex)
     {

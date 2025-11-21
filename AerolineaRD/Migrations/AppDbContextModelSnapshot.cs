@@ -17,6 +17,32 @@ namespace AerolineaRD.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.21");
 
+            modelBuilder.Entity("AerolineaRD.Entity.Aeronave", b =>
+                {
+                    b.Property<string>("Matricula")
+                        .HasMaxLength(15)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("Matricula");
+
+                    b.Property<int>("Capacidad")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("Capacidad");
+
+                    b.Property<string>("Estado")
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("Estado");
+
+                    b.Property<string>("Modelo")
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("Modelo");
+
+                    b.HasKey("Matricula");
+
+                    b.ToTable("Aeronave");
+                });
+
             modelBuilder.Entity("AerolineaRD.Entity.Aeropuerto", b =>
                 {
                     b.Property<string>("Codigo")
@@ -133,6 +159,56 @@ namespace AerolineaRD.Migrations
                     b.ToTable("Equipaje");
                 });
 
+            modelBuilder.Entity("AerolineaRD.Entity.EstadoVuelo", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("IdEstado");
+
+                    b.Property<string>("Estado")
+                        .HasMaxLength(30)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("Estado");
+
+                    b.Property<DateTime?>("HoraLlegada")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("HoraLlegada");
+
+                    b.Property<DateTime>("HoraLlegadaProgramada")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("HoraLlegadaProgramada");
+
+                    b.Property<DateTime?>("HoraSalida")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("HoraSalida");
+
+                    b.Property<DateTime>("HoraSalidaProgramada")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("HoraSalidaProgramada");
+
+                    b.Property<int>("IdVuelo")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("IdVuelo");
+
+                    b.Property<string>("Observaciones")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("Observaciones");
+
+                    b.Property<string>("Puerta")
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("Puerta");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdVuelo")
+                        .IsUnique();
+
+                    b.ToTable("EstadoVuelo");
+                });
+
             modelBuilder.Entity("AerolineaRD.Entity.Factura", b =>
                 {
                     b.Property<string>("Codigo")
@@ -144,6 +220,15 @@ namespace AerolineaRD.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("TEXT")
                         .HasColumnName("CodReserva");
+
+                    b.Property<string>("EstadoPago")
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("EstadoPago");
+
+                    b.Property<DateTime>("FechaEmision")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("FechaEmision");
 
                     b.Property<string>("MetodoPago")
                         .HasMaxLength(20)
@@ -160,6 +245,42 @@ namespace AerolineaRD.Migrations
                         .IsUnique();
 
                     b.ToTable("Factura");
+                });
+
+            modelBuilder.Entity("AerolineaRD.Entity.Notificacion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("IdNotificacion");
+
+                    b.Property<DateTime>("FechaEnvio")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("FechaEnvio");
+
+                    b.Property<int>("IdCliente")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("IdCliente");
+
+                    b.Property<bool>("Leida")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("Leida");
+
+                    b.Property<string>("Mensaje")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("Mensaje");
+
+                    b.Property<string>("Tipo")
+                        .HasMaxLength(30)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("Tipo");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdCliente");
+
+                    b.ToTable("Notificacion");
                 });
 
             modelBuilder.Entity("AerolineaRD.Entity.Pasajero", b =>
@@ -196,6 +317,11 @@ namespace AerolineaRD.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("CodReserva");
 
+                    b.Property<string>("Estado")
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("Estado");
+
                     b.Property<DateTime>("FechaReserva")
                         .HasColumnType("date")
                         .HasColumnName("FechaReserva");
@@ -212,6 +338,15 @@ namespace AerolineaRD.Migrations
                         .HasColumnType("INTEGER")
                         .HasColumnName("IdVuelo");
 
+                    b.Property<string>("NumAsiento")
+                        .HasMaxLength(5)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("NumAsiento");
+
+                    b.Property<decimal>("PrecioTotal")
+                        .HasColumnType("decimal(10,2)")
+                        .HasColumnName("PrecioTotal");
+
                     b.HasKey("Codigo");
 
                     b.HasIndex("IdCliente");
@@ -220,7 +355,87 @@ namespace AerolineaRD.Migrations
 
                     b.HasIndex("IdVuelo");
 
+                    b.HasIndex("NumAsiento");
+
                     b.ToTable("Reserva");
+                });
+
+            modelBuilder.Entity("AerolineaRD.Entity.TicketSoporte", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("IdTicket");
+
+                    b.Property<string>("Asunto")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("Asunto");
+
+                    b.Property<string>("Descripcion")
+                        .HasMaxLength(1000)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("Descripcion");
+
+                    b.Property<string>("Estado")
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("Estado");
+
+                    b.Property<DateTime?>("FechaCierre")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("FechaCierre");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("FechaCreacion");
+
+                    b.Property<int>("IdCliente")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("IdCliente");
+
+                    b.Property<string>("Prioridad")
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("Prioridad");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdCliente");
+
+                    b.ToTable("TicketSoporte");
+                });
+
+            modelBuilder.Entity("AerolineaRD.Entity.Tripulacion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("IdTripulacion");
+
+                    b.Property<string>("Apellido")
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("Apellido");
+
+                    b.Property<string>("Licencia")
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("Licencia");
+
+                    b.Property<string>("Nombre")
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("Nombre");
+
+                    b.Property<string>("Rol")
+                        .HasMaxLength(30)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("Rol");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Tripulacion");
                 });
 
             modelBuilder.Entity("AerolineaRD.Entity.Vuelo", b =>
@@ -235,9 +450,35 @@ namespace AerolineaRD.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("Destino");
 
+                    b.Property<int>("Duracion")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("Duracion");
+
+                    b.Property<string>("Estado")
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("Estado");
+
                     b.Property<DateTime>("Fecha")
                         .HasColumnType("date")
                         .HasColumnName("Fecha");
+
+                    b.Property<DateTime?>("FechaRegreso")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("FechaRegreso");
+
+                    b.Property<TimeSpan>("HoraLlegada")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("HoraLlegada");
+
+                    b.Property<TimeSpan>("HoraSalida")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("HoraSalida");
+
+                    b.Property<string>("Matricula")
+                        .HasMaxLength(15)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("Matricula");
 
                     b.Property<string>("NumeroVuelo")
                         .HasMaxLength(10)
@@ -249,13 +490,48 @@ namespace AerolineaRD.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("Origen");
 
+                    b.Property<decimal>("PrecioBase")
+                        .HasColumnType("decimal(10,2)")
+                        .HasColumnName("PrecioBase");
+
+                    b.Property<string>("TipoVuelo")
+                        .HasMaxLength(15)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("TipoVuelo");
+
                     b.HasKey("Id");
 
                     b.HasIndex("DestinoCodigo");
 
+                    b.HasIndex("Matricula");
+
                     b.HasIndex("OrigenCodigo");
 
                     b.ToTable("Vuelo");
+                });
+
+            modelBuilder.Entity("AerolineaRD.Entity.VueloTripulacion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("IdVueloTripulacion");
+
+                    b.Property<int>("IdTripulacion")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("IdTripulacion");
+
+                    b.Property<int>("IdVuelo")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("IdVuelo");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdTripulacion");
+
+                    b.HasIndex("IdVuelo");
+
+                    b.ToTable("VueloTripulacion", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -481,6 +757,17 @@ namespace AerolineaRD.Migrations
                     b.Navigation("Pasajero");
                 });
 
+            modelBuilder.Entity("AerolineaRD.Entity.EstadoVuelo", b =>
+                {
+                    b.HasOne("AerolineaRD.Entity.Vuelo", "Vuelo")
+                        .WithOne("EstadoVueloDetalle")
+                        .HasForeignKey("AerolineaRD.Entity.EstadoVuelo", "IdVuelo")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Vuelo");
+                });
+
             modelBuilder.Entity("AerolineaRD.Entity.Factura", b =>
                 {
                     b.HasOne("AerolineaRD.Entity.Reserva", "Reserva")
@@ -488,6 +775,17 @@ namespace AerolineaRD.Migrations
                         .HasForeignKey("AerolineaRD.Entity.Factura", "CodReserva");
 
                     b.Navigation("Reserva");
+                });
+
+            modelBuilder.Entity("AerolineaRD.Entity.Notificacion", b =>
+                {
+                    b.HasOne("AerolineaRD.Entity.Cliente", "Cliente")
+                        .WithMany()
+                        .HasForeignKey("IdCliente")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Cliente");
                 });
 
             modelBuilder.Entity("AerolineaRD.Entity.Reserva", b =>
@@ -510,11 +808,28 @@ namespace AerolineaRD.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("AerolineaRD.Entity.Asiento", "Asiento")
+                        .WithMany()
+                        .HasForeignKey("NumAsiento");
+
+                    b.Navigation("Asiento");
+
                     b.Navigation("Cliente");
 
                     b.Navigation("Pasajero");
 
                     b.Navigation("Vuelo");
+                });
+
+            modelBuilder.Entity("AerolineaRD.Entity.TicketSoporte", b =>
+                {
+                    b.HasOne("AerolineaRD.Entity.Cliente", "Cliente")
+                        .WithMany()
+                        .HasForeignKey("IdCliente")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Cliente");
                 });
 
             modelBuilder.Entity("AerolineaRD.Entity.Vuelo", b =>
@@ -523,13 +838,38 @@ namespace AerolineaRD.Migrations
                         .WithMany("VuelosDestino")
                         .HasForeignKey("DestinoCodigo");
 
+                    b.HasOne("AerolineaRD.Entity.Aeronave", "Aeronave")
+                        .WithMany("Vuelos")
+                        .HasForeignKey("Matricula");
+
                     b.HasOne("AerolineaRD.Entity.Aeropuerto", "Origen")
                         .WithMany("VuelosOrigen")
                         .HasForeignKey("OrigenCodigo");
 
+                    b.Navigation("Aeronave");
+
                     b.Navigation("Destino");
 
                     b.Navigation("Origen");
+                });
+
+            modelBuilder.Entity("AerolineaRD.Entity.VueloTripulacion", b =>
+                {
+                    b.HasOne("AerolineaRD.Entity.Tripulacion", "Tripulacion")
+                        .WithMany()
+                        .HasForeignKey("IdTripulacion")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AerolineaRD.Entity.Vuelo", "Vuelo")
+                        .WithMany()
+                        .HasForeignKey("IdVuelo")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Tripulacion");
+
+                    b.Navigation("Vuelo");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -583,6 +923,11 @@ namespace AerolineaRD.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("AerolineaRD.Entity.Aeronave", b =>
+                {
+                    b.Navigation("Vuelos");
+                });
+
             modelBuilder.Entity("AerolineaRD.Entity.Aeropuerto", b =>
                 {
                     b.Navigation("VuelosDestino");
@@ -610,6 +955,8 @@ namespace AerolineaRD.Migrations
             modelBuilder.Entity("AerolineaRD.Entity.Vuelo", b =>
                 {
                     b.Navigation("Asientos");
+
+                    b.Navigation("EstadoVueloDetalle");
 
                     b.Navigation("Reservas");
                 });
