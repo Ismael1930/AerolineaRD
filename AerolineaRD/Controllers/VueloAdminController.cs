@@ -7,7 +7,7 @@ namespace AerolineaRD.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Administrador")]
+    [Authorize(Roles = "Admin")]
     public class VueloAdminController : ControllerBase
     {
         private readonly IVueloAdminService _vueloAdminService;

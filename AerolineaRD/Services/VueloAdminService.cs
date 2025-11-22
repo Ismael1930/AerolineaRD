@@ -70,20 +70,27 @@ namespace AerolineaRD.Services
 
         public async Task<VueloDetalleDto> ActualizarVueloAsync(ActualizarVueloDto dto)
         {
-            var vuelo = await _vueloRepository.GetByIdAsync(dto.IdVuelo);
+            var vuelo = await _vueloRepository.GetByIdAsync(dto.Id);
             if (vuelo == null)
                 throw new KeyNotFoundException("Vuelo no encontrado.");
 
+            // Actualizar campos básicos
+            if (!string.IsNullOrEmpty(dto.NumeroVuelo)) vuelo.NumeroVuelo = dto.NumeroVuelo;
             if (dto.Fecha.HasValue) vuelo.Fecha = dto.Fecha.Value;
             if (dto.HoraSalida.HasValue) vuelo.HoraSalida = dto.HoraSalida.Value;
             if (dto.HoraLlegada.HasValue) vuelo.HoraLlegada = dto.HoraLlegada.Value;
+            if (dto.Duracion.HasValue) vuelo.Duracion = dto.Duracion.Value;
             if (dto.PrecioBase.HasValue) vuelo.PrecioBase = dto.PrecioBase.Value;
+            if (!string.IsNullOrEmpty(dto.OrigenCodigo)) vuelo.OrigenCodigo = dto.OrigenCodigo;
+            if (!string.IsNullOrEmpty(dto.DestinoCodigo)) vuelo.DestinoCodigo = dto.DestinoCodigo;
+            if (!string.IsNullOrEmpty(dto.Matricula)) vuelo.Matricula = dto.Matricula;
             if (!string.IsNullOrEmpty(dto.Estado)) vuelo.Estado = dto.Estado;
+            if (!string.IsNullOrEmpty(dto.TipoVuelo)) vuelo.TipoVuelo = dto.TipoVuelo;
 
             _vueloRepository.Update(vuelo);
             await _vueloRepository.SaveAsync();
 
-            var vueloActualizado = await _vueloRepository.ObtenerVueloConDetallesAsync(dto.IdVuelo);
+            var vueloActualizado = await _vueloRepository.ObtenerVueloConDetallesAsync(dto.Id);
             return _mapper.Map<VueloDetalleDto>(vueloActualizado);
         }
 

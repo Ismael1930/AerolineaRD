@@ -1,11 +1,12 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using AerolineaRD.Data.DTOs;
+using Microsoft.AspNetCore.Identity;
 
 namespace AerolineaRD.Services.interfaces
 {
     public interface IAuthService
     {
         Task<IdentityResult> RegisterAsync(string email, string password, string role = "Cliente");
-        Task<string?> LoginAsync(string email, string password);
+        Task<LoginResponseDto?> LoginAsync(string email, string password);
     }
 }
 

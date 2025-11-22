@@ -16,12 +16,19 @@ namespace AerolineaRD.Data.DTOs
 
     public class ActualizarVueloDto
     {
-        public int IdVuelo { get; set; }
+        public int Id { get; set; }
+        public string? NumeroVuelo { get; set; }
         public DateTime? Fecha { get; set; }
         public TimeSpan? HoraSalida { get; set; }
         public TimeSpan? HoraLlegada { get; set; }
+        public int? Duracion { get; set; }
         public decimal? PrecioBase { get; set; }
+        public string? OrigenCodigo { get; set; }
+        public string? DestinoCodigo { get; set; }
+        public string? Matricula { get; set; }
+        public int? IdAeronave { get; set; } // Para compatibilidad con frontend
         public string? Estado { get; set; }
+        public string? TipoVuelo { get; set; }
     }
 
     public class VueloDetalleDto : VueloResponseDto

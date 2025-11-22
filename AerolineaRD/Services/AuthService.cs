@@ -1,4 +1,5 @@
-﻿using AerolineaRD.Services.interfaces;
+﻿using AerolineaRD.Data.DTOs;
+using AerolineaRD.Services.interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -36,7 +37,7 @@ public class AuthService : IAuthService
         return result;
     }
 
-    public async Task<string?> LoginAsync(string email, string password)
+    public async Task<LoginResponseDto?> LoginAsync(string email, string password)
     {
         var user = await _userManager.FindByEmailAsync(email);
         if (user != null && await _userManager.CheckPasswordAsync(user, password))
@@ -45,8 +46,9 @@ public class AuthService : IAuthService
 
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name, user.UserName),
-                new Claim(ClaimTypes.Email, user.Email)
+                new Claim(ClaimTypes.NameIdentifier, user.Id),
+                new Claim(ClaimTypes.Name, user.UserName ?? ""),
+                new Claim(ClaimTypes.Email, user.Email ?? "")
             };
 
             foreach (var role in roles)
@@ -62,7 +64,16 @@ public class AuthService : IAuthService
                 expires: DateTime.Now.AddHours(2),
                 signingCredentials: creds);
 
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+
+            return new LoginResponseDto
+            {
+                Token = tokenString,
+                Email = user.Email ?? "",
+                UserName = user.UserName ?? "",
+                UserId = user.Id,
+                Roles = roles.ToList()
+            };
         }
 
         return null;

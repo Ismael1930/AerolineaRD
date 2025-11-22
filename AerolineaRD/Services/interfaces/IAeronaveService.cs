@@ -6,5 +6,9 @@ namespace AerolineaRD.Services.interfaces
     {
         Task<AeronaveResponseDto> CrearAeronaveAsync(CrearAeronaveDto dto);
         Task<List<AeronaveResponseDto>> ObtenerAeronavesDisponiblesAsync();
+        Task<List<AeronaveResponseDto>> ObtenerTodasAsync();
+        Task<AeronaveResponseDto?> ObtenerPorMatriculaAsync(string matricula);
+        Task<AeronaveResponseDto> ActualizarAeronaveAsync(ActualizarAeronaveDto dto);
+        Task<bool> EliminarAeronaveAsync(string matricula);
     }
 }

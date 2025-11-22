@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -37,6 +38,7 @@ builder.Services.AddScoped<IAsientoRepository, AsientoRepository>();
 // Add Services
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IVueloService, VueloService>();
+builder.Services.AddScoped<IVueloAdminService, VueloAdminService>();
 builder.Services.AddScoped<IAeropuertoService, AeropuertoService>();
 builder.Services.AddScoped<IReservaService, ReservaService>();
 builder.Services.AddScoped<IPasajeroService, PasajeroService>();
@@ -102,7 +104,42 @@ builder.Services.AddControllers()
     });
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+ {
+        Title = "Aerolinea RD API",
+        Version = "v1",
+        Description = "API para la gestión de aerolínea"
+    });
+
+    // Definir el esquema de seguridad JWT
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+Description = "Ingrese el token JWT en el formato: Bearer {token}"
+    });
+
+    // Aplicar el esquema de seguridad a todos los endpoints
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+  {
+ {
+     new OpenApiSecurityScheme
+ {
+   Reference = new OpenApiReference
+       {
+       Type = ReferenceType.SecurityScheme,
+            Id = "Bearer"
+          }
+            },
+  new string[] {}
+     }
+    });
+});
 
 var app = builder.Build();
 

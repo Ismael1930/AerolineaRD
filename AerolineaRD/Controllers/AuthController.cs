@@ -20,19 +20,27 @@ namespace AerolineaRD.Controllers
         {
             var result = await _authService.RegisterAsync(dto.Email, dto.Password, dto.Role);
             if (result.Succeeded)
-                return Ok(new { message = $"Usuario registrado con rol {dto.Role}" });
+                return Ok(new { success = true, message = $"Usuario registrado con rol {dto.Role}" });
 
-            return BadRequest(result.Errors);
+            return BadRequest(new { success = false, errors = result.Errors });
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto dto)
         {
-            var token = await _authService.LoginAsync(dto.Email, dto.Password);
-            if (token == null)
-                return Unauthorized(new { message = "Credenciales inválidas" });
+            var loginResponse = await _authService.LoginAsync(dto.Email, dto.Password);
+            if (loginResponse == null)
+                return Unauthorized(new { success = false, message = "Credenciales inválidas" });
 
-            return Ok(new { token });
+            return Ok(new
+            {
+                success = true,
+                token = loginResponse.Token,
+                email = loginResponse.Email,
+                userName = loginResponse.UserName,
+                userId = loginResponse.UserId,
+                roles = loginResponse.Roles
+            });
         }
     }
 }

@@ -11,6 +11,10 @@ namespace AerolineaRD.Mappings
             // Mapeo de Aeropuerto a AeropuertoDto
             CreateMap<Aeropuerto, AeropuertoDto>();
 
+            // Mapeo de Aeronave a AeronaveResponseDto
+            CreateMap<Aeronave, AeronaveResponseDto>();
+            CreateMap<CrearAeronaveDto, Aeronave>();
+
             // Mapeo de Vuelo a VueloResponseDto
             CreateMap<Vuelo, VueloResponseDto>()
                 .ForMember(dest => dest.OrigenNombre, opt => opt.MapFrom(src => src.Origen.Nombre))
@@ -18,6 +22,23 @@ namespace AerolineaRD.Mappings
                 .ForMember(dest => dest.DestinoNombre, opt => opt.MapFrom(src => src.Destino.Nombre))
                 .ForMember(dest => dest.DestinoCiudad, opt => opt.MapFrom(src => src.Destino.Ciudad))
                 .ForMember(dest => dest.ClasesDisponibles, opt => opt.Ignore()); // Se calcula manualmente
+
+            // Mapeo de Vuelo a VueloDetalleDto (hereda de VueloResponseDto)
+            CreateMap<Vuelo, VueloDetalleDto>()
+                .IncludeBase<Vuelo, VueloResponseDto>()
+                .ForMember(dest => dest.Tripulacion, opt => opt.MapFrom(src => src.Tripulaciones))
+                .ForMember(dest => dest.EstadoActual, opt => opt.MapFrom(src => src.EstadoVueloDetalle));
+
+            // Mapeo de CrearVueloDto a Vuelo
+            CreateMap<CrearVueloDto, Vuelo>()
+                .ForMember(dest => dest.Tripulaciones, opt => opt.Ignore()); // Se asigna manualmente en el servicio
+
+            // Mapeo de Tripulacion a TripulacionDto
+            CreateMap<Tripulacion, TripulacionDto>();
+            CreateMap<CrearTripulacionDto, Tripulacion>();
+
+            // Mapeo de EstadoVuelo a EstadoVueloDto
+            CreateMap<EstadoVuelo, EstadoVueloDto>();
 
             // Mapeo de Factura a FacturaResponseDto
             CreateMap<Factura, FacturaResponseDto>();
