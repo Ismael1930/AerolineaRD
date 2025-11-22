@@ -9,6 +9,7 @@ namespace AerolineaRD.Entity
         public Aeronave()
         {
             Vuelos = new HashSet<Vuelo>();
+            Asientos = new HashSet<Asiento>();
         }
 
         [Key]
@@ -29,5 +30,8 @@ namespace AerolineaRD.Entity
 
         [InverseProperty(nameof(Vuelo.Aeronave))]
         public ICollection<Vuelo> Vuelos { get; set; }
+
+        [InverseProperty(nameof(Asiento.Aeronave))]
+        public ICollection<Asiento> Asientos { get; set; }
     }
 }

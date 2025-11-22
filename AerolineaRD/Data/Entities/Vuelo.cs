@@ -8,7 +8,6 @@ namespace AerolineaRD.Entity
     {
         public Vuelo()
         {
-            Asientos = new HashSet<Asiento>();
             Reservas = new HashSet<Reserva>();
             Tripulaciones = new HashSet<Tripulacion>();
         }
@@ -34,7 +33,7 @@ namespace AerolineaRD.Entity
         public int Duracion { get; set; } // Minutos
 
         [Column("PrecioBase", TypeName = "decimal(10,2)")]
-        public decimal PrecioBase { get; set; }
+        public decimal PrecioBase { get; set; } // ⬅️ Este es el precio ECONÓMICO base
 
         [Column("Origen")]
         [MaxLength(10)]
@@ -70,9 +69,6 @@ namespace AerolineaRD.Entity
         [ForeignKey(nameof(Matricula))]
         public Aeronave? Aeronave { get; set; }
 
-        [InverseProperty(nameof(Asiento.Vuelo))]
-        public ICollection<Asiento> Asientos { get; set; }
-
         [InverseProperty(nameof(Reserva.Vuelo))]
         public ICollection<Reserva> Reservas { get; set; }
 
@@ -80,5 +76,18 @@ namespace AerolineaRD.Entity
         public ICollection<Tripulacion> Tripulaciones { get; set; }
 
         public EstadoVuelo? EstadoVueloDetalle { get; set; }
+
+        public decimal CalcularPrecioTotal(decimal precioBase, string clase)
+        {
+            decimal montoAdicional = clase switch
+            {
+                "Primera" => 200m,
+                "Ejecutiva" => 100m,
+                "Economica" => 0m,
+                _ => 0m
+            };
+
+            return precioBase + montoAdicional;
+        }
     }
 }

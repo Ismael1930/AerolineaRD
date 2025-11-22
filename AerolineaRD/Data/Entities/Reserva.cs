@@ -23,7 +23,11 @@ namespace AerolineaRD.Entity
 
         [Column("NumAsiento")]
         [MaxLength(5)]
-        public string? NumAsiento { get; set; }
+        public string? NumAsiento { get; set; } // Ej: "12A" - El número del asiento elegido
+
+        [Column("Clase")] // ⬅️ AGREGAR: La clase que eligió el pasajero
+        [MaxLength(20)]
+        public string? Clase { get; set; } // "Primera", "Ejecutiva", "Economica"
 
         [Column("FechaReserva", TypeName = "date")]
         public DateTime FechaReserva { get; set; }
@@ -43,9 +47,6 @@ namespace AerolineaRD.Entity
 
         [ForeignKey(nameof(IdCliente))]
         public Cliente? Cliente { get; set; }
-
-        [ForeignKey(nameof(NumAsiento))]
-        public Asiento? Asiento { get; set; }
 
         [InverseProperty(nameof(Factura.Reserva))]
         public Factura? Factura { get; set; }

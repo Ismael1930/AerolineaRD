@@ -6,7 +6,9 @@ namespace AerolineaRD.Data.DTOs
         public int IdVuelo { get; set; }
         public int IdCliente { get; set; }
         public string? NumAsiento { get; set; }
+        public string? Clase { get; set; } // "Economica", "Ejecutiva", "Primera"
         public string? MetodoPago { get; set; }
+        public decimal? PrecioTotal { get; set; } 
     }
 
     public class ModificarReservaDto
@@ -26,6 +28,7 @@ namespace AerolineaRD.Data.DTOs
         public string? Origen { get; set; }
         public string? Destino { get; set; }
         public string? NumAsiento { get; set; }
+        public string? Clase { get; set; }
         public DateTime FechaReserva { get; set; }
         public string? Estado { get; set; }
         public decimal PrecioTotal { get; set; }

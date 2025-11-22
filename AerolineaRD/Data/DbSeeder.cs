@@ -206,26 +206,26 @@ namespace AerolineaRD.Data
             // Rutas de ejemplo para generar vuelos
             var rutasBase = new[]
                    {
-    (origen: "SDQ", destino: "JFK", precio: 450.00m, duracion: 255),
-         (origen: "SDQ", destino: "MIA", precio: 320.00m, duracion: 150),
-    (origen: "SDQ", destino: "ATL", precio: 380.00m, duracion: 180),
- (origen: "SDQ", destino: "MAD", precio: 850.00m, duracion: 540),
-     (origen: "SDQ", destino: "CDG", precio: 920.00m, duracion: 600),
-     (origen: "PUJ", destino: "JFK", precio: 480.00m, duracion: 270),
-  (origen: "PUJ", destino: "MIA", precio: 340.00m, duracion: 160),
-   (origen: "PUJ", destino: "EWR", precio: 460.00m, duracion: 265),
-       (origen: "PUJ", destino: "CDG", precio: 920.00m, duracion: 600),
-         (origen: "STI", destino: "MIA", precio: 340.00m, duracion: 150),
-        (origen: "STI", destino: "JFK", precio: 470.00m, duracion: 260),
-   (origen: "POP", destino: "MIA", precio: 330.00m, duracion: 145),
-   (origen: "POP", destino: "CUN", precio: 280.00m, duracion: 120),
-  (origen: "SDQ", destino: "CUN", precio: 380.00m, duracion: 150),
-     (origen: "SDQ", destino: "PTY", precio: 320.00m, duracion: 130),
-       (origen: "SDQ", destino: "BOG", precio: 420.00m, duracion: 180),
-  (origen: "SDQ", destino: "LIM", precio: 550.00m, duracion: 300),
-           (origen: "PUJ", destino: "BCN", precio: 980.00m, duracion: 620),
-          (origen: "STI", destino: "ATL", precio: 390.00m, duracion: 185),
-          (origen: "LRM", destino: "MIA", precio: 340.00m, duracion: 155)
+                        (origen: "SDQ", destino: "JFK", precio: 450.00m, duracion: 255),
+                        (origen: "SDQ", destino: "MIA", precio: 320.00m, duracion: 150),
+                        (origen: "SDQ", destino: "ATL", precio: 380.00m, duracion: 180),
+                        (origen: "SDQ", destino: "MAD", precio: 850.00m, duracion: 540),
+                        (origen: "SDQ", destino: "CDG", precio: 920.00m, duracion: 600),
+                        (origen: "PUJ", destino: "JFK", precio: 480.00m, duracion: 270),
+                        (origen: "PUJ", destino: "MIA", precio: 340.00m, duracion: 160),
+                        (origen: "PUJ", destino: "EWR", precio: 460.00m, duracion: 265),
+                        (origen: "PUJ", destino: "CDG", precio: 920.00m, duracion: 600),
+                        (origen: "STI", destino: "MIA", precio: 340.00m, duracion: 150),
+                        (origen: "STI", destino: "JFK", precio: 470.00m, duracion: 260),
+                        (origen: "POP", destino: "MIA", precio: 330.00m, duracion: 145),
+                        (origen: "POP", destino: "CUN", precio: 280.00m, duracion: 120),
+                        (origen: "SDQ", destino: "CUN", precio: 380.00m, duracion: 150),
+                        (origen: "SDQ", destino: "PTY", precio: 320.00m, duracion: 130),
+                        (origen: "SDQ", destino: "BOG", precio: 420.00m, duracion: 180),
+                        (origen: "SDQ", destino: "LIM", precio: 550.00m, duracion: 300),
+                        (origen: "PUJ", destino: "BCN", precio: 980.00m, duracion: 620),
+                        (origen: "STI", destino: "ATL", precio: 390.00m, duracion: 185),
+                        (origen: "LRM", destino: "MIA", precio: 340.00m, duracion: 155)
        };
 
             int numeroVuelo = 1000;
@@ -253,7 +253,7 @@ namespace AerolineaRD.Data
                     Matricula = matriculas[i % matriculas.Length],
                     Estado = "Programado",
                     TipoVuelo = "IdaYVuelta",
-                    //FechaRegreso = fechaRegreso
+                    FechaRegreso = fechaRegreso // ✅ Ahora asigna la fecha de regreso
                 });
             }
 
@@ -278,7 +278,7 @@ namespace AerolineaRD.Data
                     Matricula = matriculas[i % matriculas.Length],
                     Estado = "Programado",
                     TipoVuelo = "SoloIda",
-                    FechaRegreso = null
+                    FechaRegreso = null // ✅ Solo ida NO tiene fecha de regreso
                 });
             }
 
@@ -288,10 +288,11 @@ namespace AerolineaRD.Data
 
         private static async Task SeedAsientosAsync(AppDbContext context)
         {
-            var vuelos = await context.Vuelos.ToListAsync();
+            // ⬅️ CAMBIO: Ahora los asientos pertenecen a AERONAVES, no a VUELOS
+            var aeronaves = await context.Aeronaves.ToListAsync();
             var asientos = new List<Asiento>();
 
-            foreach (var vuelo in vuelos)
+            foreach (var aeronave in aeronaves)
             {
                 // Primera Clase (Filas 1-3): 12 asientos
                 for (int fila = 1; fila <= 3; fila++)
@@ -300,10 +301,10 @@ namespace AerolineaRD.Data
                     {
                         asientos.Add(new Asiento
                         {
-                            Numero = $"{vuelo.Id}-{fila}{letra}",
-                            IdVuelo = vuelo.Id,
-                            Clase = "Primera",
-                            Disponibilidad = "Disponible"
+                            Numero = $"{aeronave.Matricula}-{fila}{letra}", // Ej: "HI1001RD-1A"
+                            Matricula = aeronave.Matricula,
+                            NumeroAsiento = $"{fila}{letra}", // Ej: "1A"
+                            Clase = "Primera"
                         });
                     }
                 }
@@ -315,10 +316,10 @@ namespace AerolineaRD.Data
                     {
                         asientos.Add(new Asiento
                         {
-                            Numero = $"{vuelo.Id}-{fila}{letra}",
-                            IdVuelo = vuelo.Id,
-                            Clase = "Ejecutiva",
-                            Disponibilidad = "Disponible"
+                            Numero = $"{aeronave.Matricula}-{fila}{letra}",
+                            Matricula = aeronave.Matricula,
+                            NumeroAsiento = $"{fila}{letra}",
+                            Clase = "Ejecutiva"
                         });
                     }
                 }
@@ -330,10 +331,10 @@ namespace AerolineaRD.Data
                     {
                         asientos.Add(new Asiento
                         {
-                            Numero = $"{vuelo.Id}-{fila}{letra}",
-                            IdVuelo = vuelo.Id,
-                            Clase = "Economica",
-                            Disponibilidad = "Disponible"
+                            Numero = $"{aeronave.Matricula}-{fila}{letra}",
+                            Matricula = aeronave.Matricula,
+                            NumeroAsiento = $"{fila}{letra}",
+                            Clase = "Economica"
                         });
                     }
                 }
@@ -341,6 +342,9 @@ namespace AerolineaRD.Data
 
             await context.Asientos.AddRangeAsync(asientos);
             await context.SaveChangesAsync();
+
+            Console.WriteLine($"   ✅ Creados {asientos.Count} asientos para {aeronaves.Count} aeronaves");
+            Console.WriteLine($"      - Por aeronave: 164 asientos (12 Primera + 20 Ejecutiva + 132 Económica)");
         }
 
         private static async Task SeedClientesAsync(AppDbContext context, UserManager<IdentityUser> userManager)
@@ -391,63 +395,45 @@ namespace AerolineaRD.Data
 
         private static async Task SeedReservasAsync(AppDbContext context)
         {
-            var vuelos = await context.Vuelos.Take(5).ToListAsync();
-            var clientes = await context.Clientes.ToListAsync();
-            var pasajeros = await context.Pasajeros.ToListAsync();
-            var asientos = await context.Asientos
-                .Where(a => a.Clase == "Economica" && a.Disponibilidad == "Disponible")
-                .Take(5)
-                .ToListAsync();
+            var vuelos = await context.Vuelos
+   .Include(v => v.Aeronave)
+  .ThenInclude(a => a.Asientos)
+   .Take(5)
+     .ToListAsync();
+ 
+   var clientes = await context.Clientes.ToListAsync();
+     var pasajeros = await context.Pasajeros.ToListAsync();
 
-            if (!vuelos.Any() || !clientes.Any() || !pasajeros.Any() || !asientos.Any())
-                return;
+if (!vuelos.Any() || !clientes.Any() || !pasajeros.Any())
+    return;
 
-            var reservas = new List<Reserva>
-            {
-                new Reserva
-                {
-                    Codigo = "RES001",
-                    IdVuelo = vuelos[0].Id,
-                    IdCliente = clientes[0].Id,
-                    IdPasajero = pasajeros[0].Id,
-                    NumAsiento = asientos[0].Numero,
-                    FechaReserva = DateTime.Today.AddDays(-5),
-                    Estado = "Confirmada",
-                    PrecioTotal = vuelos[0].PrecioBase
-                },
-                new Reserva
-                {
-                    Codigo = "RES002",
-                    IdVuelo = vuelos[1].Id,
-                    IdCliente = clientes[1].Id,
-                    IdPasajero = pasajeros[1].Id,
-                    NumAsiento = asientos[1].Numero,
-                    FechaReserva = DateTime.Today.AddDays(-3),
-                    Estado = "Confirmada",
-                    PrecioTotal = vuelos[1].PrecioBase
-                },
-                new Reserva
-                {
-                    Codigo = "RES003",
-                    IdVuelo = vuelos[2].Id,
-                    IdCliente = clientes[2].Id,
-                    IdPasajero = pasajeros[2].Id,
-                    NumAsiento = asientos[2].Numero,
-                    FechaReserva = DateTime.Today.AddDays(-1),
-                    Estado = "Confirmada",
-                    PrecioTotal = vuelos[2].PrecioBase
-                }
-            };
+      var reservas = new List<Reserva>();
+      
+        // Para cada vuelo, tomar un asiento económico de su aeronave
+ for (int i = 0; i < Math.Min(3, vuelos.Count); i++)
+      {
+       var vuelo = vuelos[i];
+            var asientoDisponible = vuelo.Aeronave?.Asientos?
+     .FirstOrDefault(a => a.Clase == "Economica");
 
-            await context.Reservas.AddRangeAsync(reservas);
-            await context.SaveChangesAsync();
+    if (asientoDisponible == null) continue;
 
-            // Marcar asientos como ocupados
-            foreach (var asiento in asientos.Take(3))
-            {
-                asiento.Disponibilidad = "Ocupado";
-            }
-            await context.SaveChangesAsync();
+       reservas.Add(new Reserva
+   {
+          Codigo = $"RES{(i + 1):000}",
+     IdVuelo = vuelo.Id,
+     IdCliente = clientes[i % clientes.Count].Id,
+    IdPasajero = pasajeros[i % pasajeros.Count].Id,
+   NumAsiento = asientoDisponible.NumeroAsiento, // Ej: "9A"
+Clase = "Economica",
+     FechaReserva = DateTime.Today.AddDays(-(5 - i)),
+        Estado = "Confirmada",
+     PrecioTotal = vuelo.PrecioBase
+    });
+      }
+
+    await context.Reservas.AddRangeAsync(reservas);
+    await context.SaveChangesAsync();
         }
 
         private static async Task SeedFacturasAsync(AppDbContext context)
@@ -464,7 +450,7 @@ namespace AerolineaRD.Data
                     Codigo = "FAC001",
                     CodReserva = reservas[0].Codigo,
                     Monto = reservas[0].PrecioTotal,
-                    MetodoPago = "Tarjeta de Crédito",
+                   MetodoPago = "Tarjeta de Crédito",
                     FechaEmision = reservas[0].FechaReserva,
                     EstadoPago = "Pagado"
                 },

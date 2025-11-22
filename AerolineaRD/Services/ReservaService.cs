@@ -9,20 +9,20 @@ namespace AerolineaRD.Services
     public class ReservaService : IReservaService
     {
         private readonly IReservaRepository _reservaRepository;
-        private readonly IAsientoRepository _asientoRepository;
+        private readonly IVueloRepository _vueloRepository;
         private readonly IFacturaRepository _facturaRepository;
         private readonly INotificacionService _notificacionService;
         private readonly IMapper _mapper;
 
         public ReservaService(
             IReservaRepository reservaRepository,
-            IAsientoRepository asientoRepository,
+            IVueloRepository vueloRepository,
             IFacturaRepository facturaRepository,
             INotificacionService notificacionService,
             IMapper mapper)
         {
             _reservaRepository = reservaRepository;
-            _asientoRepository = asientoRepository;
+            _vueloRepository = vueloRepository;
             _facturaRepository = facturaRepository;
             _notificacionService = notificacionService;
             _mapper = mapper;
@@ -30,20 +30,22 @@ namespace AerolineaRD.Services
 
         public async Task<ReservaResponseDto> CrearReservaAsync(CrearReservaDto dto)
         {
-            // Validar que el asiento esté disponible
+            // ?? CAMBIO: Validar que el asiento existe en la aeronave del vuelo
             if (!string.IsNullOrEmpty(dto.NumAsiento))
             {
+                // Verificar que no esté reservado
                 var existe = await _reservaRepository.ExisteReservaActivaAsync(dto.IdVuelo, dto.NumAsiento);
                 if (existe)
                     throw new InvalidOperationException("El asiento seleccionado ya está reservado.");
 
-                // Marcar asiento como ocupado
-                var asiento = await _asientoRepository.ObtenerAsientoPorNumeroAsync(dto.NumAsiento);
-                if (asiento != null)
-                {
-                    asiento.Disponibilidad = "Ocupado";
-                    _asientoRepository.Update(asiento);
-                }
+                // Validar que el asiento existe en la aeronave del vuelo
+                var vuelo = await _vueloRepository.ObtenerVueloConDetallesAsync(dto.IdVuelo);
+                if (vuelo?.Aeronave?.Asientos == null)
+                    throw new InvalidOperationException("No se pudo validar el vuelo o la aeronave.");
+
+                var asientoExiste = vuelo.Aeronave.Asientos.Any(a => a.NumeroAsiento == dto.NumAsiento);
+                if (!asientoExiste)
+                    throw new InvalidOperationException("El asiento seleccionado no existe en esta aeronave.");
             }
 
             // Crear reserva
@@ -54,9 +56,10 @@ namespace AerolineaRD.Services
                 IdVuelo = dto.IdVuelo,
                 IdCliente = dto.IdCliente,
                 NumAsiento = dto.NumAsiento,
+                Clase = dto.Clase, // ?? NUEVO: Guardar la clase seleccionada
                 FechaReserva = DateTime.Now,
                 Estado = "Confirmada",
-                PrecioTotal = 150.00m // Calcular según lógica de negocio
+                PrecioTotal = dto.PrecioTotal ?? 150.00m // Usar precio del DTO o calcular
             };
 
             await _reservaRepository.AddAsync(reserva);
@@ -106,16 +109,7 @@ namespace AerolineaRD.Services
             if (reserva == null)
                 throw new KeyNotFoundException("Reserva no encontrada.");
 
-            // Liberar asiento anterior
-            if (!string.IsNullOrEmpty(reserva.NumAsiento))
-            {
-                var asientoAnterior = await _asientoRepository.ObtenerAsientoPorNumeroAsync(reserva.NumAsiento);
-                if (asientoAnterior != null)
-                {
-                    asientoAnterior.Disponibilidad = "Disponible";
-                    _asientoRepository.Update(asientoAnterior);
-                }
-            }
+            // ?? CAMBIO: Ya no hay que "liberar" asientos, solo validar el nuevo
 
             // Actualizar datos
             if (dto.NuevoIdVuelo.HasValue)
@@ -127,14 +121,16 @@ namespace AerolineaRD.Services
                 if (existe)
                     throw new InvalidOperationException("El nuevo asiento ya está ocupado.");
 
-                reserva.NumAsiento = dto.NuevoNumAsiento;
+                // Validar que el asiento existe en la aeronave
+                var vuelo = await _vueloRepository.ObtenerVueloConDetallesAsync(reserva.IdVuelo);
+                if (vuelo?.Aeronave?.Asientos == null)
+                    throw new InvalidOperationException("No se pudo validar el vuelo.");
 
-                var nuevoAsiento = await _asientoRepository.ObtenerAsientoPorNumeroAsync(dto.NuevoNumAsiento);
-                if (nuevoAsiento != null)
-                {
-                    nuevoAsiento.Disponibilidad = "Ocupado";
-                    _asientoRepository.Update(nuevoAsiento);
-                }
+                var asientoExiste = vuelo.Aeronave.Asientos.Any(a => a.NumeroAsiento == dto.NuevoNumAsiento);
+                if (!asientoExiste)
+                    throw new InvalidOperationException("El nuevo asiento no existe en esta aeronave.");
+
+                reserva.NumAsiento = dto.NuevoNumAsiento;
             }
 
             reserva.Estado = "Modificada";
@@ -158,16 +154,8 @@ namespace AerolineaRD.Services
             if (reserva == null)
                 return false;
 
-            // Liberar asiento
-            if (!string.IsNullOrEmpty(reserva.NumAsiento))
-            {
-                var asiento = await _asientoRepository.ObtenerAsientoPorNumeroAsync(reserva.NumAsiento);
-                if (asiento != null)
-                {
-                    asiento.Disponibilidad = "Disponible";
-                    _asientoRepository.Update(asiento);
-                }
-            }
+            // ?? CAMBIO: Ya no hay que liberar asientos físicamente
+            // La disponibilidad se calcula consultando las reservas activas
 
             reserva.Estado = "Cancelada";
             _reservaRepository.Update(reserva);

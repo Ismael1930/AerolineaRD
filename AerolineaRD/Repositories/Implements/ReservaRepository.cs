@@ -22,7 +22,6 @@ namespace AerolineaRD.Repositories.Implements
                     .ThenInclude(v => v!.Origen)
                 .Include(r => r.Vuelo)
                     .ThenInclude(v => v!.Destino)
-                .Include(r => r.Asiento)
                 .Include(r => r.Factura)
                 .FirstOrDefaultAsync(r => r.Codigo == codigo);
         }
@@ -32,6 +31,9 @@ namespace AerolineaRD.Repositories.Implements
             return await _context.Reservas
                 .Include(r => r.Pasajero)
                 .Include(r => r.Vuelo)
+                    .ThenInclude(v => v!.Origen)
+                .Include(r => r.Vuelo)
+                    .ThenInclude(v => v!.Destino)
                 .Include(r => r.Factura)
                 .Where(r => r.IdCliente == idCliente)
                 .OrderByDescending(r => r.FechaReserva)

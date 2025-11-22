@@ -6,5 +6,6 @@ namespace AerolineaRD.Services.interfaces
     {
         Task<List<VueloResponseDto>> BuscarVuelosAsync(BuscarVueloDto filtros);
         Task<VueloResponseDto?> ObtenerVueloPorIdAsync(int id);
+        Task<List<AsientoDisponibleDto>> ObtenerAsientosDisponiblesAsync(int idVuelo, string clase);
     }
 }

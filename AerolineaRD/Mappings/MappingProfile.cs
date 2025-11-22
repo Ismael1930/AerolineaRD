@@ -9,26 +9,28 @@ namespace AerolineaRD.Mappings
         public MappingProfile()
         {
             // Mapeo de Aeropuerto a AeropuertoDto
-            CreateMap<Aeropuerto, AeropuertoDto>().ReverseMap();
+            CreateMap<Aeropuerto, AeropuertoDto>();
 
             // Mapeo de Vuelo a VueloResponseDto
             CreateMap<Vuelo, VueloResponseDto>()
-                .ForMember(dest => dest.HoraSalida, opt => opt.MapFrom(src => src.HoraSalida))
-                .ForMember(dest => dest.HoraLlegada, opt => opt.MapFrom(src => src.HoraLlegada))
-                .ForMember(dest => dest.Duracion, opt => opt.MapFrom(src => src.Duracion))
-                .ForMember(dest => dest.PrecioBase, opt => opt.MapFrom(src => src.PrecioBase))
-                .ForMember(dest => dest.TipoVuelo, opt => opt.MapFrom(src => src.TipoVuelo))
-                .ForMember(dest => dest.FechaRegreso, opt => opt.MapFrom(src => src.FechaRegreso))
-                .ForMember(dest => dest.OrigenNombre, opt => opt.MapFrom(src => src.Origen != null ? src.Origen.Nombre : null))
-                .ForMember(dest => dest.OrigenCiudad, opt => opt.MapFrom(src => src.Origen != null ? src.Origen.Ciudad : null))
-                .ForMember(dest => dest.DestinoNombre, opt => opt.MapFrom(src => src.Destino != null ? src.Destino.Nombre : null))
-                .ForMember(dest => dest.DestinoCiudad, opt => opt.MapFrom(src => src.Destino != null ? src.Destino.Ciudad : null))
-                .ForMember(dest => dest.AsientosDisponibles, opt => opt.MapFrom(src => src.Asientos.Count(a => a.Disponibilidad == "Disponible")))
-                .ForMember(dest => dest.ClasesDisponibles, opt => opt.MapFrom(src => src.Asientos
-                    .Where(a => a.Disponibilidad == "Disponible")
-                    .Select(a => a.Clase)
-                    .Distinct()
-                    .ToList()));
+                .ForMember(dest => dest.OrigenNombre, opt => opt.MapFrom(src => src.Origen.Nombre))
+                .ForMember(dest => dest.OrigenCiudad, opt => opt.MapFrom(src => src.Origen.Ciudad))
+                .ForMember(dest => dest.DestinoNombre, opt => opt.MapFrom(src => src.Destino.Nombre))
+                .ForMember(dest => dest.DestinoCiudad, opt => opt.MapFrom(src => src.Destino.Ciudad))
+                .ForMember(dest => dest.ClasesDisponibles, opt => opt.Ignore()); // Se calcula manualmente
+
+            // Mapeo de Factura a FacturaResponseDto
+            CreateMap<Factura, FacturaResponseDto>();
+
+            // Mapeo de Reserva a ReservaResponseDto
+            CreateMap<Reserva, ReservaResponseDto>()
+                .ForMember(dest => dest.PasajeroNombre, opt => opt.MapFrom(src => src.Pasajero.Nombre))
+                .ForMember(dest => dest.PasajeroApellido, opt => opt.MapFrom(src => src.Pasajero.Apellido))
+                .ForMember(dest => dest.NumeroVuelo, opt => opt.MapFrom(src => src.Vuelo.NumeroVuelo))
+                .ForMember(dest => dest.FechaVuelo, opt => opt.MapFrom(src => src.Vuelo.Fecha))
+                .ForMember(dest => dest.Origen, opt => opt.MapFrom(src => src.Vuelo.Origen.Ciudad))
+                .ForMember(dest => dest.Destino, opt => opt.MapFrom(src => src.Vuelo.Destino.Ciudad))
+                .ForMember(dest => dest.Factura, opt => opt.MapFrom(src => src.Factura)); // Mapear Factura
         }
     }
 }

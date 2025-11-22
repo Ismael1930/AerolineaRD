@@ -19,9 +19,12 @@ namespace AerolineaRD.Repositories.Implements
         public async Task<List<Vuelo>> BuscarVuelosConFiltrosAsync(string? origen, string? destino, DateTime? fechaSalida, DateTime? fechaRegreso, string? clase, string tipoViaje)
         {
             var query = _context.Vuelos
+                .AsNoTracking() // ? Evitar tracking para mejor rendimiento
                 .Include(v => v.Origen)
                 .Include(v => v.Destino)
-                .Include(v => v.Asientos)
+                .Include(v => v.Aeronave) // Cargar aeronave
+                .ThenInclude(a => a.Asientos) // Cargar SOLO asientos, NO otros vuelos
+                .Include(v => v.Reservas) // Cargar reservas para calcular disponibilidad
                 .AsQueryable();
 
             // Filtrar por origen y destino
@@ -36,8 +39,6 @@ namespace AerolineaRD.Repositories.Implements
             }
 
             // Filtrar por tipo de viaje
-            // Si busca "SoloIda", mostrar vuelos marcados como "SoloIda"
-            // Si busca "IdaYVuelta", mostrar vuelos marcados como "IdaYVuelta"
             if (!string.IsNullOrEmpty(tipoViaje))
             {
                 query = query.Where(v => v.TipoVuelo == tipoViaje);
@@ -50,7 +51,7 @@ namespace AerolineaRD.Repositories.Implements
                 query = query.Where(v => v.Fecha.Date >= fecha);
             }
 
-            // Traer a memoria ANTES de ordenar por TimeSpan (SQLite no soporta TimeSpan en ORDER BY)
+            // Traer a memoria
             var vuelosEnMemoria = await query
                 .OrderBy(v => v.Fecha)
                 .ToListAsync();
@@ -61,26 +62,31 @@ namespace AerolineaRD.Repositories.Implements
                 .ThenBy(v => v.HoraSalida)
                 .ToList();
 
-            // Filtrar por clase en memoria (normalizado sin tildes)
+            // Filtrar por clase en memoria
             if (!string.IsNullOrEmpty(clase))
             {
                 var claseNormalizada = NormalizarTexto(clase);
+                
                 vuelosEnMemoria = vuelosEnMemoria
-                    .Where(v => v.Asientos.Any(a =>
-                        NormalizarTexto(a.Clase) == claseNormalizada &&
-                        a.Disponibilidad == "Disponible"))
+                    .Where(v => v.Aeronave != null && 
+                                v.Aeronave.Asientos != null &&
+                                v.Aeronave.Asientos.Any(a => 
+                                    NormalizarTexto(a.Clase) == claseNormalizada))
                     .ToList();
             }
 
             return vuelosEnMemoria;
         }
 
-        public async Task<Vuelo> ObtenerVueloConDetallesAsync(int id)
+        public async Task<Vuelo?> ObtenerVueloConDetallesAsync(int id)
         {
             return await _context.Vuelos
+                .AsNoTracking() // ? Evitar tracking
                 .Include(v => v.Origen)
                 .Include(v => v.Destino)
-                .Include(v => v.Asientos)
+                .Include(v => v.Aeronave)
+                .ThenInclude(a => a.Asientos) // Cargar SOLO asientos
+                .Include(v => v.Reservas)
                 .FirstOrDefaultAsync(v => v.Id == id);
         }
 

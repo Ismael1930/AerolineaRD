@@ -14,15 +14,26 @@ namespace AerolineaRD.Repositories.Implements
             _context = context;
         }
 
+        // CAMBIO: Ahora busca asientos por matrícula de aeronave
         public async Task<List<Asiento>> ObtenerAsientosPorVueloAsync(int idVuelo)
         {
+            // Primero obtener la matrícula del vuelo
+            var vuelo = await _context.Vuelos
+                .Where(v => v.Id == idVuelo)
+                .Select(v => v.Matricula)
+                .FirstOrDefaultAsync();
+
+            if (string.IsNullOrEmpty(vuelo))
+                return new List<Asiento>();
+
+            // Luego obtener los asientos de esa aeronave
             return await _context.Asientos
-                .Where(a => a.IdVuelo == idVuelo)
-                .OrderBy(a => a.Numero)
+                .Where(a => a.Matricula == vuelo)
+                .OrderBy(a => a.NumeroAsiento)
                 .ToListAsync();
         }
 
-        public async Task<Asiento> ObtenerAsientoPorNumeroAsync(string numero)
+        public async Task<Asiento?> ObtenerAsientoPorNumeroAsync(string numero)
         {
             return await _context.Asientos
                 .FirstOrDefaultAsync(a => a.Numero == numero);
