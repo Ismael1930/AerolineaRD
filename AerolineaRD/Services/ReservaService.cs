@@ -103,6 +103,12 @@ namespace AerolineaRD.Services
             return _mapper.Map<List<ReservaResponseDto>>(reservas);
         }
 
+        public async Task<List<ReservaResponseDto>> ObtenerTodasAsync()
+        {
+            var reservas = await _reservaRepository.ObtenerTodasConDetallesAsync();
+            return _mapper.Map<List<ReservaResponseDto>>(reservas);
+        }
+
         public async Task<ReservaResponseDto> ModificarReservaAsync(ModificarReservaDto dto)
         {
             var reserva = await _reservaRepository.ObtenerReservaPorCodigoAsync(dto.CodigoReserva);

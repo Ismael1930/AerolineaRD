@@ -7,5 +7,6 @@ namespace AerolineaRD.Repositories.interfaces
         Task<Reserva?> ObtenerReservaPorCodigoAsync(string codigo);
         Task<List<Reserva>> ObtenerReservasPorClienteAsync(int idCliente);
         Task<bool> ExisteReservaActivaAsync(int idVuelo, string numAsiento);
+        Task<List<Reserva>> ObtenerTodasConDetallesAsync();
     }
 }

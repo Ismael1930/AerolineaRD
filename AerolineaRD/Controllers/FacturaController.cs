@@ -17,6 +17,42 @@ namespace AerolineaRD.Controllers
         }
 
         /// <summary>
+        /// Crear una nueva factura
+        /// </summary>
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> CrearFactura([FromBody] CrearFacturaDto dto)
+        {
+            try
+            {
+                var factura = await _facturaService.CrearFacturaAsync(dto);
+                return Ok(new { success = true, data = factura, message = "Factura creada exitosamente" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Obtener todas las facturas
+        /// </summary>
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ObtenerTodas()
+        {
+            try
+            {
+                var facturas = await _facturaService.ObtenerTodasAsync();
+                return Ok(new { success = true, data = facturas });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
         /// Obtener factura por código
         /// </summary>
         [HttpGet("{codigo}")]

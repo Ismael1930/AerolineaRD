@@ -42,6 +42,8 @@ namespace AerolineaRD.Mappings
 
             // Mapeo de Factura a FacturaResponseDto
             CreateMap<Factura, FacturaResponseDto>();
+            CreateMap<CrearFacturaDto, Factura>()
+                .ForMember(dest => dest.FechaEmision, opt => opt.Ignore()); // Se asigna en el servicio
 
             // Mapeo de Reserva a ReservaResponseDto
             CreateMap<Reserva, ReservaResponseDto>()

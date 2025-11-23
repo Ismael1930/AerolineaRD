@@ -1,5 +1,14 @@
 namespace AerolineaRD.Data.DTOs
 {
+    public class CrearFacturaDto
+    {
+        public string Codigo { get; set; } = null!;
+        public string CodReserva { get; set; } = null!;
+        public decimal Monto { get; set; }
+        public string? MetodoPago { get; set; }
+        public string? EstadoPago { get; set; } = "Pendiente"; // "Pendiente", "Pagado", "Cancelado"
+    }
+
     public class FacturaResponseDto
     {
         public string Codigo { get; set; } = null!;

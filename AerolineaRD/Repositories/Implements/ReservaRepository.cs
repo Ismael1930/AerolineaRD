@@ -47,5 +47,18 @@ namespace AerolineaRD.Repositories.Implements
                     && r.NumAsiento == numAsiento 
                     && r.Estado != "Cancelada");
         }
+
+        public async Task<List<Reserva>> ObtenerTodasConDetallesAsync()
+        {
+            return await _context.Reservas
+                .Include(r => r.Pasajero)
+                .Include(r => r.Vuelo)
+                    .ThenInclude(v => v!.Origen)
+                .Include(r => r.Vuelo)
+                    .ThenInclude(v => v!.Destino)
+                .Include(r => r.Factura)
+                .OrderByDescending(r => r.FechaReserva)
+                .ToListAsync();
+        }
     }
 }

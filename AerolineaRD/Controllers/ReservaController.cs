@@ -122,5 +122,23 @@ namespace AerolineaRD.Controllers
                 return BadRequest(new { success = false, message = ex.Message });
             }
         }
+
+        /// <summary>
+        /// Obtener todas las reservas
+        /// </summary>
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ObtenerTodas()
+        {
+            try
+            {
+                var reservas = await _reservaService.ObtenerTodasAsync();
+                return Ok(new { success = true, data = reservas, count = reservas.Count });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
     }
 }

@@ -1,4 +1,5 @@
 using AerolineaRD.Data.DTOs;
+using AerolineaRD.Entity;
 using AerolineaRD.Repositories.interfaces;
 using AerolineaRD.Services.interfaces;
 using AutoMapper;
@@ -14,6 +15,23 @@ namespace AerolineaRD.Services
         {
             _facturaRepository = facturaRepository;
             _mapper = mapper;
+        }
+
+        public async Task<FacturaResponseDto> CrearFacturaAsync(CrearFacturaDto dto)
+        {
+            var factura = _mapper.Map<Factura>(dto);
+            factura.FechaEmision = DateTime.Now;
+
+            await _facturaRepository.AddAsync(factura);
+            await _facturaRepository.SaveAsync();
+
+            return _mapper.Map<FacturaResponseDto>(factura);
+        }
+
+        public async Task<List<FacturaResponseDto>> ObtenerTodasAsync()
+        {
+            var facturas = await _facturaRepository.GetAllAsync();
+            return _mapper.Map<List<FacturaResponseDto>>(facturas);
         }
 
         public async Task<FacturaResponseDto?> ObtenerPorCodigoAsync(string codigo)
