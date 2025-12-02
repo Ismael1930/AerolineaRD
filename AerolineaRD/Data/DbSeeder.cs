@@ -70,7 +70,7 @@ namespace AerolineaRD.Data
             Console.WriteLine($"   - {await context.Asientos.CountAsync()} asientos");
             Console.WriteLine($"   - {await context.Clientes.CountAsync()} clientes");
             Console.WriteLine($"   - {await context.Pasajeros.CountAsync()} pasajeros");
-            Console.WriteLine($"   - {await context.Reservas.CountAsync()} reservas");
+            Console.WriteLine($" - {await context.Reservas.CountAsync()} reservas");
         }
 
         private static async Task SeedRolesAsync(RoleManager<IdentityRole> roleManager)
@@ -198,46 +198,54 @@ namespace AerolineaRD.Data
 
         private static async Task SeedVuelosAsync(AppDbContext context)
         {
-            var hoy = DateTime.Today;
+            // ✅ Cambiar fecha base a diciembre 7, 2024
+            var fechaBase = new DateTime(2025, 12, 7); // 7 de diciembre 2024
             var vuelos = new List<Vuelo>();
             var matriculas = new[] { "HI-1001RD", "HI-1002RD", "HI-1003RD", "HI-1004RD", "HI-1005RD", "HI-1006RD", "HI-1007RD" };
             var random = new Random();
 
             // Rutas de ejemplo para generar vuelos
             var rutasBase = new[]
-                   {
-                        (origen: "SDQ", destino: "JFK", precio: 450.00m, duracion: 255),
-                        (origen: "SDQ", destino: "MIA", precio: 320.00m, duracion: 150),
-                        (origen: "SDQ", destino: "ATL", precio: 380.00m, duracion: 180),
-                        (origen: "SDQ", destino: "MAD", precio: 850.00m, duracion: 540),
-                        (origen: "SDQ", destino: "CDG", precio: 920.00m, duracion: 600),
-                        (origen: "PUJ", destino: "JFK", precio: 480.00m, duracion: 270),
-                        (origen: "PUJ", destino: "MIA", precio: 340.00m, duracion: 160),
-                        (origen: "PUJ", destino: "EWR", precio: 460.00m, duracion: 265),
-                        (origen: "PUJ", destino: "CDG", precio: 920.00m, duracion: 600),
-                        (origen: "STI", destino: "MIA", precio: 340.00m, duracion: 150),
-                        (origen: "STI", destino: "JFK", precio: 470.00m, duracion: 260),
-                        (origen: "POP", destino: "MIA", precio: 330.00m, duracion: 145),
-                        (origen: "POP", destino: "CUN", precio: 280.00m, duracion: 120),
-                        (origen: "SDQ", destino: "CUN", precio: 380.00m, duracion: 150),
-                        (origen: "SDQ", destino: "PTY", precio: 320.00m, duracion: 130),
-                        (origen: "SDQ", destino: "BOG", precio: 420.00m, duracion: 180),
-                        (origen: "SDQ", destino: "LIM", precio: 550.00m, duracion: 300),
-                        (origen: "PUJ", destino: "BCN", precio: 980.00m, duracion: 620),
-                        (origen: "STI", destino: "ATL", precio: 390.00m, duracion: 185),
-                        (origen: "LRM", destino: "MIA", precio: 340.00m, duracion: 155)
-       };
+                {
+       (origen: "SDQ", destino: "JFK", precio: 450.00m, duracion: 255),
+  (origen: "SDQ", destino: "MIA", precio: 320.00m, duracion: 150),
+ (origen: "SDQ", destino: "ATL", precio: 380.00m, duracion: 180),
+         (origen: "SDQ", destino: "MAD", precio: 850.00m, duracion: 540),
+         (origen: "SDQ", destino: "CDG", precio: 920.00m, duracion: 600),
+   (origen: "PUJ", destino: "JFK", precio: 480.00m, duracion: 270),
+   (origen: "PUJ", destino: "MIA", precio: 340.00m, duracion: 160),
+     (origen: "PUJ", destino: "EWR", precio: 460.00m, duracion: 265),
+        (origen: "PUJ", destino: "CDG", precio: 920.00m, duracion: 600),
+            (origen: "STI", destino: "MIA", precio: 340.00m, duracion: 150),
+ (origen: "STI", destino: "JFK", precio: 470.00m, duracion: 260),
+  (origen: "POP", destino: "MIA", precio: 330.00m, duracion: 145),
+          (origen: "POP", destino: "CUN", precio: 280.00m, duracion: 120),
+         (origen: "SDQ", destino: "CUN", precio: 380.00m, duracion: 150),
+        (origen: "SDQ", destino: "PTY", precio: 320.00m, duracion: 130),
+  (origen: "SDQ", destino: "BOG", precio: 420.00m, duracion: 180),
+         (origen: "SDQ", destino: "LIM", precio: 550.00m, duracion: 300),
+        (origen: "PUJ", destino: "BCN", precio: 980.00m, duracion: 620),
+ (origen: "STI", destino: "ATL", precio: 390.00m, duracion: 185),
+  (origen: "LRM", destino: "MIA", precio: 340.00m, duracion: 155),
+     // Rutas de regreso (ATL como origen)
+   (origen: "ATL", destino: "SDQ", precio: 380.00m, duracion: 180),
+           (origen: "ATL", destino: "PUJ", precio: 400.00m, duracion: 185),
+                (origen: "JFK", destino: "SDQ", precio: 450.00m, duracion: 255),
+             (origen: "MIA", destino: "SDQ", precio: 320.00m, duracion: 150),
+(origen: "MIA", destino: "PUJ", precio: 340.00m, duracion: 160)
+  };
 
             int numeroVuelo = 1000;
 
-            // Generar 100 vuelos de IDA Y VUELTA
-            for (int i = 0; i < 100; i++)
+            // Generar 150 vuelos de IDA Y VUELTA distribuidos desde 7 dic 2024 hasta 31 ene 2025 (55 días)
+            for (int i = 0; i < 150; i++)
             {
                 var ruta = rutasBase[i % rutasBase.Length];
-                var dia = i / rutasBase.Length;
+                // ✅ Distribuir vuelos en 55 días (7 dic 2024 - 31 ene 2025)
+                var diasAdelante = i % 55;
                 var horaSalida = new TimeSpan(6 + (i % 16), random.Next(0, 60), 0); // Entre 6 AM y 10 PM
                 var horaLlegada = horaSalida.Add(TimeSpan.FromMinutes(ruta.duracion));
-                var fechaSalida = hoy.AddDays(dia);
+                var fechaSalida = fechaBase.AddDays(diasAdelante);
                 var fechaRegreso = fechaSalida.AddDays(7 + random.Next(0, 14)); // Entre 7 y 21 días después
 
                 vuelos.Add(new Vuelo
@@ -253,22 +261,23 @@ namespace AerolineaRD.Data
                     Matricula = matriculas[i % matriculas.Length],
                     Estado = "Programado",
                     TipoVuelo = "IdaYVuelta",
-                    FechaRegreso = fechaRegreso // ✅ Ahora asigna la fecha de regreso
+                    FechaRegreso = fechaRegreso
                 });
             }
 
-            // Generar 100 vuelos de SOLO IDA
+            // Generar 100 vuelos de SOLO IDA distribuidos desde 7 dic 2024 hasta 15 ene 2025 (40 días)
             for (int i = 0; i < 100; i++)
             {
                 var ruta = rutasBase[i % rutasBase.Length];
-                var dia = i / rutasBase.Length;
+                // ✅ Distribuir vuelos de solo ida en 40 días
+                var diasAdelante = i % 40;
                 var horaSalida = new TimeSpan(6 + (i % 16), random.Next(0, 60), 0); // Entre 6 AM y 10 PM
                 var horaLlegada = horaSalida.Add(TimeSpan.FromMinutes(ruta.duracion));
 
                 vuelos.Add(new Vuelo
                 {
                     NumeroVuelo = $"RD{numeroVuelo++}",
-                    Fecha = hoy.AddDays(dia),
+                    Fecha = fechaBase.AddDays(diasAdelante),
                     HoraSalida = horaSalida,
                     HoraLlegada = horaLlegada,
                     Duracion = ruta.duracion,
@@ -278,7 +287,7 @@ namespace AerolineaRD.Data
                     Matricula = matriculas[i % matriculas.Length],
                     Estado = "Programado",
                     TipoVuelo = "SoloIda",
-                    FechaRegreso = null // ✅ Solo ida NO tiene fecha de regreso
+                    FechaRegreso = null // Solo ida NO tiene fecha de regreso
                 });
             }
 
@@ -396,44 +405,44 @@ namespace AerolineaRD.Data
         private static async Task SeedReservasAsync(AppDbContext context)
         {
             var vuelos = await context.Vuelos
-   .Include(v => v.Aeronave)
-  .ThenInclude(a => a.Asientos)
-   .Take(5)
-     .ToListAsync();
- 
-   var clientes = await context.Clientes.ToListAsync();
-     var pasajeros = await context.Pasajeros.ToListAsync();
+                .Include(v => v.Aeronave)
+                .ThenInclude(a => a.Asientos)
+                .Take(5)
+                .ToListAsync();
 
-if (!vuelos.Any() || !clientes.Any() || !pasajeros.Any())
-    return;
+            var clientes = await context.Clientes.ToListAsync();
+            var pasajeros = await context.Pasajeros.ToListAsync();
 
-      var reservas = new List<Reserva>();
-      
-        // Para cada vuelo, tomar un asiento económico de su aeronave
- for (int i = 0; i < Math.Min(3, vuelos.Count); i++)
-      {
-       var vuelo = vuelos[i];
-            var asientoDisponible = vuelo.Aeronave?.Asientos?
-     .FirstOrDefault(a => a.Clase == "Economica");
+            if (!vuelos.Any() || !clientes.Any() || !pasajeros.Any())
+                return;
 
-    if (asientoDisponible == null) continue;
+            var reservas = new List<Reserva>();
 
-       reservas.Add(new Reserva
-   {
-          Codigo = $"RES{(i + 1):000}",
-     IdVuelo = vuelo.Id,
-     IdCliente = clientes[i % clientes.Count].Id,
-    IdPasajero = pasajeros[i % pasajeros.Count].Id,
-   NumAsiento = asientoDisponible.NumeroAsiento, // Ej: "9A"
-Clase = "Economica",
-     FechaReserva = DateTime.Today.AddDays(-(5 - i)),
-        Estado = "Confirmada",
-     PrecioTotal = vuelo.PrecioBase
-    });
-      }
+            // Para cada vuelo, tomar un asiento económico de su aeronave
+            for (int i = 0; i < Math.Min(3, vuelos.Count); i++)
+            {
+                var vuelo = vuelos[i];
+                var asientoDisponible = vuelo.Aeronave?.Asientos?
+                    .FirstOrDefault(a => a.Clase == "Economica");
 
-    await context.Reservas.AddRangeAsync(reservas);
-    await context.SaveChangesAsync();
+                if (asientoDisponible == null) continue;
+
+                reservas.Add(new Reserva
+                {
+                    Codigo = $"RES{(i + 1):000}",
+                    IdVuelo = vuelo.Id,
+                    IdCliente = clientes[i % clientes.Count].Id,
+                    IdPasajero = pasajeros[i % pasajeros.Count].Id,
+                    NumAsiento = asientoDisponible.NumeroAsiento, // Ej: "9A"
+                    Clase = "Economica",
+                    FechaReserva = DateTime.Today.AddDays(-(5 - i)),
+                    Estado = "Confirmada",
+                    PrecioTotal = vuelo.PrecioBase
+                });
+            }
+
+            await context.Reservas.AddRangeAsync(reservas);
+            await context.SaveChangesAsync();
         }
 
         private static async Task SeedFacturasAsync(AppDbContext context)
