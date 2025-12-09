@@ -7,6 +7,8 @@ namespace AerolineaRD.Services.interfaces
     {
         Task<IdentityResult> RegisterAsync(string email, string password, string role = "Cliente");
         Task<LoginResponseDto?> LoginAsync(string email, string password);
+        Task<IdentityResult> CambiarContrasenaAsync(string userId, CambiarContrasenaDto dto);
+        Task<IdentityResult> ResetPasswordAsync(ResetPasswordDto dto);
     }
 }
 

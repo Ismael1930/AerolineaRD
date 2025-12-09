@@ -15,6 +15,19 @@ namespace AerolineaRD.Mappings
             CreateMap<Aeronave, AeronaveResponseDto>();
             CreateMap<CrearAeronaveDto, Aeronave>();
 
+            // Mapeo de Cliente DTOs
+            CreateMap<Cliente, ClienteDto>();
+            CreateMap<CrearClienteDto, Cliente>();
+            CreateMap<ActualizarClienteDto, Cliente>()
+                .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
+
+            // Mapeo de Cliente con Reservas
+            CreateMap<Cliente, ClienteConReservasDto>()
+                .ForMember(dest => dest.Reservas, opt => opt.MapFrom(src => src.Reservas))
+                .ForMember(dest => dest.TotalReservas, opt => opt.Ignore()); // Se calcula en el servicio
+
+            CreateMap<Reserva, ReservaSimpleDto>();
+
             // Mapeo de Vuelo a VueloResponseDto
             CreateMap<Vuelo, VueloResponseDto>()
                 .ForMember(dest => dest.OrigenNombre, opt => opt.MapFrom(src => src.Origen.Nombre))
