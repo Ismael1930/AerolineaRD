@@ -29,6 +29,13 @@ namespace AerolineaRD.Entity
         [MaxLength(20)]
         public string? Pasaporte { get; set; }
 
+        // Nueva relación opcional hacia Cliente
+        [Column("IdCliente")]
+        public int? IdCliente { get; set; }
+
+        [ForeignKey(nameof(IdCliente))]
+        public Cliente? Cliente { get; set; }
+
         [InverseProperty(nameof(Reserva.Pasajero))]
         public ICollection<Reserva> Reservas { get; set; }
 
