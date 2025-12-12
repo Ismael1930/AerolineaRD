@@ -25,6 +25,8 @@ namespace AerolineaRD.Data.DTOs
         public string? PasajeroApellido { get; set; }
         public string? NumeroVuelo { get; set; }
         public DateTime FechaVuelo { get; set; }
+        public TimeSpan HoraSalida { get; set; }
+        public TimeSpan HoraLlegada { get; set; }
         public string? Origen { get; set; }
         public string? Destino { get; set; }
         public string? NumAsiento { get; set; }

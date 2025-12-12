@@ -72,5 +72,25 @@ namespace AerolineaRD.Controllers
                 return BadRequest(new { success = false, message = ex.Message });
             }
         }
+
+        /// <summary>
+        /// Obtener pasajero por UserId (puede ser UserId de Identity o pasaporte)
+        /// </summary>
+        [HttpGet("user/{userId}")]
+        public async Task<IActionResult> ObtenerPorUserId(string userId)
+        {
+            try
+            {
+                var pasajero = await _pasajeroService.ObtenerPorUserIdAsync(userId);
+                if (pasajero == null)
+                    return NotFound(new { success = false, message = "Pasajero no encontrado" });
+
+                return Ok(new { success = true, data = pasajero });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
     }
 }

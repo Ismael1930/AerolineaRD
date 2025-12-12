@@ -7,5 +7,6 @@ namespace AerolineaRD.Services.interfaces
         Task<PasajeroResponseDto> CrearPasajeroAsync(CrearPasajeroDto dto);
         Task<PasajeroResponseDto?> ObtenerPorIdAsync(int id);
         Task<List<PasajeroResponseDto>> ObtenerTodosAsync();
+        Task<PasajeroResponseDto?> ObtenerPorUserIdAsync(string userId);
     }
 }

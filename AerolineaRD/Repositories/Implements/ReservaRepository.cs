@@ -22,6 +22,8 @@ namespace AerolineaRD.Repositories.Implements
                     .ThenInclude(v => v!.Origen)
                 .Include(r => r.Vuelo)
                     .ThenInclude(v => v!.Destino)
+                .Include(r => r.Vuelo)
+                    .ThenInclude(v => v!.EstadoVueloDetalle)
                 .Include(r => r.Factura)
                 .FirstOrDefaultAsync(r => r.Codigo == codigo);
         }
@@ -34,6 +36,8 @@ namespace AerolineaRD.Repositories.Implements
                     .ThenInclude(v => v!.Origen)
                 .Include(r => r.Vuelo)
                     .ThenInclude(v => v!.Destino)
+                .Include(r => r.Vuelo)
+                    .ThenInclude(v => v!.EstadoVueloDetalle)
                 .Include(r => r.Factura)
                 .Where(r => r.IdCliente == idCliente)
                 .OrderByDescending(r => r.FechaReserva)
@@ -56,6 +60,8 @@ namespace AerolineaRD.Repositories.Implements
                     .ThenInclude(v => v!.Origen)
                 .Include(r => r.Vuelo)
                     .ThenInclude(v => v!.Destino)
+                .Include(r => r.Vuelo)
+                    .ThenInclude(v => v!.EstadoVueloDetalle)
                 .Include(r => r.Factura)
                 .OrderByDescending(r => r.FechaReserva)
                 .ToListAsync();

@@ -42,5 +42,11 @@ namespace AerolineaRD.Services
             var pasajeros = await _pasajeroRepository.GetAllAsync();
             return _mapper.Map<List<PasajeroResponseDto>>(pasajeros);
         }
+
+        public async Task<PasajeroResponseDto?> ObtenerPorUserIdAsync(string userId)
+        {
+            var pasajero = await _pasajeroRepository.ObtenerPorUserIdAsync(userId);
+            return pasajero != null ? _mapper.Map<PasajeroResponseDto>(pasajero) : null;
+        }
     }
 }

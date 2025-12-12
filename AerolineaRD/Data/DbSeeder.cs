@@ -376,46 +376,84 @@ namespace AerolineaRD.Data
         {
             var clienteUser = await userManager.FindByEmailAsync("cliente@test.com");
 
-            var clientes = new List<Cliente>
+            var clientes = new List<Cliente>();
+
+            // Crear cliente vinculado al usuario si no existe
+            if (clienteUser != null && !await context.Clientes.AnyAsync(c => c.Email == clienteUser.Email))
             {
-                new Cliente
+                clientes.Add(new Cliente
                 {
                     Nombre = "Juan Cliente",
-                    Email = "cliente@test.com",
-                    Telefono = "+1 809-555-0001",
-                    UserId = clienteUser?.Id
-                },
-                new Cliente
-                {
-                    Nombre = "María González",
-                    Email = "maria.gonzalez@example.com",
-                    Telefono = "+1 809-555-0002"
-                },
-                new Cliente
-                {
-                    Nombre = "Pedro Sánchez",
-                    Email = "pedro.sanchez@example.com",
-                    Telefono = "+1 809-555-0003"
-                }
+                    Email = clienteUser.Email,
+                    Telefono = "+1809-555-0001",
+                    UserId = clienteUser.Id
+                });
+            }
+
+            // Clientes adicionales (solo se crean si no existen ya)
+            var adicionales = new[]
+            {
+                new Cliente { Nombre = "María González", Email = "maria.gonzalez@example.com", Telefono = "+1809-555-0002" },
+                new Cliente { Nombre = "Pedro Sánchez", Email = "pedro.sanchez@example.com", Telefono = "+1809-555-0003" }
             };
 
-            await context.Clientes.AddRangeAsync(clientes);
-            await context.SaveChangesAsync();
+            foreach (var c in adicionales)
+            {
+                if (!await context.Clientes.AnyAsync(x => x.Email == c.Email))
+                    clientes.Add(c);
+            }
+
+            if (clientes.Any())
+            {
+                await context.Clientes.AddRangeAsync(clientes);
+                await context.SaveChangesAsync();
+            }
+        }
+
+        private static string GeneratePasaporte(Random rnd)
+        {
+            // Formato: P +8 dígitos
+            return "P" + rnd.Next(10_000_000,99_999_999).ToString();
         }
 
         private static async Task SeedPasajerosAsync(AppDbContext context)
         {
-            var pasajeros = new List<Pasajero>
-            {
-                new Pasajero { Nombre = "Juan", Apellido = "Cliente", Pasaporte = "A12345678" },
-                new Pasajero { Nombre = "María", Apellido = "González", Pasaporte = "B23456789" },
-                new Pasajero { Nombre = "Pedro", Apellido = "Sánchez", Pasaporte = "C34567890" },
-                new Pasajero { Nombre = "Ana", Apellido = "Martínez", Pasaporte = "D45678901" },
-                new Pasajero { Nombre = "Luis", Apellido = "Rodríguez", Pasaporte = "E56789012" }
-            };
+            var rnd = new Random();
 
-            await context.Pasajeros.AddRangeAsync(pasajeros);
-            await context.SaveChangesAsync();
+            // Evitar duplicar si ya existen pasajeros
+            if (await context.Pasajeros.AnyAsync())
+                return;
+
+            var pasajeros = new List<Pasajero>();
+
+            // Obtener clientes existentes para vincular algunos pasajeros
+             var clientes = await context.Clientes.ToListAsync();
+            
+             // Crear pasajeros, asignando IdCliente cuando sea posible
+             var nombres = new[] { "Juan", "María", "Pedro", "Ana", "Luis" };
+             var apellidos = new[] { "Cliente", "González", "Sánchez", "Martínez", "Rodríguez" };
+            
+             for (int i =0; i < nombres.Length; i++)
+             {
+                string pasaporte;
+                // Generar pasaporte único
+                 do
+                 {
+                     pasaporte = GeneratePasaporte(rnd);
+                 } while (await context.Pasajeros.AnyAsync(p => p.Pasaporte == pasaporte));
+            
+                 var pasajero = new Pasajero
+                 {
+                     Nombre = nombres[i],
+                     Apellido = apellidos[i],
+                     Pasaporte = pasaporte,
+                     IdCliente = clientes.Count > i ? clientes[i].Id : (int?)null
+                 };
+                pasajeros.Add(pasajero);
+             }
+            
+             await context.Pasajeros.AddRangeAsync(pasajeros);
+             await context.SaveChangesAsync();
         }
 
         private static async Task SeedReservasAsync(AppDbContext context)
