@@ -1,40 +1,121 @@
-﻿using AerolineaRD.Data.DTOs;
+﻿using AerolineaRD.Data;
+using AerolineaRD.Data.DTOs;
 using AerolineaRD.Services.interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using AerolineaRD.Repositories.interfaces;
+using AerolineaRD.Entity;
+using Microsoft.Data.Sqlite;
 
 public class AuthService : IAuthService
 {
     private readonly UserManager<IdentityUser> _userManager;
     private readonly RoleManager<IdentityRole> _roleManager;
     private readonly IConfiguration _configuration;
+    private readonly IClienteRepository _clienteRepository;
+    private readonly IPasajeroRepository _pasajeroRepository;
+    private readonly AppDbContext _context;
 
     public AuthService(UserManager<IdentityUser> userManager,
                        RoleManager<IdentityRole> roleManager,
-                       IConfiguration configuration)
+                       IConfiguration configuration,
+                       IClienteRepository clienteRepository,
+                       IPasajeroRepository pasajeroRepository,
+                       AppDbContext context)
     {
         _userManager = userManager;
         _roleManager = roleManager;
         _configuration = configuration;
+        _clienteRepository = clienteRepository;
+        _pasajeroRepository = pasajeroRepository; // keep original field name
+        _context = context;
     }
 
-    public async Task<IdentityResult> RegisterAsync(string email, string password, string role = "Cliente")
+    public async Task<IdentityResult> RegisterAsync(RegisterDto dto)
     {
-        var user = new IdentityUser { UserName = email, Email = email };
-        var result = await _userManager.CreateAsync(user, password);
-
-        if (result.Succeeded)
+        IdentityUser? user = null;
+        // Start a transaction for the whole flow (including Identity operations) to ensure single connection
+        using var transaction = await BeginTransactionWithRetryAsync(5);
+        try
         {
-            if (!await _roleManager.RoleExistsAsync(role))
-                await _roleManager.CreateAsync(new IdentityRole(role));
+            // Create Identity user inside the transaction
+            user = new IdentityUser { UserName = dto.Email, Email = dto.Email };
+            var result = await _userManager.CreateAsync(user, dto.Password);
 
-            await _userManager.AddToRoleAsync(user, role);
+            if (!result.Succeeded)
+            {
+                await transaction.RollbackAsync();
+                return result;
+            }
+
+            // Ensure role exists and assign
+            if (!await _roleManager.RoleExistsAsync(dto.Role))
+                await _roleManager.CreateAsync(new IdentityRole(dto.Role));
+
+            await _userManager.AddToRoleAsync(user, dto.Role);
+
+            // Crear Cliente vinculado al User
+            var cliente = new Cliente
+            {
+                Nombre = dto.Nombre ?? dto.Email,
+                Email = dto.Email,
+                Telefono = dto.Telefono,
+                UserId = user.Id
+            };
+
+            await _clienteRepository.AddAsync(cliente);
+            await _clienteRepository.SaveAsync();
+
+            // Crear Pasajero vinculado al Cliente (si se proporcionó pasaporte o nombre)
+            if (!string.IsNullOrEmpty(dto.Pasaporte) || !string.IsNullOrEmpty(dto.Nombre) || !string.IsNullOrEmpty(dto.Apellido))
+            {
+                var pasajero = new Pasajero
+                {
+                    Nombre = dto.Nombre,
+                    Apellido = dto.Apellido,
+                    Pasaporte = dto.Pasaporte,
+                    IdCliente = cliente.Id
+                };
+
+                await _pasajeroRepository.AddAsync(pasajero);
+                await _pasajeroRepository.SaveAsync();
+            }
+
+            await transaction.CommitAsync();
+            return IdentityResult.Success;
         }
+        catch (Exception)
+        {
+            try { await transaction.RollbackAsync(); } catch { }
+            // Best-effort cleanup: delete created Identity user
+            if (user != null)
+            {
+                try { await _userManager.DeleteAsync(user); } catch { }
+            }
+            throw;
+        }
+    }
 
-        return result;
+    private async Task<Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction> BeginTransactionWithRetryAsync(int maxRetries)
+    {
+        int attempt = 0;
+        while (true)
+        {
+            try
+            {
+                return await _context.Database.BeginTransactionAsync();
+            }
+            catch (SqliteException ex) when (ex.SqliteErrorCode == 5) // SQLITE_BUSY
+            {
+                attempt++;
+                if (attempt >= maxRetries)
+                    throw;
+                await Task.Delay(150 * attempt);
+            }
+        }
     }
 
     public async Task<LoginResponseDto?> LoginAsync(string email, string password)

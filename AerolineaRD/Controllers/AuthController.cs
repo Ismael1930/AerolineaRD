@@ -20,7 +20,7 @@ namespace AerolineaRD.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDto dto)
         {
-            var result = await _authService.RegisterAsync(dto.Email, dto.Password, dto.Role);
+            var result = await _authService.RegisterAsync(dto);
             if (result.Succeeded)
                 return Ok(new { success = true, message = $"Usuario registrado con rol {dto.Role}" });
 

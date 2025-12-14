@@ -24,8 +24,10 @@ namespace AerolineaRD.Services
             var vuelos = await _vueloRepository.BuscarVuelosConFiltrosAsync(
                 filtros.Origen,
                 filtros.Destino,
-                filtros.FechaSalida,
-                filtros.FechaRegreso,
+                filtros.FechaSalidaInicio,       // fechaSalidaInicio (nullable)
+                filtros.FechaSalidaFin,    // fechaSalidaFin (nullable)
+                filtros.FechaRegresoInicio,      // fechaRegresoInicio (nullable)
+                filtros.FechaRegresoFin,   // fechaRegresoFin (nullable)
                 filtros.Clase,
                 filtros.TipoViaje
             );

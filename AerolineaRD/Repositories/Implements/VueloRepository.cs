@@ -16,18 +16,18 @@ namespace AerolineaRD.Repositories.Implements
             _context = context;
         }
 
-        public async Task<List<Vuelo>> BuscarVuelosConFiltrosAsync(string? origen, string? destino, DateTime? fechaSalida, DateTime? fechaRegreso, string? clase, string tipoViaje)
+        public async Task<List<Vuelo>> BuscarVuelosConFiltrosAsync(string? origen, string? destino, DateTime? fechaSalidaInicio, DateTime? fechaSalidaFin, DateTime? fechaRegresoInicio, DateTime? fechaRegresoFin, string? clase, string tipoViaje)
         {
             var query = _context.Vuelos
-                .AsNoTracking() // ? Evitar tracking para mejor rendimiento
+                .AsNoTracking()
                 .Include(v => v.Origen)
                 .Include(v => v.Destino)
-                .Include(v => v.Aeronave) // Cargar aeronave
-                .ThenInclude(a => a.Asientos) // Cargar SOLO asientos, NO otros vuelos
-                .Include(v => v.Reservas) // Cargar reservas para calcular disponibilidad
+                .Include(v => v.Aeronave)
+                    .ThenInclude(a => a.Asientos)
+                .Include(v => v.Reservas)
                 .AsQueryable();
 
-            // Filtrar por origen y destino
+            // Filtrar por origen y destino (igual que antes)
             if (!string.IsNullOrEmpty(origen))
             {
                 query = query.Where(v => v.OrigenCodigo == origen);
@@ -44,33 +44,44 @@ namespace AerolineaRD.Repositories.Implements
                 query = query.Where(v => v.TipoVuelo == tipoViaje);
             }
 
-            // Filtrar por fecha de salida
-            if (fechaSalida.HasValue)
+            // Filtrar por rango de fecha de salida (inclusive)
+            if (fechaSalidaInicio.HasValue && fechaSalidaFin.HasValue)
             {
-                var fecha = fechaSalida.Value.Date;
-                query = query.Where(v => v.Fecha.Date >= fecha);
+                var start = fechaSalidaInicio.Value.Date;
+                var end = fechaSalidaFin.Value.Date;
+                query = query.Where(v => v.Fecha.Date >= start && v.Fecha.Date <= end);
+            }
+            else if (fechaSalidaInicio.HasValue)
+            {
+                var start = fechaSalidaInicio.Value.Date;
+                query = query.Where(v => v.Fecha.Date >= start);
+            }
+            else if (fechaSalidaFin.HasValue)
+            {
+                var end = fechaSalidaFin.Value.Date;
+                query = query.Where(v => v.Fecha.Date <= end);
             }
 
-            // Traer a memoria
+
+            // Traer a memoria y ordenar
             var vuelosEnMemoria = await query
                 .OrderBy(v => v.Fecha)
                 .ToListAsync();
 
-            // Ordenar por HoraSalida en memoria
             vuelosEnMemoria = vuelosEnMemoria
                 .OrderBy(v => v.Fecha)
                 .ThenBy(v => v.HoraSalida)
                 .ToList();
 
-            // Filtrar por clase en memoria
+            // Filtrar por clase en memoria (igual que antes)
             if (!string.IsNullOrEmpty(clase))
             {
                 var claseNormalizada = NormalizarTexto(clase);
-                
+
                 vuelosEnMemoria = vuelosEnMemoria
-                    .Where(v => v.Aeronave != null && 
+                    .Where(v => v.Aeronave != null &&
                                 v.Aeronave.Asientos != null &&
-                                v.Aeronave.Asientos.Any(a => 
+                                v.Aeronave.Asientos.Any(a =>
                                     NormalizarTexto(a.Clase) == claseNormalizada))
                     .ToList();
             }
@@ -81,11 +92,11 @@ namespace AerolineaRD.Repositories.Implements
         public async Task<Vuelo?> ObtenerVueloConDetallesAsync(int id)
         {
             return await _context.Vuelos
-                .AsNoTracking() // ? Evitar tracking
+                .AsNoTracking()
                 .Include(v => v.Origen)
                 .Include(v => v.Destino)
                 .Include(v => v.Aeronave)
-                .ThenInclude(a => a.Asientos) // Cargar SOLO asientos
+                    .ThenInclude(a => a.Asientos)
                 .Include(v => v.Reservas)
                 .FirstOrDefaultAsync(v => v.Id == id);
         }
@@ -95,7 +106,6 @@ namespace AerolineaRD.Repositories.Implements
             if (string.IsNullOrEmpty(texto))
                 return string.Empty;
 
-            // Convertir a minúsculas y remover acentos
             var textoNormalizado = texto.Normalize(NormalizationForm.FormD);
             var stringBuilder = new StringBuilder();
 

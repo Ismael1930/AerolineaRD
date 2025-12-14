@@ -5,6 +5,7 @@ namespace AerolineaRD.Data.DTOs
         public string? Nombre { get; set; }
         public string? Apellido { get; set; }
         public string? Pasaporte { get; set; }
+        public int? IdCliente { get; set; }
     }
 
     public class PasajeroResponseDto
