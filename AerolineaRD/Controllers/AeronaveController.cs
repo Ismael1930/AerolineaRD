@@ -128,5 +128,48 @@ namespace AerolineaRD.Controllers
                 return BadRequest(new { success = false, message = ex.Message });
             }
         }
+
+        /// <summary>
+        /// Obtener todas las aeronaves con información de disponibilidad de asientos
+        /// Incluye cálculo de asientos reservados y disponibles por clase
+        /// </summary>
+        [HttpGet("disponibilidad")]
+        public async Task<IActionResult> ObtenerTodasConDisponibilidad()
+        {
+            try
+            {
+                var aeronaves = await _aeronaveService.ObtenerTodasConDisponibilidadAsync();
+                return Ok(new
+                {
+                    success = true,
+                    data = aeronaves,
+                    message = $"Se encontraron {aeronaves.Count} aeronave(s) con información de disponibilidad"
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Obtener una aeronave específica con información de disponibilidad de asientos
+        /// </summary>
+        [HttpGet("{matricula}/disponibilidad")]
+        public async Task<IActionResult> ObtenerConDisponibilidad(string matricula)
+        {
+            try
+            {
+                var aeronave = await _aeronaveService.ObtenerConDisponibilidadAsync(matricula);
+                if (aeronave == null)
+                    return NotFound(new { success = false, message = "Aeronave no encontrada" });
+
+                return Ok(new { success = true, data = aeronave });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
     }
 }
