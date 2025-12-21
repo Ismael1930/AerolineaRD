@@ -11,6 +11,7 @@ namespace AerolineaRD.Entity
         {
             VuelosOrigen = new HashSet<Vuelo>();
             VuelosDestino = new HashSet<Vuelo>();
+            CapacidadVuelosPorHora = 10; // Valor por defecto
         }
 
         [Key]
@@ -29,6 +30,12 @@ namespace AerolineaRD.Entity
         [Column("Pais")]
         [MaxLength(50)]
         public string? Pais { get; set; }
+
+        /// <summary>
+        /// Capacidad máxima de aterrizajes/despegues por hora
+        /// </summary>
+        [Column("CapacidadVuelosPorHora")]
+        public int CapacidadVuelosPorHora { get; set; }
 
         [InverseProperty(nameof(Vuelo.Origen))]
         public ICollection<Vuelo> VuelosOrigen { get; set; }

@@ -36,74 +36,33 @@ namespace AerolineaRD.Services
 
         public async Task<ReservaResponseDto> CrearReservaAsync(CrearReservaDto dto)
         {
-            // Validar existencia de FK: cliente, pasajero y vuelo
-            var cliente = await _clienteRepository.GetByIdAsync(dto.IdCliente);
-            if (cliente == null)
-                throw new InvalidOperationException("Cliente no encontrado.");
+            // VALIDACIÓN: Verificar que el vuelo tiene asientos disponibles
+            int asientosDisponibles = await _vueloRepository.ObtenerAsientosDisponiblesAsync(dto.IdVuelo);
 
-            var pasajero = await _pasajeroRepository.GetByIdAsync(dto.IdPasajero);
-            if (pasajero == null)
-                throw new InvalidOperationException("Pasajero no encontrado.");
-
-            var vuelo = await _vueloRepository.ObtenerVueloConDetallesAsync(dto.IdVuelo);
-            if (vuelo == null)
-                throw new InvalidOperationException("Vuelo no encontrado.");
-
-            // Validar asiento si fue provisto
-            if (!string.IsNullOrEmpty(dto.NumAsiento))
+            if (asientosDisponibles <= 0)
             {
-                var existe = await _reservaRepository.ExisteReservaActivaAsync(dto.IdVuelo, dto.NumAsiento);
-                if (existe)
-                    throw new InvalidOperationException("El asiento seleccionado ya está reservado.");
+                throw new InvalidOperationException(
+                    $"El vuelo está lleno. No hay asientos disponibles.");
+            }
 
-                if (vuelo.Aeronave?.Asientos == null)
-                    throw new InvalidOperationException("No se pudo validar el vuelo o la aeronave.");
-
-                var asientoExiste = vuelo.Aeronave.Asientos.Any(a => a.NumeroAsiento == dto.NumAsiento);
-                if (!asientoExiste)
-                    throw new InvalidOperationException("El asiento seleccionado no existe en esta aeronave.");
+            // VALIDACIÓN: Verificar que el asiento específico no esté reservado
+            var reservaExistente = await _reservaRepository.ObtenerPorVueloYAsientoAsync(dto.IdVuelo, dto.NumAsiento);
+            if (reservaExistente != null && reservaExistente.Estado == "Confirmada")
+            {
+                throw new InvalidOperationException(
+                    $"El asiento {dto.NumAsiento} ya está reservado en este vuelo.");
             }
 
             // Crear reserva
-            var reserva = new Reserva
-            {
-                Codigo = GenerarCodigoReserva(),
-                IdPasajero = dto.IdPasajero,
-                IdVuelo = dto.IdVuelo,
-                IdCliente = dto.IdCliente,
-                NumAsiento = dto.NumAsiento,
-                Clase = dto.Clase,
-                FechaReserva = DateTime.Now,
-                Estado = "Confirmada",
-                PrecioTotal = dto.PrecioTotal ?? 150.00m
-            };
+            var reserva = _mapper.Map<Reserva>(dto);
+            reserva.Codigo = GenerarCodigoReserva();
+            reserva.FechaReserva = DateTime.Now;
+            reserva.Estado = "Confirmada";
 
             await _reservaRepository.AddAsync(reserva);
-            // Guardar la reserva antes de crear la factura para asegurar FK
             await _reservaRepository.SaveAsync();
 
-            // Crear factura automáticamente
-            var factura = new Factura
-            {
-                Codigo = GenerarCodigoFactura(),
-                CodReserva = reserva.Codigo,
-                Monto = reserva.PrecioTotal,
-                MetodoPago = dto.MetodoPago,
-                FechaEmision = DateTime.Now,
-                EstadoPago = "Pendiente"
-            };
-
-            await _facturaRepository.AddAsync(factura);
-            await _facturaRepository.SaveAsync();
-
-            // Enviar notificación
-            await _notificacionService.EnviarNotificacionAsync(
-                dto.IdCliente,
-                "Confirmacion",
-                $"Su reserva {reserva.Codigo} ha sido confirmada exitosamente."
-            );
-
-            var reservaCreada = await _reservaRepository.ObtenerReservaPorCodigoAsync(reserva.Codigo);
+            var reservaCreada = await _reservaRepository.ObtenerReservaConDetallesAsync(reserva.Codigo);
             return _mapper.Map<ReservaResponseDto>(reservaCreada);
         }
 
@@ -168,30 +127,41 @@ namespace AerolineaRD.Services
 
         public async Task<bool> CancelarReservaAsync(string codigo)
         {
-            var reserva = await _reservaRepository.ObtenerReservaPorCodigoAsync(codigo);
+            // VALIDACIÓN: Verificar si se puede cancelar según el tiempo restante
+            bool puedeCancelar = await PuedeCancelarReservaAsync(codigo, 24);
+
+            if (!puedeCancelar)
+            {
+                throw new InvalidOperationException(
+                    "No se puede cancelar la reserva. Debe hacerlo con al menos 24 horas de anticipación al vuelo.");
+            }
+
+            var reserva = await _reservaRepository.ObtenerReservaConDetallesAsync(codigo);
             if (reserva == null)
                 return false;
 
             reserva.Estado = "Cancelada";
             _reservaRepository.Update(reserva);
-
-            var factura = await _facturaRepository.ObtenerPorReservaAsync(reserva.Codigo);
-            if (factura != null)
-            {
-                factura.EstadoPago = "Reembolsado";
-                _facturaRepository.Update(factura);
-            }
-
             await _reservaRepository.SaveAsync();
 
-            // Notificar cancelación
-            await _notificacionService.EnviarNotificacionAsync(
-                reserva.IdCliente,
-                "Cancelacion",
-                $"Su reserva {reserva.Codigo} ha sido cancelada."
-            );
-
             return true;
+        }
+
+        public async Task<bool> PuedeCancelarReservaAsync(string codigo, int horasMinimas = 24)
+        {
+            var reserva = await _reservaRepository.ObtenerReservaConDetallesAsync(codigo);
+
+            if (reserva == null || reserva.Vuelo == null)
+                return false;
+
+            // Calcular la fecha y hora del vuelo
+            var fechaHoraVuelo = reserva.Vuelo.Fecha.Date.Add(reserva.Vuelo.HoraSalida);
+
+            // Calcular el tiempo restante
+            var tiempoRestante = fechaHoraVuelo - DateTime.Now;
+
+            // Verificar si hay suficiente tiempo
+            return tiempoRestante.TotalHours >= horasMinimas;
         }
 
         private string GenerarCodigoReserva()

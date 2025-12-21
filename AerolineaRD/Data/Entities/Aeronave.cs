@@ -10,6 +10,7 @@ namespace AerolineaRD.Entity
         {
             Vuelos = new HashSet<Vuelo>();
             Asientos = new HashSet<Asiento>();
+            TiempoPreparacionMinutos = 120; // Valor por defecto: 2 horas
         }
 
         [Key]
@@ -27,6 +28,13 @@ namespace AerolineaRD.Entity
         [Column("Estado")]
         [MaxLength(20)]
         public string? Estado { get; set; } // "Operativa", "Mantenimiento", "Fuera de Servicio"
+
+        /// <summary>
+        /// Tiempo mínimo de preparación entre vuelos en minutos (limpieza, carga de combustible, embarque)
+        /// Por defecto: 120 minutos (2 horas)
+        /// </summary>
+        [Column("TiempoPreparacionMinutos")]
+        public int TiempoPreparacionMinutos { get; set; }
 
         [InverseProperty(nameof(Vuelo.Aeronave))]
         public ICollection<Vuelo> Vuelos { get; set; }

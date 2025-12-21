@@ -55,6 +55,15 @@ namespace AerolineaRD.Entity
         [MaxLength(15)]
         public string? TipoVuelo { get; set; } = "SoloIda"; // "SoloIda", "IdaYVuelta"
 
+        /// <summary>
+        /// Clase de servicio principal del vuelo
+        /// "Economica", "Ejecutiva", "Primera"
+        /// Indica qué tipo de servicio ofrece principalmente este vuelo
+        /// </summary>
+        [Column("Clase")]
+        [MaxLength(20)]
+        public string? Clase { get; set; } = "Economica";
+
         [Column("FechaRegreso")]
         public DateTime? FechaRegreso { get; set; } // Solo para vuelos de ida y vuelta
 

@@ -14,7 +14,7 @@ namespace AerolineaRD.Repositories.Implements
             _context = context;
         }
 
-        public async Task<Reserva> ObtenerReservaPorCodigoAsync(string codigo)
+        public async Task<Reserva?> ObtenerReservaPorCodigoAsync(string codigo)
         {
             return await _context.Reservas
                 .Include(r => r.Pasajero)
@@ -65,6 +65,29 @@ namespace AerolineaRD.Repositories.Implements
                 .Include(r => r.Factura)
                 .OrderByDescending(r => r.FechaReserva)
                 .ToListAsync();
+        }
+
+        public async Task<Reserva?> ObtenerReservaConDetallesAsync(string codigo)
+        {
+            return await _context.Reservas
+                .Include(r => r.Vuelo)
+                    .ThenInclude(v => v != null ? v.Origen : null)
+                .Include(r => r.Vuelo)
+                    .ThenInclude(v => v != null ? v.Destino : null)
+                .Include(r => r.Cliente)
+                .Include(r => r.Pasajero)
+                .FirstOrDefaultAsync(r => r.Codigo == codigo);
+        }
+
+        public async Task<Reserva?> ObtenerPorVueloYAsientoAsync(int idVuelo, string? numAsiento)
+        {
+            if (string.IsNullOrEmpty(numAsiento))
+                return null;
+
+            return await _context.Reservas
+                .FirstOrDefaultAsync(r => r.IdVuelo == idVuelo 
+                    && r.NumAsiento == numAsiento 
+                    && r.Estado == "Confirmada");
         }
     }
 }

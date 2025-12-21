@@ -11,6 +11,7 @@ namespace AerolineaRD.Data.DTOs
         public string? OrigenCodigo { get; set; }
         public string? DestinoCodigo { get; set; }
         public string? Matricula { get; set; }
+        public string? Clase { get; set; } // "Economica", "Ejecutiva", "Primera"
         public List<int>? IdsTripulacion { get; set; }
     }
 
@@ -29,6 +30,7 @@ namespace AerolineaRD.Data.DTOs
         public int? IdAeronave { get; set; } // Para compatibilidad con frontend
         public string? Estado { get; set; }
         public string? TipoVuelo { get; set; }
+        public string? Clase { get; set; }
     }
 
     public class VueloDetalleDto : VueloResponseDto
@@ -39,6 +41,7 @@ namespace AerolineaRD.Data.DTOs
         public decimal PrecioBase { get; set; }
         public string? Matricula { get; set; }
         public string? Estado { get; set; }
+        public string? Clase { get; set; }
         public List<TripulacionDto>? Tripulacion { get; set; }
         public EstadoVueloDto? EstadoActual { get; set; }
     }

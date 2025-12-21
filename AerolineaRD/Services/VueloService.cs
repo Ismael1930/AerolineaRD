@@ -67,7 +67,8 @@ namespace AerolineaRD.Services
                 return new List<AsientoDisponibleDto>();
 
             // Normalizar la clase para comparación
-            var claseNormalizada = NormalizarTexto(clase);
+            // "Primera Clase" -> "primera", "Primera" -> "primera"
+            var claseNormalizada = NormalizarClase(clase);
 
             // Obtener asientos ocupados
             var asientosOcupados = (vuelo.Reservas ?? Enumerable.Empty<Reserva>())
@@ -77,7 +78,7 @@ namespace AerolineaRD.Services
 
             // Filtrar asientos por clase y mapear a DTO
             var asientos = vuelo.Aeronave.Asientos
-                .Where(a => NormalizarTexto(a.Clase ?? "Economica") == claseNormalizada)
+                .Where(a => NormalizarClase(a.Clase ?? "Economica") == claseNormalizada)
                 .OrderBy(a => a.NumeroAsiento)
                 .Select(a => new AsientoDisponibleDto
                 {
@@ -132,9 +133,9 @@ namespace AerolineaRD.Services
 
             if (!string.IsNullOrEmpty(filtroClase))
             {
-                var filtroNormalizado = NormalizarTexto(filtroClase);
+                var filtroNormalizado = NormalizarClase(filtroClase);
                 clasesCalculadas = clasesCalculadas
-                    .Where(c => NormalizarTexto(c.Clase) == filtroNormalizado)
+                    .Where(c => NormalizarClase(c.Clase) == filtroNormalizado)
                     .ToList();
             }
 
@@ -150,6 +151,23 @@ namespace AerolineaRD.Services
                 "Economica" => precioBase,
                 _ => precioBase
             };
+        }
+
+        /// <summary>
+        /// Normaliza el nombre de la clase para comparación
+        /// "Primera Clase" -> "primera"
+        /// "Primera" -> "primera"
+        /// "Ejecutiva" -> "ejecutiva"
+        /// "Economica" -> "economica"
+        /// </summary>
+        private static string NormalizarClase(string? clase)
+        {
+            if (string.IsNullOrEmpty(clase))
+                return string.Empty;
+
+            // Tomar solo la primera palabra y normalizar
+            var primeraPalabra = clase.Split(' ', StringSplitOptions.RemoveEmptyEntries)[0];
+            return NormalizarTexto(primeraPalabra);
         }
 
         private static string NormalizarTexto(string? texto)

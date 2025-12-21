@@ -10,5 +10,6 @@ namespace AerolineaRD.Services.interfaces
         Task<List<ReservaResponseDto>> ObtenerReservasPorClienteAsync(int idCliente);
         Task<ReservaResponseDto> ModificarReservaAsync(ModificarReservaDto dto);
         Task<bool> CancelarReservaAsync(string codigo);
+        Task<bool> PuedeCancelarReservaAsync(string codigo, int horasMinimas = 24);
     }
 }
