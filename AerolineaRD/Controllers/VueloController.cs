@@ -88,5 +88,27 @@ namespace AerolineaRD.Controllers
                 return BadRequest(new { success = false, message = ex.Message });
             }
         }
+
+        /// <summary>
+        /// Obtener información de la aeronave asignada a un vuelo
+        /// </summary>
+        [HttpGet("{idVuelo}/aeronave")]
+        public async Task<IActionResult> ObtenerAeronaveDelVuelo(int idVuelo)
+        {
+            try
+            {
+                // Necesitamos usar el servicio de admin que tiene más detalles
+                // o crear un método específico en IVueloService
+                return NotFound(new
+                {
+                    success = false,
+                    message = "Use el endpoint /api/VueloAdmin/reporte/aeronaves para obtener información completa de aeronaves"
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
     }
 }

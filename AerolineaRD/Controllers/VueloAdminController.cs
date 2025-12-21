@@ -28,9 +28,20 @@ namespace AerolineaRD.Controllers
                 var vuelo = await _vueloAdminService.CrearVueloAsync(dto);
                 return Ok(new { success = true, data = vuelo, message = "Vuelo creado exitosamente" });
             }
+            catch (InvalidOperationException ex)
+            {
+                // ? Errores de validación de negocio (400 Bad Request)
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                // ? Entidad no encontrada (404 Not Found)
+                return NotFound(new { success = false, message = ex.Message });
+            }
             catch (Exception ex)
             {
-                return StatusCode(500, new { success = false, message = ex.Message });
+                // ? Otros errores (500 Internal Server Error)
+                return StatusCode(500, new { success = false, message = "Error interno del servidor: " + ex.Message });
             }
         }
 
@@ -82,13 +93,20 @@ namespace AerolineaRD.Controllers
                 var vuelo = await _vueloAdminService.ActualizarVueloAsync(dto);
                 return Ok(new { success = true, data = vuelo, message = "Vuelo actualizado exitosamente" });
             }
+            catch (InvalidOperationException ex)
+            {
+                // ? Errores de validación de negocio (400 Bad Request)
+                return BadRequest(new { success = false, message = ex.Message });
+            }
             catch (KeyNotFoundException ex)
             {
+                // ? Entidad no encontrada (404 Not Found)
                 return NotFound(new { success = false, message = ex.Message });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { success = false, message = ex.Message });
+                // ? Otros errores (500 Internal Server Error)
+                return StatusCode(500, new { success = false, message = "Error interno del servidor: " + ex.Message });
             }
         }
 

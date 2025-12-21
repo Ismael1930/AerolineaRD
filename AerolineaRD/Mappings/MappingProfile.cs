@@ -19,6 +19,10 @@ namespace AerolineaRD.Mappings
             CreateMap<Aeronave, AeronaveResponseDto>();
             CreateMap<CrearAeronaveDto, Aeronave>();
 
+            // Mapeo de Aeronave a AeronaveInfoDto (para vuelos)
+            CreateMap<Aeronave, AeronaveInfoDto>()
+                .ForMember(dest => dest.TotalAsientos, opt => opt.MapFrom(src => src.Asientos.Count));
+
             // Mapeo de Cliente DTOs
             CreateMap<Cliente, ClienteDto>();
             CreateMap<CrearClienteDto, Cliente>();
@@ -44,7 +48,8 @@ namespace AerolineaRD.Mappings
             CreateMap<Vuelo, VueloDetalleDto>()
                 .IncludeBase<Vuelo, VueloResponseDto>()
                 .ForMember(dest => dest.Tripulacion, opt => opt.MapFrom(src => src.Tripulaciones))
-                .ForMember(dest => dest.EstadoActual, opt => opt.MapFrom(src => src.EstadoVueloDetalle));
+                .ForMember(dest => dest.EstadoActual, opt => opt.MapFrom(src => src.EstadoVueloDetalle))
+                .ForMember(dest => dest.Aeronave, opt => opt.Ignore()); // Se asigna manualmente en el servicio
 
             // Mapeo de CrearVueloDto a Vuelo
             CreateMap<CrearVueloDto, Vuelo>()

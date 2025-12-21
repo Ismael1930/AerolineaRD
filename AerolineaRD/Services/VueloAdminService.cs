@@ -164,8 +164,28 @@ namespace AerolineaRD.Services
         public async Task<VueloDetalleDto?> ObtenerVueloDetalleAsync(int id)
         {
             var vuelo = await _vueloRepository.ObtenerVueloConDetallesAsync(id);
-            return vuelo != null ? _mapper.Map<VueloDetalleDto>(vuelo) : null;
-        }
+            
+            if (vuelo == null) 
+                 return null;
+
+            var vueloDto = _mapper.Map<VueloDetalleDto>(vuelo);
+   
+   // ? Agregar información de la aeronave si existe
+   if (vuelo.Aeronave != null)
+     {
+     vueloDto.Aeronave = new AeronaveInfoDto
+        {
+    Matricula = vuelo.Aeronave.Matricula,
+     Modelo = vuelo.Aeronave.Modelo,
+           Capacidad = vuelo.Aeronave.Capacidad,
+     Estado = vuelo.Aeronave.Estado,
+         TiempoPreparacionMinutos = vuelo.Aeronave.TiempoPreparacionMinutos,
+       TotalAsientos = vuelo.Aeronave.Asientos?.Count ?? 0
+         };
+    }
+
+    return vueloDto;
+   }
 
         public async Task<VueloDetalleDto> ActualizarVueloAsync(ActualizarVueloDto dto)
         {
@@ -241,7 +261,40 @@ namespace AerolineaRD.Services
         public async Task<List<VueloDetalleDto>> ObtenerTodosLosVuelosAsync()
         {
             var vuelos = await _vueloRepository.GetAllAsync();
-            return _mapper.Map<List<VueloDetalleDto>>(vuelos);
+    
+      // Obtener vuelos con detalles incluyendo aeronave
+var vuelosConDetalles = new List<VueloDetalleDto>();
+
+     foreach (var vuelo in vuelos)
+{
+             var vueloDetallado = await _vueloRepository.ObtenerVueloConDetallesAsync(vuelo.Id);
+   
+  if (vueloDetallado != null)
+       {
+         var vueloDto = _mapper.Map<VueloDetalleDto>(vueloDetallado);
+ 
+        // ? Agregar información de la aeronave
+         if (vueloDetallado.Aeronave != null)
+  {
+  vueloDto.Aeronave = new AeronaveInfoDto
+         {
+   Matricula = vueloDetallado.Aeronave.Matricula,
+     Modelo = vueloDetallado.Aeronave.Modelo,
+     Capacidad = vueloDetallado.Aeronave.Capacidad,
+     Estado = vueloDetallado.Aeronave.Estado,
+      TiempoPreparacionMinutos = vueloDetallado.Aeronave.TiempoPreparacionMinutos,
+   TotalAsientos = vueloDetallado.Aeronave.Asientos?.Count ?? 0
+  };
+            }
+
+              vuelosConDetalles.Add(vueloDto);
+         }
+        }
+
+ return vuelosConDetalles
+        .OrderBy(v => v.Fecha)
+         .ThenBy(v => v.HoraSalida)
+     .ToList();
         }
     }
 }
