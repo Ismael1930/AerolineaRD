@@ -119,10 +119,14 @@ namespace AerolineaRD.Repositories.Implements
                 ? aeronave.TiempoPreparacionMinutos 
                 : 120;
 
+            // ? Crear rango de fechas (sin usar .Date en LINQ to SQL)
+            var fechaInicio = fecha.Date;
+            var fechaFin = fecha.Date.AddDays(1);
+
             // Buscar vuelos con la misma aeronave en la misma fecha
             var vuelosConflictivos = await _context.Vuelos
                 .Where(v => v.Matricula == matricula 
-                            && v.Fecha.Date == fecha.Date
+                            && v.Fecha >= fechaInicio && v.Fecha < fechaFin
                             && (!vueloIdExcluir.HasValue || v.Id != vueloIdExcluir.Value)
                             && v.Estado != "Cancelado") // ? Ignorar vuelos cancelados
                 .ToListAsync();
@@ -151,27 +155,44 @@ namespace AerolineaRD.Repositories.Implements
         {
             // Obtener información del aeropuerto
             var aeropuerto = await _context.Aeropuertos
-                .FirstOrDefaultAsync(a => a.Codigo == codigoAeropuerto);
+     .FirstOrDefaultAsync(a => a.Codigo == codigoAeropuerto);
 
-            if (aeropuerto == null)
-                return false;
+  if (aeropuerto == null)
+            return false;
 
             int capacidadPorHora = aeropuerto.CapacidadVuelosPorHora > 0 
-                ? aeropuerto.CapacidadVuelosPorHora 
-                : 10;
+        ? aeropuerto.CapacidadVuelosPorHora 
+  : 10;
 
-            // Calcular el rango de la hora (ej: 10:00 a 10:59)
-            var horaInicio = new TimeSpan(hora.Hours, 0, 0);
-            var horaFin = horaInicio.Add(TimeSpan.FromHours(1));
+      // Calcular el rango de la hora (ej: 10:00 a 10:59)
+     var horaInicio = new TimeSpan(hora.Hours, 0, 0);
+   var horaFin = horaInicio.Add(TimeSpan.FromHours(1));
 
-            // Contar vuelos en esa franja horaria
-            var vuelosEnHora = await _context.Vuelos
-                .Where(v => v.Fecha.Date == fecha.Date
-                            && v.Estado != "Cancelado")
-                .Where(v => esSalida 
-                    ? (v.OrigenCodigo == codigoAeropuerto && v.HoraSalida >= horaInicio && v.HoraSalida < horaFin)
-                    : (v.DestinoCodigo == codigoAeropuerto && v.HoraLlegada >= horaInicio && v.HoraLlegada < horaFin))
-                .CountAsync();
+     // ? Crear rango de fechas (sin usar .Date en LINQ to SQL)
+          var fechaInicio = fecha.Date;
+      var fechaFin = fecha.Date.AddDays(1);
+
+   // ? SOLUCIÓN: Traer datos a memoria primero, luego filtrar
+    var todosLosVuelos = await _context.Vuelos
+     .Where(v => v.Fecha >= fechaInicio && v.Fecha < fechaFin && v.Estado != "Cancelado")
+       .ToListAsync(); // ? Traer a memoria
+
+            // Ahora filtrar en memoria
+       int vuelosEnHora;
+if (esSalida)
+ {
+    vuelosEnHora = todosLosVuelos
+  .Count(v => v.OrigenCodigo == codigoAeropuerto 
+    && v.HoraSalida >= horaInicio 
+      && v.HoraSalida < horaFin);
+       }
+            else
+ {
+        vuelosEnHora = todosLosVuelos
+        .Count(v => v.DestinoCodigo == codigoAeropuerto 
+   && v.HoraLlegada >= horaInicio 
+        && v.HoraLlegada < horaFin);
+    }
 
             return vuelosEnHora < capacidadPorHora;
         }

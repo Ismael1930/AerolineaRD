@@ -25,22 +25,31 @@ namespace AerolineaRD.Controllers
         {
             try
             {
-                var vuelo = await _vueloAdminService.CrearVueloAsync(dto);
-                return Ok(new { success = true, data = vuelo, message = "Vuelo creado exitosamente" });
-            }
-            catch (InvalidOperationException ex)
-            {
-                // ? Errores de validación de negocio (400 Bad Request)
-                return BadRequest(new { success = false, message = ex.Message });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                // ? Entidad no encontrada (404 Not Found)
-                return NotFound(new { success = false, message = ex.Message });
+                var resultado = await _vueloAdminService.CrearVueloAsync(dto);
+                
+                if (resultado.Success)
+                {
+                    return Ok(new 
+                        { 
+                            success = true, 
+                            data = resultado.Data, 
+                            message = resultado.Message 
+                        });
+                }
+                else
+                {
+                    // Devolver errores de validación con código 400 Bad Request
+                    return BadRequest(new 
+                    {
+                        success = false,
+                        message = resultado.Message,
+                        errors = resultado.Errors
+                    });
+                }
             }
             catch (Exception ex)
             {
-                // ? Otros errores (500 Internal Server Error)
+                // Solo para errores inesperados del sistema
                 return StatusCode(500, new { success = false, message = "Error interno del servidor: " + ex.Message });
             }
         }
@@ -90,22 +99,31 @@ namespace AerolineaRD.Controllers
         {
             try
             {
-                var vuelo = await _vueloAdminService.ActualizarVueloAsync(dto);
-                return Ok(new { success = true, data = vuelo, message = "Vuelo actualizado exitosamente" });
-            }
-            catch (InvalidOperationException ex)
-            {
-                // ? Errores de validación de negocio (400 Bad Request)
-                return BadRequest(new { success = false, message = ex.Message });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                // ? Entidad no encontrada (404 Not Found)
-                return NotFound(new { success = false, message = ex.Message });
+                var resultado = await _vueloAdminService.ActualizarVueloAsync(dto);
+                
+                if (resultado.Success)
+                {
+                    return Ok(new 
+                        { 
+                            success = true, 
+                            data = resultado.Data, 
+                            message = resultado.Message 
+                        });
+                }
+                else
+                {
+                    // Devolver errores de validación con código 400 Bad Request
+                    return BadRequest(new 
+                    {
+                        success = false,
+                        message = resultado.Message,
+                        errors = resultado.Errors
+                    });
+                }
             }
             catch (Exception ex)
             {
-                // ? Otros errores (500 Internal Server Error)
+                // Solo para errores inesperados del sistema
                 return StatusCode(500, new { success = false, message = "Error interno del servidor: " + ex.Message });
             }
         }
