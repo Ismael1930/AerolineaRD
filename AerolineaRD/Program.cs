@@ -16,6 +16,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add AutoMapper
 builder.Services.AddAutoMapper(typeof(MappingProfile));
+builder.Services.AddAutoMapper(typeof(AerolineaRD.Data.Mappings.TripulacionMappingProfile)); // ? NUEVO
 
 // Add Generic Repository
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
@@ -33,7 +34,10 @@ builder.Services.AddScoped<IEstadoVueloRepository, EstadoVueloRepository>();
 builder.Services.AddScoped<INotificacionRepository, NotificacionRepository>();
 builder.Services.AddScoped<ITicketSoporteRepository, TicketSoporteRepository>();
 builder.Services.AddScoped<IClienteRepository, ClienteRepository>();
-builder.Services.AddScoped<IAsientoRepository, AsientoRepository>(); 
+builder.Services.AddScoped<IAsientoRepository, AsientoRepository>();
+// ? NUEVO SISTEMA DE TRIPULACIÓN
+builder.Services.AddScoped<IPersonalRepository, PersonalRepository>();
+builder.Services.AddScoped<IEquipoRepository, EquipoRepository>();
 
 // Add Services
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -50,6 +54,8 @@ builder.Services.AddScoped<IEstadoVueloService, EstadoVueloService>();
 builder.Services.AddScoped<INotificacionService, NotificacionService>();
 builder.Services.AddScoped<ITicketSoporteService, TicketSoporteService>();
 builder.Services.AddScoped<IClienteService, ClienteService>();
+// ? NUEVO SISTEMA DE TRIPULACIÓN
+builder.Services.AddScoped<IEquipoService, EquipoService>();
 
 // Configuración de Entity Framework con SQLite
 builder.Services.AddDbContext<AppDbContext>(options =>

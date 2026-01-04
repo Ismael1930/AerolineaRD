@@ -6,6 +6,8 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
     private readonly AppDbContext _context;
     private readonly DbSet<T> _dbSet;
 
+    public AppDbContext Context => _context; // ✅ Exponer contexto
+
     public GenericRepository(AppDbContext context)
     {
         _context = context;

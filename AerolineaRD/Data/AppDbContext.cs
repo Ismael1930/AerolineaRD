@@ -21,11 +21,17 @@ namespace AerolineaRD.Data
         
         // Nuevas tablas
         public DbSet<Aeronave> Aeronaves { get; set; }
-        public DbSet<Tripulacion> Tripulaciones { get; set; }
+        public DbSet<Tripulacion> Tripulaciones { get; set; } // ⚠️ DEPRECADO - Mantener por compatibilidad
         public DbSet<VueloTripulacion> VueloTripulaciones { get; set; }
         public DbSet<EstadoVuelo> EstadosVuelo { get; set; }
         public DbSet<Notificacion> Notificaciones { get; set; }
         public DbSet<TicketSoporte> TicketsSoporte { get; set; }
+
+        // ✅ NUEVO SISTEMA DE TRIPULACIÓN
+        public DbSet<Personal> Personal { get; set; }
+        public DbSet<Equipo> Equipos { get; set; }
+        public DbSet<EquipoPersonal> EquipoPersonal { get; set; }
+        public DbSet<AsignacionEquipoAeronave> AsignacionesEquipoAeronave { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -54,6 +60,13 @@ namespace AerolineaRD.Data
                 .HasOne(e => e.Vuelo)
                 .WithOne(v => v.EstadoVueloDetalle)
                 .HasForeignKey<EstadoVuelo>(e => e.IdVuelo);
+
+            // ✅ NUEVO: Configuración del sistema de equipos
+            // Solo puede haber UNA asignación activa por aeronave
+            modelBuilder.Entity<AsignacionEquipoAeronave>()
+                .HasIndex(a => new { a.Matricula, a.Activa })
+                .HasFilter("[Activa] = 1")
+                .IsUnique();
         }
     }
 }

@@ -17,6 +17,9 @@ namespace AerolineaRD.Data
             // Crear usuarios
             await SeedUsersAsync(userManager);
 
+            // ✅ NUEVO: Actualizar fechas de vuelos existentes si están en el pasado
+            await ActualizarFechasVuelosAsync(context);
+
             // Si ya hay datos, no hacer nada más
             if (await context.Aeropuertos.AnyAsync())
             {
@@ -198,223 +201,210 @@ namespace AerolineaRD.Data
 
         private static async Task SeedVuelosAsync(AppDbContext context)
         {
-          // Fecha base: 1 de enero de 2025
-  var fechaBase = new DateTime(2025, 1, 1);
-            var vuelos = new List<Vuelo>();
-     var matriculas = new[] { "HI-1001RD", "HI-1002RD", "HI-1003RD", "HI-1004RD", "HI-1005RD", "HI-1006RD", "HI-1007RD" };
-     var random = new Random();
+            // ⚠️ VUELOS COMENTADOS PARA PRUEBAS DE VALIDACIÓN
+         // Descomenta cuando quieras restaurar los 250 vuelos de ejemplo
+            
+            Console.WriteLine("⚠️  Creación de vuelos deshabilitada - Tabla Vuelos vacía para pruebas de validación");
+            return;
+     
+/* ========== CÓDIGO DE VUELOS COMENTADO ==========
+            
+            // ✅ FECHA BASE: Siempre un día después de hoy
+        var fechaBase = DateTime.Today.AddDays(1);
+         
+ var vuelos = new List<Vuelo>();
+var matriculas = new[] { "HI-1001RD", "HI-1002RD", "HI-1003RD", "HI-1004RD", "HI-1005RD", "HI-1006RD", "HI-1007RD" };
+      var random = new Random();
 
-        // Rutas de ejemplo - VUELOS ESTÁNDAR (Economica/Ejecutiva)
-            var rutasBase = new[]
-        {
+            // Rutas de ejemplo - VUELOS ESTÁNDAR (Economica/Ejecutiva)
+         var rutasBase = new[]
+   {
       (origen: "SDQ", destino: "JFK", precio:450.00m, duracion:255),
-        (origen: "SDQ", destino: "MIA", precio:320.00m, duracion:150),
-       (origen: "SDQ", destino: "ATL", precio:380.00m, duracion:180),
+      (origen: "SDQ", destino: "MIA", precio:320.00m, duracion:150),
+        (origen: "SDQ", destino: "ATL", precio:380.00m, duracion:180),
       (origen: "SDQ", destino: "MAD", precio:850.00m, duracion:540),
      (origen: "SDQ", destino: "CDG", precio:920.00m, duracion:600),
-                (origen: "PUJ", destino: "JFK", precio:480.00m, duracion:270),
-   (origen: "PUJ", destino: "MIA", precio:340.00m, duracion:160),
-           (origen: "PUJ", destino: "EWR", precio:460.00m, duracion:265),
-       (origen: "PUJ", destino: "CDG", precio:920.00m, duracion:600),
-  (origen: "STI", destino: "MIA", precio:340.00m, duracion:150),
-    (origen: "STI", destino: "JFK", precio:470.00m, duracion:260),
-          (origen: "POP", destino: "MIA", precio:330.00m, duracion:145),
-            (origen: "POP", destino: "CUN", precio:280.00m, duracion:120),
-        (origen: "SDQ", destino: "CUN", precio:380.00m, duracion:150),
-      (origen: "SDQ", destino: "PTY", precio:320.00m, duracion:130),
-    (origen: "SDQ", destino: "BOG", precio:420.00m, duracion:180),
-                (origen: "SDQ", destino: "LIM", precio:550.00m, duracion:300),
-    (origen: "PUJ", destino: "BCN", precio:980.00m, duracion:620),
-           (origen: "STI", destino: "ATL", precio:390.00m, duracion:185),
- (origen: "LRM", destino: "MIA", precio:340.00m, duracion:155),
-       // Rutas de regreso
-      (origen: "ATL", destino: "SDQ", precio:380.00m, duracion:180),
+  (origen: "PUJ", destino: "JFK", precio:480.00m, duracion:270),
+      (origen: "PUJ", destino: "MIA", precio:340.00m, duracion:160),
+      (origen: "PUJ", destino: "EWR", precio:460.00m, duracion:265),
+      (origen: "PUJ", destino: "CDG", precio:920.00m, duracion:600),
+                (origen: "STI", destino: "MIA", precio:340.00m, duracion:150),
+   (origen: "STI", destino: "JFK", precio:470.00m, duracion:260),
+       (origen: "POP", destino: "MIA", precio:330.00m, duracion:145),
+      (origen: "POP", destino: "CUN", precio:280.00m, duracion:120),
+                (origen: "SDQ", destino: "CUN", precio:380.00m, duracion:150),
+ (origen: "SDQ", destino: "PTY", precio:320.00m, duracion:130),
+   (origen: "SDQ", destino: "BOG", precio:420.00m, duracion:180),
+             (origen: "SDQ", destino: "LIM", precio:550.00m, duracion:300),
+ (origen: "PUJ", destino: "BCN", precio:980.00m, duracion:620),
+      (origen: "STI", destino: "ATL", precio:390.00m, duracion:185),
+       (origen: "LRM", destino: "MIA", precio:340.00m, duracion:155),
+        // Rutas de regreso
+    (origen: "ATL", destino: "SDQ", precio:380.00m, duracion:180),
     (origen: "ATL", destino: "PUJ", precio:400.00m, duracion:185),
-     (origen: "JFK", destino: "SDQ", precio:450.00m, duracion:255),
-         (origen: "MIA", destino: "SDQ", precio:320.00m, duracion:150),
-        (origen: "MIA", destino: "PUJ", precio:340.00m, duracion:160)
-            };
-
-            // ✈️ NUEVO: Rutas PREMIUM de Primera Clase (vuelos internacionales largos)
-          var rutasPremium = new[]
-   {
-     (origen: "SDQ", destino: "MAD", precio:1200.00m, duracion:540),
-         (origen: "SDQ", destino: "CDG", precio:1350.00m, duracion:600),
-           (origen: "SDQ", destino: "BCN", precio:1250.00m, duracion:560),
-         (origen: "PUJ", destino: "MAD", precio:1250.00m, duracion:550),
-         (origen: "PUJ", destino: "CDG", precio:1400.00m, duracion:610),
-     (origen: "PUJ", destino: "BCN", precio:1300.00m, duracion:570),
-       (origen: "SDQ", destino: "JFK", precio:750.00m, duracion:255),
-          (origen: "SDQ", destino: "EWR", precio:780.00m, duracion:260),
-     (origen: "PUJ", destino: "JFK", precio:800.00m, duracion:270),
-    (origen: "PUJ", destino: "EWR", precio:820.00m, duracion:275),
-            // Rutas de regreso premium
-     (origen: "MAD", destino: "SDQ", precio:1200.00m, duracion:540),
-                (origen: "CDG", destino: "SDQ", precio:1350.00m, duracion:600),
-                (origen: "BCN", destino: "PUJ", precio:1300.00m, duracion:570),
-  (origen: "JFK", destino: "SDQ", precio:750.00m, duracion:255),
-     (origen: "EWR", destino: "PUJ", precio:820.00m, duracion:275)
+       (origen: "JFK", destino: "SDQ", precio:450.00m, duracion:255),
+    (origen: "MIA", destino: "SDQ", precio:320.00m, duracion:150),
+              (origen: "MIA", destino: "PUJ", precio:340.00m, duracion:160)
     };
 
-  int numeroVuelo = 1000;
+      // ✈️ Rutas PREMIUM de Primera Clase (vuelos internacionales largos)
+  var rutasPremium = new[]
+      {
+   (origen: "SDQ", destino: "MAD", precio:1200.00m, duracion:540),
+            (origen: "SDQ", destino: "CDG", precio:1350.00m, duracion:600),
+   (origen: "SDQ", destino: "BCN", precio:1250.00m, duracion:560),
+                (origen: "PUJ", destino: "MAD", precio:1250.00m, duracion:550),
+    (origen: "PUJ", destino: "CDG", precio:1400.00m, duracion:610),
+    (origen: "PUJ", destino: "BCN", precio:1300.00m, duracion:570),
+        (origen: "SDQ", destino: "JFK", precio:750.00m, duracion:255),
+                (origen: "SDQ", destino: "EWR", precio:780.00m, duracion:260),
+   (origen: "PUJ", destino: "JFK", precio:800.00m, duracion:270),
+                (origen: "PUJ", destino: "EWR", precio:820.00m, duracion:275),
+         // Rutas de regreso premium
+           (origen: "MAD", destino: "SDQ", precio:1200.00m, duracion:540),
+    (origen: "CDG", destino: "SDQ", precio:1350.00m, duracion:600),
+                (origen: "BCN", destino: "PUJ", precio:1300.00m, duracion:570),
+           (origen: "JFK", destino: "SDQ", precio:750.00m, duracion:255),
+    (origen: "EWR", destino: "PUJ", precio:820.00m, duracion:275)
+            };
 
-        // Generar 120 vuelos ESTÁNDAR de IDA Y VUELTA
-            for (int i = 0; i < 120; i++)
-{
-         var ruta = rutasBase[i % rutasBase.Length];
-    var diasAdelante = i % 90; // distribuir en 90 días
+       int numeroVuelo = 1000;
+
+ // Generar 120 vuelos ESTÁNDAR de IDA Y VUELTA
+        for (int i = 0; i < 120; i++)
+            {
+      var ruta = rutasBase[i % rutasBase.Length];
+       var diasAdelante = i % 90; // distribuir en 90 días
        var fechaSalida = fechaBase.AddDays(diasAdelante);
-  
-      var today = DateTime.Today;
-   while (fechaSalida.Date < today)
-     {
-    fechaSalida = fechaSalida.AddMonths(1);
-   }
+   
+          var horaSalida = new TimeSpan(6 + (i % 16), random.Next(0, 60), 0);
+   var horaLlegada = horaSalida.Add(TimeSpan.FromMinutes(ruta.duracion));
+       var fechaRegreso = fechaSalida.AddDays(7 + random.Next(0, 14));
 
- var horaSalida = new TimeSpan(6 + (i % 16), random.Next(0, 60), 0);
-       var horaLlegada = horaSalida.Add(TimeSpan.FromMinutes(ruta.duracion));
-    var fechaRegreso = fechaSalida.AddDays(7 + random.Next(0, 14));
+   // ✅ Determinar clase del vuelo (80% Economica, 20% Ejecutiva)
+          string claseVuelo = i % 5 == 0 ? "Ejecutiva" : "Economica";
 
-  // ✅ Determinar clase del vuelo (80% Economica, 20% Ejecutiva)
-            string claseVuelo = i % 5 == 0 ? "Ejecutiva" : "Economica";
-
-       vuelos.Add(new Vuelo
-     {
-       NumeroVuelo = $"RD{numeroVuelo++}",
-      Fecha = fechaSalida,
-        HoraSalida = horaSalida,
-      HoraLlegada = horaLlegada,
-            Duracion = ruta.duracion,
-  PrecioBase = ruta.precio,
+           vuelos.Add(new Vuelo
+        {
+         NumeroVuelo = $"RD{numeroVuelo++}",
+     Fecha = fechaSalida,
+             HoraSalida = horaSalida,
+           HoraLlegada = horaLlegada,
+          Duracion = ruta.duracion,
+      PrecioBase = ruta.precio,
     OrigenCodigo = ruta.origen,
-               DestinoCodigo = ruta.destino,
-               Matricula = matriculas[i % matriculas.Length],
-    Estado = "Programado",
-     TipoVuelo = "IdaYVuelta",
-      FechaRegreso = fechaRegreso,
-          Clase = claseVuelo
-       });
+          DestinoCodigo = ruta.destino,
+ Matricula = matriculas[i % matriculas.Length],
+      Estado = "Programado",
+  TipoVuelo = "IdaYVuelta",
+         FechaRegreso = fechaRegreso,
+     Clase = claseVuelo
+      });
      }
 
-    // ✈️ NUEVO: Generar 30 vuelos PREMIUM de Primera Clase (IDA Y VUELTA)
-   // Usar Boeing 787-9 (HI-1005RD) para vuelos de primera clase
-       for (int i = 0; i < 30; i++)
-{
-            var ruta = rutasPremium[i % rutasPremium.Length];
- var diasAdelante = i % 60; // distribuir en 60 días
- var fechaSalida = fechaBase.AddDays(diasAdelante);
-     
-    var today = DateTime.Today;
-     while (fechaSalida.Date < today)
-     {
-          fechaSalida = fechaSalida.AddMonths(1);
-      }
+ // ✈️ Generar 30 vuelos PREMIUM de Primera Clase (IDA Y VUELTA)
+   for (int i = 0; i < 30; i++)
+            {
+       var ruta = rutasPremium[i % rutasPremium.Length];
+         var diasAdelante = i % 60; // distribuir en 60 días
+       var fechaSalida = fechaBase.AddDays(diasAdelante);
 
-    var horaSalida = new TimeSpan(8 + (i % 12), random.Next(0, 60), 0); // Horarios premium
-    var horaLlegada = horaSalida.Add(TimeSpan.FromMinutes(ruta.duracion));
+   var horaSalida = new TimeSpan(8 + (i % 12), random.Next(0, 60), 0); // Horarios premium
+         var horaLlegada = horaSalida.Add(TimeSpan.FromMinutes(ruta.duracion));
        var fechaRegreso = fechaSalida.AddDays(10 + random.Next(0, 20)); // Estancias más largas
 
-     vuelos.Add(new Vuelo
-       {
+    vuelos.Add(new Vuelo
+                {
           NumeroVuelo = $"RD{numeroVuelo++}",
-Fecha = fechaSalida,
-             HoraSalida = horaSalida,
-          HoraLlegada = horaLlegada,
-      Duracion = ruta.duracion,
-           PrecioBase = ruta.precio,
-    OrigenCodigo = ruta.origen,
- DestinoCodigo = ruta.destino,
-Matricula = "HI-1005RD", // Boeing 787-9 (aeronave grande y moderna)
-     Estado = "Programado",
- TipoVuelo = "IdaYVuelta",
-        FechaRegreso = fechaRegreso,
-            Clase = "Primera" // ✅ Vuelos Premium son de Primera Clase
-   });
-    }
+          Fecha = fechaSalida,
+         HoraSalida = horaSalida,
+  HoraLlegada = horaLlegada,
+        Duracion = ruta.duracion,
+  PrecioBase = ruta.precio,
+      OrigenCodigo = ruta.origen,
+    DestinoCodigo = ruta.destino,
+         Matricula = "HI-1005RD", // Boeing 787-9 (aeronave grande y moderna)
+           Estado = "Programado",
+         TipoVuelo = "IdaYVuelta",
+  FechaRegreso = fechaRegreso,
+        Clase = "Primera" // ✅ Vuelos Premium son de Primera Clase
+    });
+            }
 
-    // Generar 80 vuelos ESTÁNDAR de SOLO IDA
-         for (int i = 0; i < 80; i++)
-            {
-         var ruta = rutasBase[i % rutasBase.Length];
-         var diasAdelante = i % 60;
-      var fechaSalida = fechaBase.AddDays(diasAdelante);
-  
-        var today = DateTime.Today;
- while (fechaSalida.Date < today)
-  {
-        fechaSalida = fechaSalida.AddMonths(1);
-  }
+     // Generar 80 vuelos ESTÁNDAR de SOLO IDA
+       for (int i = 0; i < 80; i++)
+     {
+          var ruta = rutasBase[i % rutasBase.Length];
+                var diasAdelante = i % 60;
+           var fechaSalida = fechaBase.AddDays(diasAdelante);
 
-                var horaSalida = new TimeSpan(6 + (i % 16), random.Next(0, 60), 0);
-    var horaLlegada = horaSalida.Add(TimeSpan.FromMinutes(ruta.duracion));
+var horaSalida = new TimeSpan(6 + (i % 16), random.Next(0, 60), 0);
+      var horaLlegada = horaSalida.Add(TimeSpan.FromMinutes(ruta.duracion));
 
-     // ✅ Determinar clase del vuelo (80% Economica, 20% Ejecutiva)
+    // ✅ Determinar clase del vuelo (80% Economica, 20% Ejecutiva)
        string claseVuelo = i % 5 == 0 ? "Ejecutiva" : "Economica";
 
-     vuelos.Add(new Vuelo
-    {
-NumeroVuelo = $"RD{numeroVuelo++}",
-      Fecha = fechaSalida,
-      HoraSalida = horaSalida,
- HoraLlegada = horaLlegada,
-        Duracion = ruta.duracion,
-           PrecioBase = ruta.precio,
-       OrigenCodigo = ruta.origen,
-      DestinoCodigo = ruta.destino,
-     Matricula = matriculas[i % matriculas.Length],
-         Estado = "Programado",
-   TipoVuelo = "SoloIda",
-     FechaRegreso = null,
-            Clase = claseVuelo
-     });
-      }
-
-// ✈️ NUEVO: Generar 20 vuelos PREMIUM de Primera Clase (SOLO IDA)
-  for (int i = 0; i < 20; i++)
-     {
-    var ruta = rutasPremium[i % rutasPremium.Length];
-             var diasAdelante = i % 45;
- var fechaSalida = fechaBase.AddDays(diasAdelante);
- 
-    var today = DateTime.Today;
-    while (fechaSalida.Date < today)
-    {
-       fechaSalida = fechaSalida.AddMonths(1);
+   vuelos.Add(new Vuelo
+  {
+   NumeroVuelo = $"RD{numeroVuelo++}",
+  Fecha = fechaSalida,
+         HoraSalida = horaSalida,
+     HoraLlegada = horaLlegada,
+          Duracion = ruta.duracion,
+        PrecioBase = ruta.precio,
+      OrigenCodigo = ruta.origen,
+       DestinoCodigo = ruta.destino,
+        Matricula = matriculas[i % matriculas.Length],
+        Estado = "Programado",
+    TipoVuelo = "SoloIda",
+ FechaRegreso = null,
+         Clase = claseVuelo
+         });
           }
 
-   var horaSalida = new TimeSpan(9 + (i % 10), random.Next(0, 60), 0);
-          var horaLlegada = horaSalida.Add(TimeSpan.FromMinutes(ruta.duracion));
+ // ✈️ Generar 20 vuelos PREMIUM de Primera Clase (SOLO IDA)
+            for (int i = 0; i < 20; i++)
+     {
+         var ruta = rutasPremium[i % rutasPremium.Length];
+      var diasAdelante = i % 45;
+          var fechaSalida = fechaBase.AddDays(diasAdelante);
 
-        vuelos.Add(new Vuelo
-       {
-      NumeroVuelo = $"RD{numeroVuelo++}",
-        Fecha = fechaSalida,
-      HoraSalida = horaSalida,
-HoraLlegada = horaLlegada,
-          Duracion = ruta.duracion,
- PrecioBase = ruta.precio,
-    OrigenCodigo = ruta.origen,
-  DestinoCodigo = ruta.destino,
-           Matricula = "HI-1005RD", // Boeing 787-9
-   Estado = "Programado",
-         TipoVuelo = "SoloIda",
-  FechaRegreso = null,
-            Clase = "Primera" // ✅ Vuelos Premium son de Primera Clase
+       var horaSalida = new TimeSpan(9 + (i % 10), random.Next(0, 60), 0);
+                var horaLlegada = horaSalida.Add(TimeSpan.FromMinutes(ruta.duracion));
+
+         vuelos.Add(new Vuelo
+             {
+  NumeroVuelo = $"RD{numeroVuelo++}",
+            Fecha = fechaSalida,
+ HoraSalida = horaSalida,
+           HoraLlegada = horaLlegada,
+        Duracion = ruta.duracion,
+     PrecioBase = ruta.precio,
+         OrigenCodigo = ruta.origen,
+   DestinoCodigo = ruta.destino,
+        Matricula = "HI-1005RD", // Boeing 787-9
+  Estado = "Programado",
+       TipoVuelo = "SoloIda",
+             FechaRegreso = null,
+        Clase = "Primera" // ✅ Vuelos Premium son de Primera Clase
    });
-    }
+     }
 
-            await context.Vuelos.AddRangeAsync(vuelos);
- await context.SaveChangesAsync();
+  await context.Vuelos.AddRangeAsync(vuelos);
+       await context.SaveChangesAsync();
 
-      Console.WriteLine($"   ✅ Creados {vuelos.Count} vuelos:");
-            Console.WriteLine($"      - 96 vuelos Economica ida y vuelta");
-            Console.WriteLine($"      - 24 vuelos Ejecutiva ida y vuelta");
-        Console.WriteLine($"      - 30 vuelos Primera ida y vuelta");
-   Console.WriteLine($"      - 64 vuelos Economica solo ida");
- Console.WriteLine($"      - 16 vuelos Ejecutiva solo ida");
-Console.WriteLine($"      - 20 vuelos Primera solo ida");
-   }
-
+            Console.WriteLine($"   ✅ Creados {vuelos.Count} vuelos:");
+            Console.WriteLine($"      - Fecha base: {fechaBase:dd/MM/yyyy} (mañana)");
+            Console.WriteLine($"      - Rango: hasta {fechaBase.AddDays(90):dd/MM/yyyy}");
+         Console.WriteLine($"   - 96 vuelos Economica ida y vuelta");
+   Console.WriteLine($"- 24 vuelos Ejecutiva ida y vuelta");
+         Console.WriteLine($"    - 30 vuelos Primera ida y vuelta");
+            Console.WriteLine($"      - 64 vuelos Economica solo ida");
+            Console.WriteLine($"      - 16 vuelos Ejecutiva solo ida");
+     Console.WriteLine($"      - 20 vuelos Primera solo ida");
+      
+            ========== FIN CÓDIGO COMENTADO ========== */
+     }
         private static async Task SeedAsientosAsync(AppDbContext context)
         {
             // ⬅️ CAMBIO: Ahora los asientos pertenecen a AERONAVES, no a VUELOS
@@ -562,79 +552,90 @@ Console.WriteLine($"      - 20 vuelos Primera solo ida");
 
         private static async Task SeedReservasAsync(AppDbContext context)
         {
-            var vuelos = await context.Vuelos
-                .Include(v => v.Aeronave)
-                .ThenInclude(a => a.Asientos)
-                .Take(5)
-                .ToListAsync();
+            // ⚠️ RESERVAS COMENTADAS - Dependen de vuelos que no existen
+            Console.WriteLine("⚠️  Creación de reservas deshabilitada - Sin vuelos para reservar");
+  return;
 
-            var clientes = await context.Clientes.ToListAsync();
+            /* ========== CÓDIGO COMENTADO ==========
+var vuelos = await context.Vuelos
+        .Include(v => v.Aeronave)
+        .ThenInclude(a => a.Asientos)
+    .Take(5)
+     .ToListAsync();
+
+     var clientes = await context.Clientes.ToListAsync();
             var pasajeros = await context.Pasajeros.ToListAsync();
 
             if (!vuelos.Any() || !clientes.Any() || !pasajeros.Any())
-                return;
+       return;
 
-            var reservas = new List<Reserva>();
+      var reservas = new List<Reserva>();
 
             // Para cada vuelo, tomar un asiento económico de su aeronave
-            for (int i = 0; i < Math.Min(3, vuelos.Count); i++)
+   for (int i = 0; i < Math.Min(3, vuelos.Count); i++)
             {
-      var vuelo = vuelos[i];
-   var asientoDisponible = vuelo.Aeronave?.Asientos?
-        .FirstOrDefault(a => a.Clase == "Economica");
+     var vuelo = vuelos[i];
+     var asientoDisponible = vuelo.Aeronave?.Asientos?
+          .FirstOrDefault(a => a.Clase == "Economica");
 
-    if (asientoDisponible == null) continue;
+      if (asientoDisponible == null) continue;
 
-        reservas.Add(new Reserva
-       {
-     Codigo = $"RES{(i + 1):000}",
-      IdVuelo = vuelo.Id,
-      IdCliente = clientes[i % clientes.Count].Id,
-                 IdPasajero = pasajeros[i % pasajeros.Count].Id,
-           NumAsiento = asientoDisponible.NumeroAsiento, // Ej: "9A"
-           Clase = "Economica",
-    FechaReserva = DateTime.Today.AddDays(-(5 - i)),
-     Estado = "Confirmada",
-        PrecioTotal = vuelo.PrecioBase
-     });
-            }
+      reservas.Add(new Reserva
+         {
+    Codigo = $"RES{(i + 1):000}",
+    IdVuelo = vuelo.Id,
+     IdCliente = clientes[i % clientes.Count].Id,
+       IdPasajero = pasajeros[i % pasajeros.Count].Id,
+        NumAsiento = asientoDisponible.NumeroAsiento,
+             Clase = "Economica",
+        FechaReserva = DateTime.Today.AddDays(-(5 - i)),
+  Estado = "Confirmada",
+         PrecioTotal = vuelo.PrecioBase
+ });
+   }
 
-            await context.Reservas.AddRangeAsync(reservas);
+       await context.Reservas.AddRangeAsync(reservas);
             await context.SaveChangesAsync();
+            ========== FIN CÓDIGO COMENTADO ========== */
         }
-
         private static async Task SeedFacturasAsync(AppDbContext context)
         {
-            var reservas = await context.Reservas.ToListAsync();
+            // ⚠️ FACTURAS COMENTADAS - Dependen de reservas que no existen
+ Console.WriteLine("⚠️  Creación de facturas deshabilitada - Sin reservas para facturar");
+         return;
 
-            if (!reservas.Any())
-                return;
+    /* ========== CÓDIGO COMENTADO ==========
+     var reservas = await context.Reservas.ToListAsync();
 
-            var facturas = new List<Factura>
+      if (!reservas.Any())
+        return;
+
+    var facturas = new List<Factura>
             {
-                new Factura
-                {
-                    Codigo = "FAC001",
-                    CodReserva = reservas[0].Codigo,
-                    Monto = reservas[0].PrecioTotal,
-                   MetodoPago = "Tarjeta de Crédito",
-                    FechaEmision = reservas[0].FechaReserva,
-                    EstadoPago = "Pagado"
-                },
-                new Factura
-                {
-                    Codigo = "FAC002",
-                    CodReserva = reservas[1].Codigo,
-                    Monto = reservas[1].PrecioTotal,
-                    MetodoPago = "PayPal",
-                    FechaEmision = reservas[1].FechaReserva,
-                    EstadoPago = "Pagado"
-                }
-            };
+    new Factura
+    {
+        Codigo = "FAC001",
+        CodReserva = reservas[0].Codigo,
+         Monto = reservas[0].PrecioTotal,
+     MetodoPago = "Tarjeta de Crédito",
+       FechaEmision = reservas[0].FechaReserva,
+       EstadoPago = "Pagado"
+ },
+          new Factura
+    {
+   Codigo = "FAC002",
+         CodReserva = reservas[1].Codigo,
+      Monto = reservas[1].PrecioTotal,
+    MetodoPago = "PayPal",
+        FechaEmision = reservas[1].FechaReserva,
+      EstadoPago = "Pagado"
+  }
+  };
 
-            await context.Facturas.AddRangeAsync(facturas);
-            await context.SaveChangesAsync();
-        }
+       await context.Facturas.AddRangeAsync(facturas);
+        await context.SaveChangesAsync();
+     ========== FIN CÓDIGO COMENTADO ========== */
+  }
 
         private static async Task SeedEquipajesAsync(AppDbContext context)
         {
@@ -656,68 +657,80 @@ Console.WriteLine($"      - 20 vuelos Primera solo ida");
 
         private static async Task SeedEstadosVueloAsync(AppDbContext context)
         {
-            var vuelosHoy = await context.Vuelos
-                .Where(v => v.Fecha == DateTime.Today)
-                .Take(5)
-                .ToListAsync();
+  // ⚠️ ESTADOS DE VUELO COMENTADOS - Dependen de vuelos que no existen
+     Console.WriteLine("⚠️  Creación de estados de vuelo deshabilitada - Sin vuelos para asignar estados");
+            return;
 
-            var estadosVuelo = new List<EstadoVuelo>();
+    /* ========== CÓDIGO COMENTADO ==========
+ var vuelosHoy = await context.Vuelos
+      .Where(v => v.Fecha == DateTime.Today)
+    .Take(5)
+        .ToListAsync();
 
-            foreach (var vuelo in vuelosHoy)
-            {
-                estadosVuelo.Add(new EstadoVuelo
-                {
-                    IdVuelo = vuelo.Id,
-                    Estado = "Embarcando",
-                    HoraSalidaProgramada = DateTime.Today.Add(vuelo.HoraSalida),
-                    HoraLlegadaProgramada = DateTime.Today.Add(vuelo.HoraLlegada),
-                    Puerta = $"A{new Random().Next(1, 20)}",
-                    Observaciones = "Vuelo en tiempo"
-                });
-            }
+    var estadosVuelo = new List<EstadoVuelo>();
 
-            await context.EstadosVuelo.AddRangeAsync(estadosVuelo);
-            await context.SaveChangesAsync();
-        }
+       foreach (var vuelo in vuelosHoy)
+      {
+        estadosVuelo.Add(new EstadoVuelo
+  {
+      IdVuelo = vuelo.Id,
+        Estado = "Embarcando",
+       HoraSalidaProgramada = DateTime.Today.Add(vuelo.HoraSalida),
+      HoraLlegadaProgramada = DateTime.Today.Add(vuelo.HoraLlegada),
+       Puerta = $"A{new Random().Next(1, 20)}",
+          Observaciones = "Vuelo en tiempo"
+  });
+ }
+
+        await context.EstadosVuelo.AddRangeAsync(estadosVuelo);
+        await context.SaveChangesAsync();
+       ========== FIN CÓDIGO COMENTADO ========== */
+ }
 
         private static async Task SeedVueloTripulacionAsync(AppDbContext context)
         {
-            var vuelos = await context.Vuelos.Take(10).ToListAsync();
-            var pilotos = await context.Tripulaciones.Where(t => t.Rol == "Piloto").ToListAsync();
-            var copilotos = await context.Tripulaciones.Where(t => t.Rol == "Copiloto").ToListAsync();
-            var sobrecargos = await context.Tripulaciones.Where(t => t.Rol!.Contains("Sobrecargo")).ToListAsync();
+        // ⚠️ ASIGNACIÓN DE TRIPULACIÓN COMENTADA - Depende de vuelos que no existen
+  Console.WriteLine("⚠️  Asignación de tripulación deshabilitada - Sin vuelos para asignar tripulantes");
+     return;
 
-            var vueloTripulaciones = new List<VueloTripulacion>();
+/* ========== CÓDIGO COMENTADO ==========
+     var vuelos = await context.Vuelos.Take(10).ToListAsync();
+       var pilotos = await context.Tripulaciones.Where(t => t.Rol == "Piloto").ToListAsync();
+        var copilotos = await context.Tripulaciones.Where(t => t.Rol == "Copiloto").ToListAsync();
+     var sobrecargos = await context.Tripulaciones.Where(t => t.Rol!.Contains("Sobrecargo")).ToListAsync();
 
-            for (int i = 0; i < vuelos.Count; i++)
-            {
-                // Asignar piloto
-                vueloTripulaciones.Add(new VueloTripulacion
-                {
-                    IdVuelo = vuelos[i].Id,
-                    IdTripulacion = pilotos[i % pilotos.Count].Id
-                });
+    var vueloTripulaciones = new List<VueloTripulacion>();
 
-                // Asignar copiloto
-                vueloTripulaciones.Add(new VueloTripulacion
-                {
-                    IdVuelo = vuelos[i].Id,
-                    IdTripulacion = copilotos[i % copilotos.Count].Id
-                });
+for (int i = 0; i < vuelos.Count; i++)
+  {
+    // Asignar piloto
+     vueloTripulaciones.Add(new VueloTripulacion
+  {
+        IdVuelo = vuelos[i].Id,
+IdTripulacion = pilotos[i % pilotos.Count].Id
+    });
 
-                // Asignar 4 sobrecargos
-                for (int j = 0; j < 4; j++)
-                {
-                    vueloTripulaciones.Add(new VueloTripulacion
-                    {
-                        IdVuelo = vuelos[i].Id,
-                        IdTripulacion = sobrecargos[(i * 4 + j) % sobrecargos.Count].Id
-                    });
-                }
-            }
+      // Asignar copiloto
+vueloTripulaciones.Add(new VueloTripulacion
+     {
+IdVuelo = vuelos[i].Id,
+       IdTripulacion = copilotos[i % copilotos.Count].Id
+});
 
-            await context.VueloTripulaciones.AddRangeAsync(vueloTripulaciones);
-            await context.SaveChangesAsync();
+        // Asignar 4 sobrecargos
+    for (int j = 0; j < 4; j++)
+      {
+  vueloTripulaciones.Add(new VueloTripulacion
+{
+ IdVuelo = vuelos[i].Id,
+       IdTripulacion = sobrecargos[(i * 4 + j) % sobrecargos.Count].Id
+   });
+  }
+ }
+
+      await context.VueloTripulaciones.AddRangeAsync(vueloTripulaciones);
+   await context.SaveChangesAsync();
+      ========== FIN CÓDIGO COMENTADO ========== */
         }
 
         private static async Task SeedNotificacionesAsync(AppDbContext context)
@@ -749,6 +762,46 @@ Console.WriteLine($"      - 20 vuelos Primera solo ida");
 
             await context.Notificaciones.AddRangeAsync(notificaciones);
             await context.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Actualiza las fechas de los vuelos existentes para que siempre sean futuras
+        /// </summary>
+        private static async Task ActualizarFechasVuelosAsync(AppDbContext context)
+        {
+ var hoy = DateTime.Today;
+            var vuelosEnPasado = await context.Vuelos
+    .Where(v => v.Fecha < hoy)
+      .ToListAsync();
+
+            if (!vuelosEnPasado.Any())
+            {
+     Console.WriteLine("✅ No hay vuelos en el pasado para actualizar");
+        return;
+         }
+
+        Console.WriteLine($"📅 Actualizando {vuelosEnPasado.Count} vuelos del pasado...");
+
+       foreach (var vuelo in vuelosEnPasado)
+         {
+      // Calcular cuántos días en el pasado está el vuelo
+                var diasEnPasado = (hoy - vuelo.Fecha).Days;
+           
+    // Mover el vuelo al futuro: mañana + el mismo offset relativo
+        vuelo.Fecha = hoy.AddDays(1 + (diasEnPasado % 90));
+  
+            // Actualizar también la fecha de regreso si existe
+ if (vuelo.FechaRegreso.HasValue && vuelo.FechaRegreso.Value < hoy)
+        {
+    var diasDespuesDeSalida = (vuelo.FechaRegreso.Value - vuelo.Fecha.AddDays(-diasEnPasado)).Days;
+      vuelo.FechaRegreso = vuelo.Fecha.AddDays(Math.Max(1, diasDespuesDeSalida));
+                }
+     }
+
+    await context.SaveChangesAsync();
+         Console.WriteLine($"✅ {vuelosEnPasado.Count} vuelos actualizados a fechas futuras");
+  Console.WriteLine($"   - Primera fecha: {vuelosEnPasado.Min(v => v.Fecha):dd/MM/yyyy}");
+            Console.WriteLine($"   - Última fecha: {vuelosEnPasado.Max(v => v.Fecha):dd/MM/yyyy}");
         }
     }
 }
