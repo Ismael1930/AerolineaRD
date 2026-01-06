@@ -1,4 +1,4 @@
-using AerolineaRD.Data.DTOs;
+Ôªøusing AerolineaRD.Data.DTOs;
 using AerolineaRD.Entity;
 using AerolineaRD.Repositories.interfaces;
 using AerolineaRD.Services.interfaces;
@@ -32,7 +32,7 @@ namespace AerolineaRD.Services
         {
             var errores = new List<ValidationError>();
 
-            // ? 1. VALIDACI”N: Verificar disponibilidad de aeronave
+            // ? 1. VALIDACI√ìN: Verificar disponibilidad de aeronave
             if (!string.IsNullOrEmpty(dto.Matricula))
             {
                 bool aeronaveDisponible = await _vueloRepository.EstaAeronaveDisponibleAsync(
@@ -46,9 +46,9 @@ namespace AerolineaRD.Services
                     errores.Add(ValidationError.Create(
                         campo: "Matricula",
                         tipo: ValidationErrorType.AeronaveNoDisponible,
-                        mensaje: $"La aeronave con matrÌcula '{dto.Matricula}' no est· disponible en el horario especificado. " +
+                        mensaje: $"La aeronave con matr√≠cula '{dto.Matricula}' no est√° disponible en el horario especificado. " +
                                  $"Ya tiene un vuelo asignado que se solapa con el horario {dto.HoraSalida:hh\\:mm} - {dto.HoraLlegada:hh\\:mm} el {dto.Fecha:dd/MM/yyyy}. " +
-                                 $"Recuerde que se requiere un tiempo mÌnimo de preparaciÛn entre vuelos.",
+                                 $"Recuerde que se requiere un tiempo m√≠nimo de preparaci√≥n entre vuelos.",
                         detalles: new
                         {
                             matricula = dto.Matricula,
@@ -60,7 +60,7 @@ namespace AerolineaRD.Services
                 }
             }
 
-            // ? 2. VALIDACI”N: Verificar capacidad del aeropuerto de origen
+            // ? 2. VALIDACI√ìN: Verificar capacidad del aeropuerto de origen
             if (!string.IsNullOrEmpty(dto.OrigenCodigo))
             {
                 bool origenTieneCapacidad = await _vueloRepository.AeropuertoTieneCapacidadAsync(
@@ -74,7 +74,7 @@ namespace AerolineaRD.Services
                     errores.Add(ValidationError.Create(
                         campo: "OrigenCodigo",
                         tipo: ValidationErrorType.AeropuertoSinCapacidad,
-                        mensaje: $"El aeropuerto de origen '{dto.OrigenCodigo}' ha alcanzado su capacidad m·xima de despegues " +
+                        mensaje: $"El aeropuerto de origen '{dto.OrigenCodigo}' ha alcanzado su capacidad m√°xima de despegues " +
                                  $"en el horario {dto.HoraSalida:hh\\:mm} el {dto.Fecha:dd/MM/yyyy}. " +
                                  $"Por favor, seleccione otro horario.",
                         detalles: new
@@ -88,7 +88,7 @@ namespace AerolineaRD.Services
                 }
             }
 
-            // ? 3. VALIDACI”N: Verificar capacidad del aeropuerto de destino
+            // ? 3. VALIDACI√ìN: Verificar capacidad del aeropuerto de destino
             if (!string.IsNullOrEmpty(dto.DestinoCodigo))
             {
                 bool destinoTieneCapacidad = await _vueloRepository.AeropuertoTieneCapacidadAsync(
@@ -102,7 +102,7 @@ namespace AerolineaRD.Services
                     errores.Add(ValidationError.Create(
                         campo: "DestinoCodigo",
                         tipo: ValidationErrorType.AeropuertoSinCapacidad,
-                        mensaje: $"El aeropuerto de destino '{dto.DestinoCodigo}' ha alcanzado su capacidad m·xima de aterrizajes " +
+                        mensaje: $"El aeropuerto de destino '{dto.DestinoCodigo}' ha alcanzado su capacidad m√°xima de aterrizajes " +
                                  $"en el horario {dto.HoraLlegada:hh\\:mm} el {dto.Fecha:dd/MM/yyyy}. " +
                                  $"Por favor, seleccione otro horario.",
                         detalles: new
@@ -131,7 +131,23 @@ namespace AerolineaRD.Services
                 vuelo.Clase = dto.Clase;
             }
 
-            // ? 4. VALIDACI”N: Asignar y validar tripulaciÛn
+            // ‚úÖ NUEVO: Asignar TipoVuelo y FechaRegreso
+            if (!string.IsNullOrEmpty(dto.TipoVuelo))
+            {
+                vuelo.TipoVuelo = dto.TipoVuelo;
+            }
+
+            // Solo asignar FechaRegreso si el vuelo es de IdaYVuelta
+            if (dto.TipoVuelo == "IdaYVuelta" && dto.FechaRegreso.HasValue)
+            {
+                vuelo.FechaRegreso = dto.FechaRegreso.Value;
+            }
+            else
+            {
+                vuelo.FechaRegreso = null; // Asegurar que sea null para vuelos de SoloIda
+            }
+
+            // ? 4. VALIDACI√ìN: Asignar y validar tripulaci√≥n
             if (dto.IdsTripulacion != null && dto.IdsTripulacion.Any())
             {
                 Aeronave? aeronave = null;
@@ -166,8 +182,8 @@ namespace AerolineaRD.Services
                         errores.Add(ValidationError.Create(
                             campo: "IdsTripulacion",
                             tipo: ValidationErrorType.TripulanteNoDisponible,
-                            mensaje: $"El tripulante {tripulacion.Nombre} {tripulacion.Apellido} no est· disponible en el horario especificado. " +
-                                     $"Ya tiene un vuelo asignado o no ha cumplido el tiempo mÌnimo de descanso (8 horas).",
+                            mensaje: $"El tripulante {tripulacion.Nombre} {tripulacion.Apellido} no est√° disponible en el horario especificado. " +
+                                     $"Ya tiene un vuelo asignado o no ha cumplido el tiempo m√≠nimo de descanso (8 horas).",
                             detalles: new
                             {
                                 idTripulacion,
@@ -181,19 +197,20 @@ namespace AerolineaRD.Services
                         continue;
                     }
 
-                    // Verificar certificaciÛn para pilotos y copilotos
+                    // Verificar certificaci√≥n para pilotos y copilotos
                     if ((tripulacion.Rol == "Piloto" || tripulacion.Rol == "Copiloto") && aeronave != null)
                     {
                         bool tieneCertificacion = await _tripulacionRepository.TieneCertificacionParaAeronaveAsync(
                             idTripulacion,
                             aeronave.Modelo ?? "");
 
+
                         if (!tieneCertificacion)
                         {
                             errores.Add(ValidationError.Create(
                                 campo: "IdsTripulacion",
                                 tipo: ValidationErrorType.TripulanteSinCertificacion,
-                                mensaje: $"El {tripulacion.Rol} {tripulacion.Nombre} {tripulacion.Apellido} no tiene la certificaciÛn requerida " +
+                                mensaje: $"El {tripulacion.Rol} {tripulacion.Nombre} {tripulacion.Apellido} no tiene la certificaci√≥n requerida " +
                                          $"para operar aeronaves de tipo {aeronave.Modelo}.",
                                 detalles: new
                                 {
@@ -212,13 +229,13 @@ namespace AerolineaRD.Services
                 }
             }
 
-            // ? Si hay errores de validaciÛn, devolver resultado fallido
+            // ? Si hay errores de validaci√≥n, devolver resultado fallido
             if (errores.Any())
             {
                 return OperationResult<VueloDetalleDto>.ValidationFailure(errores);
             }
 
-            // ? Todo v·lido, crear el vuelo
+            // ? Todo v√°lido, crear el vuelo
             await _vueloRepository.AddAsync(vuelo);
             await _vueloRepository.SaveAsync();
 
@@ -246,28 +263,28 @@ namespace AerolineaRD.Services
         public async Task<VueloDetalleDto?> ObtenerVueloDetalleAsync(int id)
         {
             var vuelo = await _vueloRepository.ObtenerVueloConDetallesAsync(id);
-            
-            if (vuelo == null) 
-                 return null;
+
+            if (vuelo == null)
+                return null;
 
             var vueloDto = _mapper.Map<VueloDetalleDto>(vuelo);
-   
-   // ? Agregar informaciÛn de la aeronave si existe
-   if (vuelo.Aeronave != null)
-     {
-     vueloDto.Aeronave = new AeronaveInfoDto
-        {
-    Matricula = vuelo.Aeronave.Matricula,
-     Modelo = vuelo.Aeronave.Modelo,
-           Capacidad = vuelo.Aeronave.Capacidad,
-     Estado = vuelo.Aeronave.Estado,
-         TiempoPreparacionMinutos = vuelo.Aeronave.TiempoPreparacionMinutos,
-       TotalAsientos = vuelo.Aeronave.Asientos?.Count ?? 0
-         };
-    }
 
-    return vueloDto;
-   }
+            // ? Agregar informaci√≥n de la aeronave si existe
+            if (vuelo.Aeronave != null)
+            {
+                vueloDto.Aeronave = new AeronaveInfoDto
+                {
+                    Matricula = vuelo.Aeronave.Matricula,
+                    Modelo = vuelo.Aeronave.Modelo,
+                    Capacidad = vuelo.Aeronave.Capacidad,
+                    Estado = vuelo.Aeronave.Estado,
+                    TiempoPreparacionMinutos = vuelo.Aeronave.TiempoPreparacionMinutos,
+                    TotalAsientos = vuelo.Aeronave.Asientos?.Count ?? 0
+                };
+            }
+
+            return vueloDto;
+        }
 
         public async Task<OperationResult<VueloDetalleDto>> ActualizarVueloAsync(ActualizarVueloDto dto)
         {
@@ -285,7 +302,7 @@ namespace AerolineaRD.Services
                 return OperationResult<VueloDetalleDto>.ValidationFailure(errores);
             }
 
-            // ? ValidaciÛn: Si se est· cambiando la aeronave o el horario, verificar disponibilidad
+            // ? Validaci√≥n: Si se est√° cambiando la aeronave o el horario, verificar disponibilidad
             bool cambioAeronave = !string.IsNullOrEmpty(dto.Matricula) && dto.Matricula != vuelo.Matricula;
             bool cambioFecha = dto.Fecha.HasValue && dto.Fecha.Value.Date != vuelo.Fecha.Date;
             bool cambioHoraSalida = dto.HoraSalida.HasValue && dto.HoraSalida.Value != vuelo.HoraSalida;
@@ -305,16 +322,16 @@ namespace AerolineaRD.Services
                         fechaValidar,
                         horaSalidaValidar,
                         horaLlegadaValidar,
-                        dto.Id); // Excluir el vuelo actual de la validaciÛn
+                        dto.Id); // Excluir el vuelo actual de la validaci√≥n
 
                     if (!aeronaveDisponible)
                     {
                         errores.Add(ValidationError.Create(
                             campo: "Matricula",
                             tipo: ValidationErrorType.AeronaveNoDisponible,
-                            mensaje: $"La aeronave con matrÌcula '{matriculaValidar}' no est· disponible en el horario especificado. " +
+                            mensaje: $"La aeronave con matr√≠cula '{matriculaValidar}' no est√° disponible en el horario especificado. " +
                                      $"Ya tiene un vuelo asignado que se solapa con el horario {horaSalidaValidar:hh\\:mm} - {horaLlegadaValidar:hh\\:mm} el {fechaValidar:dd/MM/yyyy}. " +
-                                     $"Recuerde que se requiere un tiempo mÌnimo de preparaciÛn entre vuelos.",
+                                     $"Recuerde que se requiere un tiempo m√≠nimo de preparaci√≥n entre vuelos.",
                             detalles: new
                             {
                                 matricula = matriculaValidar,
@@ -327,7 +344,7 @@ namespace AerolineaRD.Services
                     }
                 }
 
-                // Validar capacidad de origen si cambiÛ
+                // Validar capacidad de origen si cambi√≥
                 if (!string.IsNullOrEmpty(dto.OrigenCodigo))
                 {
                     bool origenTieneCapacidad = await _vueloRepository.AeropuertoTieneCapacidadAsync(
@@ -341,7 +358,7 @@ namespace AerolineaRD.Services
                         errores.Add(ValidationError.Create(
                             campo: "OrigenCodigo",
                             tipo: ValidationErrorType.AeropuertoSinCapacidad,
-                            mensaje: $"El aeropuerto de origen '{dto.OrigenCodigo}' ha alcanzado su capacidad m·xima de despegues " +
+                            mensaje: $"El aeropuerto de origen '{dto.OrigenCodigo}' ha alcanzado su capacidad m√°xima de despegues " +
                                      $"en el horario {horaSalidaValidar:hh\\:mm} el {fechaValidar:dd/MM/yyyy}.",
                             detalles: new
                             {
@@ -353,7 +370,7 @@ namespace AerolineaRD.Services
                     }
                 }
 
-                // Validar capacidad de destino si cambiÛ
+                // Validar capacidad de destino si cambi√≥
                 if (!string.IsNullOrEmpty(dto.DestinoCodigo))
                 {
                     bool destinoTieneCapacidad = await _vueloRepository.AeropuertoTieneCapacidadAsync(
@@ -367,7 +384,7 @@ namespace AerolineaRD.Services
                         errores.Add(ValidationError.Create(
                             campo: "DestinoCodigo",
                             tipo: ValidationErrorType.AeropuertoSinCapacidad,
-                            mensaje: $"El aeropuerto de destino '{dto.DestinoCodigo}' ha alcanzado su capacidad m·xima de aterrizajes " +
+                            mensaje: $"El aeropuerto de destino '{dto.DestinoCodigo}' ha alcanzado su capacidad m√°xima de aterrizajes " +
                                      $"en el horario {horaLlegadaValidar:hh\\:mm} el {fechaValidar:dd/MM/yyyy}.",
                             detalles: new
                             {
@@ -380,13 +397,13 @@ namespace AerolineaRD.Services
                 }
             }
 
-            // ? Si hay errores de validaciÛn, devolver resultado fallido
+            // ? Si hay errores de validaci√≥n, devolver resultado fallido
             if (errores.Any())
             {
                 return OperationResult<VueloDetalleDto>.ValidationFailure(errores);
             }
 
-            // Actualizar campos b·sicos
+            // Actualizar campos b√°sicos
             if (!string.IsNullOrEmpty(dto.NumeroVuelo)) vuelo.NumeroVuelo = dto.NumeroVuelo;
             if (dto.Fecha.HasValue) vuelo.Fecha = dto.Fecha.Value;
             if (dto.HoraSalida.HasValue) vuelo.HoraSalida = dto.HoraSalida.Value;
@@ -400,31 +417,43 @@ namespace AerolineaRD.Services
             if (!string.IsNullOrEmpty(dto.TipoVuelo)) vuelo.TipoVuelo = dto.TipoVuelo;
             if (!string.IsNullOrEmpty(dto.Clase)) vuelo.Clase = dto.Clase;
 
+            // ‚úÖ NUEVO: Actualizar FechaRegreso
+            if (dto.FechaRegreso.HasValue)
+            {
+                // Si se proporciona FechaRegreso, asignarla
+                vuelo.FechaRegreso = dto.FechaRegreso.Value;
+            }
+            else if (dto.TipoVuelo == "SoloIda")
+            {
+                // Si se cambia a SoloIda, limpiar FechaRegreso
+                vuelo.FechaRegreso = null;
+            }
+
             _vueloRepository.Update(vuelo);
             await _vueloRepository.SaveAsync();
 
-   var vueloActualizado = await _vueloRepository.ObtenerVueloConDetallesAsync(dto.Id);
-       var vueloDto = _mapper.Map<VueloDetalleDto>(vueloActualizado);
+            var vueloActualizado = await _vueloRepository.ObtenerVueloConDetallesAsync(dto.Id);
+            var vueloDto = _mapper.Map<VueloDetalleDto>(vueloActualizado);
 
-    // ? Agregar informaciÛn de la aeronave si existe
-    if (vueloActualizado?.Aeronave != null)
-      {
-     vueloDto.Aeronave = new AeronaveInfoDto
+            // ? Agregar informaci√≥n de la aeronave si existe
+            if (vueloActualizado?.Aeronave != null)
+            {
+                vueloDto.Aeronave = new AeronaveInfoDto
                 {
-     Matricula = vueloActualizado.Aeronave.Matricula,
-        Modelo = vueloActualizado.Aeronave.Modelo,
-          Capacidad = vueloActualizado.Aeronave.Capacidad,
-    Estado = vueloActualizado.Aeronave.Estado,
-  TiempoPreparacionMinutos = vueloActualizado.Aeronave.TiempoPreparacionMinutos,
-         TotalAsientos = vueloActualizado.Aeronave.Asientos?.Count ?? 0
-           };
-  }
+                    Matricula = vueloActualizado.Aeronave.Matricula,
+                    Modelo = vueloActualizado.Aeronave.Modelo,
+                    Capacidad = vueloActualizado.Aeronave.Capacidad,
+                    Estado = vueloActualizado.Aeronave.Estado,
+                    TiempoPreparacionMinutos = vueloActualizado.Aeronave.TiempoPreparacionMinutos,
+                    TotalAsientos = vueloActualizado.Aeronave.Asientos?.Count ?? 0
+                };
+            }
 
-          return OperationResult<VueloDetalleDto>.SuccessResult(
-    vueloDto,
-       "Vuelo actualizado exitosamente"
-   );
-      }
+            return OperationResult<VueloDetalleDto>.SuccessResult(
+      vueloDto,
+         "Vuelo actualizado exitosamente"
+     );
+        }
 
         public async Task<bool> EliminarVueloAsync(int id)
         {
@@ -441,40 +470,40 @@ namespace AerolineaRD.Services
         public async Task<List<VueloDetalleDto>> ObtenerTodosLosVuelosAsync()
         {
             var vuelos = await _vueloRepository.GetAllAsync();
-    
-      // Obtener vuelos con detalles incluyendo aeronave
-var vuelosConDetalles = new List<VueloDetalleDto>();
 
-     foreach (var vuelo in vuelos)
-{
-             var vueloDetallado = await _vueloRepository.ObtenerVueloConDetallesAsync(vuelo.Id);
-   
-  if (vueloDetallado != null)
-       {
-         var vueloDto = _mapper.Map<VueloDetalleDto>(vueloDetallado);
- 
-        // ? Agregar informaciÛn de la aeronave
-         if (vueloDetallado.Aeronave != null)
-  {
-  vueloDto.Aeronave = new AeronaveInfoDto
-         {
-   Matricula = vueloDetallado.Aeronave.Matricula,
-     Modelo = vueloDetallado.Aeronave.Modelo,
-     Capacidad = vueloDetallado.Aeronave.Capacidad,
-     Estado = vueloDetallado.Aeronave.Estado,
-      TiempoPreparacionMinutos = vueloDetallado.Aeronave.TiempoPreparacionMinutos,
-   TotalAsientos = vueloDetallado.Aeronave.Asientos?.Count ?? 0
-  };
+            // Obtener vuelos con detalles incluyendo aeronave
+            var vuelosConDetalles = new List<VueloDetalleDto>();
+
+            foreach (var vuelo in vuelos)
+            {
+                var vueloDetallado = await _vueloRepository.ObtenerVueloConDetallesAsync(vuelo.Id);
+
+                if (vueloDetallado != null)
+                {
+                    var vueloDto = _mapper.Map<VueloDetalleDto>(vueloDetallado);
+
+                    // ? Agregar informaci√≥n de la aeronave
+                    if (vueloDetallado.Aeronave != null)
+                    {
+                        vueloDto.Aeronave = new AeronaveInfoDto
+                        {
+                            Matricula = vueloDetallado.Aeronave.Matricula,
+                            Modelo = vueloDetallado.Aeronave.Modelo,
+                            Capacidad = vueloDetallado.Aeronave.Capacidad,
+                            Estado = vueloDetallado.Aeronave.Estado,
+                            TiempoPreparacionMinutos = vueloDetallado.Aeronave.TiempoPreparacionMinutos,
+                            TotalAsientos = vueloDetallado.Aeronave.Asientos?.Count ?? 0
+                        };
+                    }
+
+                    vuelosConDetalles.Add(vueloDto);
+                }
             }
 
-              vuelosConDetalles.Add(vueloDto);
-         }
-        }
-
- return vuelosConDetalles
-        .OrderBy(v => v.Fecha)
-         .ThenBy(v => v.HoraSalida)
-     .ToList();
+            return vuelosConDetalles
+                   .OrderBy(v => v.Fecha)
+                    .ThenBy(v => v.HoraSalida)
+                .ToList();
         }
     }
 }

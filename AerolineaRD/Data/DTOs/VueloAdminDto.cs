@@ -12,6 +12,8 @@ namespace AerolineaRD.Data.DTOs
         public string? DestinoCodigo { get; set; }
         public string? Matricula { get; set; }
         public string? Clase { get; set; } // "Economica", "Ejecutiva", "Primera"
+        public string? TipoVuelo { get; set; } // ? AGREGADO: "SoloIda", "IdaYVuelta"
+        public DateTime? FechaRegreso { get; set; } // ? AGREGADO: Solo para vuelos de ida y vuelta
         public List<int>? IdsTripulacion { get; set; }
     }
 
@@ -28,8 +30,9 @@ namespace AerolineaRD.Data.DTOs
         public string? DestinoCodigo { get; set; }
         public string? Matricula { get; set; } // ? Matrícula de la aeronave (PK)
         public string? Estado { get; set; }
-        public string? TipoVuelo { get; set; }
+        public string? TipoVuelo { get; set; } // "SoloIda", "IdaYVuelta"
         public string? Clase { get; set; }
+        public DateTime? FechaRegreso { get; set; } // ? AGREGADO: Solo para vuelos de ida y vuelta
     }
 
     public class VueloDetalleDto : VueloResponseDto

@@ -79,6 +79,16 @@ namespace AerolineaRD.Mappings
                 // Mapear horas de salida y llegada desde Vuelo
                 .ForMember(dest => dest.HoraSalida, opt => opt.MapFrom(src => src.Vuelo.HoraSalida))
                 .ForMember(dest => dest.HoraLlegada, opt => opt.MapFrom(src => src.Vuelo.HoraLlegada));
+
+            // ? NUEVO: Mapeo de CrearReservaDto a Reserva
+            CreateMap<CrearReservaDto, Reserva>()
+                .ForMember(dest => dest.Codigo, opt => opt.Ignore()) // Se genera en el servicio
+                .ForMember(dest => dest.FechaReserva, opt => opt.Ignore()) // Se asigna en el servicio
+                .ForMember(dest => dest.Estado, opt => opt.Ignore()) // Se asigna en el servicio
+                .ForMember(dest => dest.Pasajero, opt => opt.Ignore())
+                .ForMember(dest => dest.Vuelo, opt => opt.Ignore())
+                .ForMember(dest => dest.Cliente, opt => opt.Ignore())
+                .ForMember(dest => dest.Factura, opt => opt.Ignore());
         }
     }
 }
