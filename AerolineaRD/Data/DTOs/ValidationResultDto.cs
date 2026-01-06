@@ -75,5 +75,8 @@ public object? Detalles { get; set; } // Información adicional para el frontend
         public const string TripulanteSinCertificacion = "TRIPULANTE_SIN_CERTIFICACION";
         public const string EntidadNoEncontrada = "ENTIDAD_NO_ENCONTRADA";
     public const string DatosInvalidos = "DATOS_INVALIDOS";
+        public const string EquipoNoDisponible = "EQUIPO_NO_DISPONIBLE"; // ? NUEVO
+        public const string AeronaveSinEquipo = "AERONAVE_SIN_EQUIPO"; // ? NUEVO
+    public const string AeronaveNoOperativa = "AERONAVE_NO_OPERATIVA"; // ? NUEVO
     }
 }
