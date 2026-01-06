@@ -4,6 +4,7 @@ using AerolineaRD.Repositories.Implements;
 using AerolineaRD.Repositories.interfaces;
 using AerolineaRD.Services;
 using AerolineaRD.Services.interfaces;
+using AerolineaRD.Services.BackgroundServices; // ? NUEVO
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -16,7 +17,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add AutoMapper
 builder.Services.AddAutoMapper(typeof(MappingProfile));
-builder.Services.AddAutoMapper(typeof(AerolineaRD.Data.Mappings.TripulacionMappingProfile)); // ? NUEVO
+builder.Services.AddAutoMapper(typeof(AerolineaRD.Data.Mappings.TripulacionMappingProfile));
+
+// ? NUEVO: Registrar Background Service para estados automáticos
+builder.Services.AddHostedService<EstadosAutomaticosService>();
 
 // Add Generic Repository
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));

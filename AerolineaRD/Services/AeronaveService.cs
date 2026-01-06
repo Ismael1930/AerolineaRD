@@ -73,11 +73,37 @@ namespace AerolineaRD.Services
             if (aeronave == null)
                 return false;
 
-            _aeronaveRepository.Delete(aeronave);
-            await _aeronaveRepository.SaveAsync();
+            // ✅ VALIDACIÓN: No se puede eliminar si tiene vuelos programados o en curso
+            var vuelosActivos = await _vueloRepository.Context.Vuelos
+  .Where(v => v.Matricula == matricula
+        && (v.Estado == "Programado" || v.Estado == "En Curso"))
+     .CountAsync();
+
+   if (vuelosActivos > 0)
+ {
+ throw new InvalidOperationException(
+      $"No se puede eliminar la aeronave '{matricula}'. " +
+         $"Tiene {vuelosActivos} vuelo(s) programado(s) o en curso. " +
+   $"Debe cancelar o completar todos los vuelos antes de eliminar la aeronave.");
+          }
+
+     // ✅ VALIDACIÓN: No se puede eliminar si tiene equipo asignado
+    var asignacionActiva = await _aeronaveRepository.Context.AsignacionesEquipoAeronave
+     .FirstOrDefaultAsync(a => a.Matricula == matricula && a.Activa);
+
+  if (asignacionActiva != null)
+ {
+        throw new InvalidOperationException(
+    $"No se puede eliminar la aeronave '{matricula}'. " +
+     $"Tiene un equipo de tripulación asignado actualmente. " +
+            $"Debe desasignar el equipo antes de eliminar la aeronave.");
+            }
+
+  _aeronaveRepository.Delete(aeronave);
+         await _aeronaveRepository.SaveAsync();
 
             return true;
-        }
+      }
 
         public async Task<List<AeronaveConDisponibilidadDto>> ObtenerTodasConDisponibilidadAsync()
         {

@@ -3,7 +3,7 @@ using AerolineaRD.Entity;
 using AerolineaRD.Repositories.interfaces;
 using AerolineaRD.Services.interfaces;
 using AutoMapper;
-using Microsoft.EntityFrameworkCore; // ? AGREGADO
+using Microsoft.EntityFrameworkCore; // ? YA EXISTE
 
 namespace AerolineaRD.Services
 {
@@ -133,12 +133,24 @@ namespace AerolineaRD.Services
     if (personal == null)
     return false;
 
-     // Soft delete
-   personal.Activo = false;
-     _personalRepository.Update(personal);
-   await _personalRepository.SaveAsync();
+     // ? VALIDACIÓN: No se puede eliminar si pertenece a un equipo activo
+        var perteneceAEquipo = await _personalRepository.Context.EquipoPersonal
+     .AnyAsync(ep => ep.IdPersonal == id && ep.Activo);
 
-    return true;
+          if (perteneceAEquipo)
+       {
+ throw new InvalidOperationException(
+         $"No se puede eliminar el personal '{personal.Nombre} {personal.Apellido}'. " +
+          $"Actualmente pertenece a un equipo activo. " +
+       $"Debe remover al personal del equipo antes de eliminarlo.");
+    }
+
+            // Soft delete
+       personal.Activo = false;
+  _personalRepository.Update(personal);
+            await _personalRepository.SaveAsync();
+
+        return true;
         }
 
         // ========== EQUIPOS ==========
