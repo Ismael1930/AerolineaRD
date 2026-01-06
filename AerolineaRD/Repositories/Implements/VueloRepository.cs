@@ -157,45 +157,70 @@ namespace AerolineaRD.Repositories.Implements
             var aeropuerto = await _context.Aeropuertos
      .FirstOrDefaultAsync(a => a.Codigo == codigoAeropuerto);
 
-  if (aeropuerto == null)
-            return false;
+     if (aeropuerto == null)
+      return false;
 
-            int capacidadPorHora = aeropuerto.CapacidadVuelosPorHora > 0 
-        ? aeropuerto.CapacidadVuelosPorHora 
-  : 10;
+         int capacidadPorHora = aeropuerto.CapacidadVuelosPorHora > 0
+     ? aeropuerto.CapacidadVuelosPorHora
+                : 10;
 
-      // Calcular el rango de la hora (ej: 10:00 a 10:59)
-     var horaInicio = new TimeSpan(hora.Hours, 0, 0);
-   var horaFin = horaInicio.Add(TimeSpan.FromHours(1));
+   // ? NUEVO: También validar capacidad diaria
+       int capacidadDiaria = capacidadPorHora * 24;
 
-     // ? Crear rango de fechas (sin usar .Date en LINQ to SQL)
-          var fechaInicio = fecha.Date;
-      var fechaFin = fecha.Date.AddDays(1);
+  // Calcular el rango de la hora (ej: 10:00 a 10:59)
+      var horaInicio = new TimeSpan(hora.Hours, 0, 0);
+        var horaFin = horaInicio.Add(TimeSpan.FromHours(1));
 
-   // ? SOLUCIÓN: Traer datos a memoria primero, luego filtrar
-    var todosLosVuelos = await _context.Vuelos
-     .Where(v => v.Fecha >= fechaInicio && v.Fecha < fechaFin && v.Estado != "Cancelado")
-       .ToListAsync(); // ? Traer a memoria
+      // Crear rango de fechas
+        var fechaInicio = fecha.Date;
+ var fechaFin = fecha.Date.AddDays(1);
 
-            // Ahora filtrar en memoria
-       int vuelosEnHora;
-if (esSalida)
- {
-    vuelosEnHora = todosLosVuelos
-  .Count(v => v.OrigenCodigo == codigoAeropuerto 
-    && v.HoraSalida >= horaInicio 
+   // Traer datos a memoria primero
+        var todosLosVuelos = await _context.Vuelos
+          .Where(v => v.Fecha >= fechaInicio && v.Fecha < fechaFin && v.Estado != "Cancelado")
+       .ToListAsync();
+
+     // ? VALIDACIÓN 1: Capacidad por hora específica
+   int vuelosEnHora;
+            if (esSalida)
+{
+   vuelosEnHora = todosLosVuelos
+ .Count(v => v.OrigenCodigo == codigoAeropuerto
+    && v.HoraSalida >= horaInicio
       && v.HoraSalida < horaFin);
-       }
-            else
- {
-        vuelosEnHora = todosLosVuelos
-        .Count(v => v.DestinoCodigo == codigoAeropuerto 
-   && v.HoraLlegada >= horaInicio 
-        && v.HoraLlegada < horaFin);
+     }
+ else
+        {
+       vuelosEnHora = todosLosVuelos
+         .Count(v => v.DestinoCodigo == codigoAeropuerto
+      && v.HoraLlegada >= horaInicio
+ && v.HoraLlegada < horaFin);
+     }
+
+  // Si supera capacidad por hora, rechazar
+ if (vuelosEnHora >= capacidadPorHora)
+      return false;
+
+      // ? VALIDACIÓN 2: Capacidad diaria total
+       int vuelosDelDia;
+      if (esSalida)
+  {
+  vuelosDelDia = todosLosVuelos
+    .Count(v => v.OrigenCodigo == codigoAeropuerto);
+            }
+    else
+      {
+   vuelosDelDia = todosLosVuelos
+       .Count(v => v.DestinoCodigo == codigoAeropuerto);
     }
 
-            return vuelosEnHora < capacidadPorHora;
-        }
+     // Si supera capacidad diaria, rechazar
+        if (vuelosDelDia >= capacidadDiaria)
+     return false;
+
+       // ? Ambas validaciones pasadas
+   return true;
+     }
 
         public async Task<int> ObtenerAsientosDisponiblesAsync(int idVuelo)
         {

@@ -33,62 +33,76 @@ return BadRequest(new { success = false, message = ex.Message });
     }
 
         /// <summary>
-   /// Obtener reporte de capacidad de un aeropuerto específico
+   /// Obtener reporte de capacidad de un aeropuerto específico en un rango de fechas
   /// </summary>
- /// <param name="codigo">Código del aeropuerto (ej: SDQ, JFK)</param>
-        /// <param name="fecha">Fecha para consultar (formato: YYYY-MM-DD). Si no se especifica, usa hoy</param>
+ /// <param name="codigo">Código del aeropuerto (ej: SDQ, JFK, ATL)</param>
+        /// <param name="fechaInicio">Fecha de inicio del rango (formato: YYYY-MM-DD). Si no se especifica, usa hoy</param>
+        /// <param name="fechaFin">Fecha de fin del rango (formato: YYYY-MM-DD). Si no se especifica, usa 30 días después de fechaInicio</param>
         [HttpGet("{codigo}/capacidad")]
         [Authorize(Roles = "Admin")]
- public async Task<IActionResult> ObtenerCapacidadAeropuerto(
-      string codigo, 
-     [FromQuery] DateTime? fecha = null)
-        {
-   try
- {
-     var fechaConsulta = fecha ?? DateTime.Today;
-    var capacidad = await _aeropuertoService.ObtenerCapacidadAeropuertoAsync(codigo, fechaConsulta);
-      
-    return Ok(new 
-       {
- success = true,
-          data = capacidad,
-  message = $"Reporte de capacidad del aeropuerto {capacidad.Nombre} para {fechaConsulta:dd/MM/yyyy}"
-      });
-  }
-      catch (KeyNotFoundException ex)
-   {
+        public async Task<IActionResult> ObtenerCapacidadAeropuerto(
+            string codigo,
+     [FromQuery] DateTime? fechaInicio = null,
+      [FromQuery] DateTime? fechaFin = null)
+  {
+     try
+    {
+     var fechaInicioConsulta = fechaInicio ?? DateTime.Today;
+    var fechaFinConsulta = fechaFin ?? fechaInicioConsulta.AddDays(30); // Por defecto, 30 días
+
+        var capacidad = await _aeropuertoService.ObtenerCapacidadAeropuertoAsync(
+          codigo, 
+        fechaInicioConsulta, 
+       fechaFinConsulta);
+
+   return Ok(new
+          {
+          success = true,
+     data = capacidad,
+          message = $"Reporte de capacidad del aeropuerto {capacidad.Nombre} desde {fechaInicioConsulta:dd/MM/yyyy} hasta {fechaFinConsulta:dd/MM/yyyy}"
+  });
+ }
+     catch (KeyNotFoundException ex)
+            {
         return NotFound(new { success = false, message = ex.Message });
-          }
-catch (Exception ex)
-   {
-  return StatusCode(500, new { success = false, message = ex.Message });
-      }
+            }
+            catch (Exception ex)
+        {
+    return StatusCode(500, new { success = false, message = ex.Message });
+ }
  }
 
-     /// <summary>
-  /// Obtener reporte de capacidad de todos los aeropuertos
+/// <summary>
+  /// Obtener reporte de capacidad de todos los aeropuertos en un rango de fechas
         /// </summary>
-  /// <param name="fecha">Fecha para consultar (formato: YYYY-MM-DD). Si no se especifica, usa hoy</param>
-  [HttpGet("capacidad/reporte")]
- [Authorize(Roles = "Admin")]
-  public async Task<IActionResult> ObtenerReporteCapacidadTodos([FromQuery] DateTime? fecha = null)
- {
-      try
- {
-  var fechaConsulta = fecha ?? DateTime.Today;
-   var reporte = await _aeropuertoService.ObtenerReporteCapacidadTodosAsync(fechaConsulta);
-         
-    return Ok(new 
-         {
-      success = true,
-     data = reporte,
- message = $"Reporte de capacidad de {reporte.TotalAeropuertos} aeropuertos para {fechaConsulta:dd/MM/yyyy}"
-   });
-}
-        catch (Exception ex)
-{
-   return StatusCode(500, new { success = false, message = ex.Message });
+        /// <param name="fechaInicio">Fecha de inicio del rango (formato: YYYY-MM-DD). Si no se especifica, usa hoy</param>
+        /// <param name="fechaFin">Fecha de fin del rango (formato: YYYY-MM-DD). Si no se especifica, usa 30 días después de fechaInicio</param>
+        [HttpGet("capacidad/reporte")]
+  [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ObtenerReporteCapacidadTodos(
+            [FromQuery] DateTime? fechaInicio = null,
+            [FromQuery] DateTime? fechaFin = null)
+        {
+     try
+            {
+      var fechaInicioConsulta = fechaInicio ?? DateTime.Today;
+     var fechaFinConsulta = fechaFin ?? fechaInicioConsulta.AddDays(30);
+
+    var reporte = await _aeropuertoService.ObtenerReporteCapacidadTodosAsync(
+ fechaInicioConsulta, 
+               fechaFinConsulta);
+
+        return Ok(new
+       {
+   success = true,
+       data = reporte,
+message = $"Reporte de capacidad de {reporte.TotalAeropuertos} aeropuertos desde {fechaInicioConsulta:dd/MM/yyyy} hasta {fechaFinConsulta:dd/MM/yyyy}"
+  });
    }
- }
+    catch (Exception ex)
+        {
+return StatusCode(500, new { success = false, message = ex.Message });
+   }
+        }
     }
 }
