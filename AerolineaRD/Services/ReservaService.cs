@@ -3,6 +3,7 @@ using AerolineaRD.Entity;
 using AerolineaRD.Repositories.interfaces;
 using AerolineaRD.Services.interfaces;
 using AutoMapper;
+using Microsoft.EntityFrameworkCore; // ? AGREGAR
 
 namespace AerolineaRD.Services
 {
@@ -61,6 +62,40 @@ namespace AerolineaRD.Services
 
             await _reservaRepository.AddAsync(reserva);
             await _reservaRepository.SaveAsync();
+
+            // ? NUEVO: Crear factura automáticamente
+            var vuelo = await _vueloRepository.ObtenerVueloConDetallesAsync(dto.IdVuelo);
+            if (vuelo != null)
+            {
+                // Calcular precio total según clase
+                decimal montoTotal = dto.PrecioTotal ?? vuelo.PrecioBase;
+
+                // Si no se proporcionó precio pero sí clase, calcular según clase
+                if (!dto.PrecioTotal.HasValue && !string.IsNullOrEmpty(dto.Clase))
+                {
+                    montoTotal = vuelo.CalcularPrecioTotal(vuelo.PrecioBase, dto.Clase);
+                }
+
+                var factura = new Factura
+                {
+                    Codigo = GenerarCodigoFactura(),
+                    CodReserva = reserva.Codigo,
+                    Monto = montoTotal,
+                    MetodoPago = dto.MetodoPago ?? "Pendiente",
+                    FechaEmision = DateTime.Now,
+                    EstadoPago = string.IsNullOrEmpty(dto.MetodoPago) ? "Pendiente" : "Pagado"
+                };
+
+                await _facturaRepository.AddAsync(factura);
+                await _facturaRepository.SaveAsync();
+
+                // Enviar notificación de confirmación
+                await _notificacionService.EnviarNotificacionAsync(
+                    reserva.IdCliente,
+                    "Confirmacion",
+                    $"Su reserva {reserva.Codigo} ha sido confirmada. Factura: {factura.Codigo} por ${montoTotal:F2}"
+                );
+            }
 
             var reservaCreada = await _reservaRepository.ObtenerReservaConDetallesAsync(reserva.Codigo);
             return _mapper.Map<ReservaResponseDto>(reservaCreada);
@@ -140,8 +175,33 @@ namespace AerolineaRD.Services
             if (reserva == null)
                 return false;
 
+            // ? Cambiar estado de reserva a Cancelada
             reserva.Estado = "Cancelada";
             _reservaRepository.Update(reserva);
+
+            // ? NUEVO: Cancelar factura asociada automáticamente
+            var factura = await _facturaRepository.Context.Facturas
+                .FirstOrDefaultAsync(f => f.CodReserva == codigo);
+
+            if (factura != null)
+            {
+                // Cambiar estado de factura a Cancelado
+                factura.EstadoPago = "Cancelado";
+                _facturaRepository.Update(factura);
+
+                // Determinar mensaje de reembolso
+                string mensajeReembolso = factura.EstadoPago == "Pagado"
+                    ? $"Se procesará un reembolso de ${factura.Monto:F2} en 5-7 días hábiles."
+                    : "No se realizó ningún cargo.";
+
+                // Enviar notificación de cancelación
+                await _notificacionService.EnviarNotificacionAsync(
+                    reserva.IdCliente,
+                    "Cancelacion",
+                    $"Su reserva {reserva.Codigo} ha sido cancelada. {mensajeReembolso}"
+                );
+            }
+
             await _reservaRepository.SaveAsync();
 
             return true;

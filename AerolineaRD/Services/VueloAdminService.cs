@@ -536,6 +536,19 @@ namespace AerolineaRD.Services
             if (vuelo == null)
                 return false;
 
+            // ✅ VALIDACIÓN: No se puede eliminar si tiene reservas asociadas
+            var reservasAsociadas = await _vueloRepository.Context.Reservas
+         .Where(r => r.IdVuelo == id && r.Estado != "Cancelada")
+           .CountAsync();
+
+            if (reservasAsociadas > 0)
+            {
+                throw new InvalidOperationException(
+                            $"No se puede eliminar el vuelo '{vuelo.NumeroVuelo}'. " +
+                        $"Tiene {reservasAsociadas} reserva(s) activa(s). " +
+                        $"Debe cancelar todas las reservas antes de eliminar el vuelo.");
+            }
+
             _vueloRepository.Delete(vuelo);
             await _vueloRepository.SaveAsync();
 

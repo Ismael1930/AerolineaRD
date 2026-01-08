@@ -75,7 +75,8 @@ namespace AerolineaRD.Mappings
                 .ForMember(dest => dest.FechaVuelo, opt => opt.MapFrom(src => src.Vuelo.Fecha))
                 .ForMember(dest => dest.Origen, opt => opt.MapFrom(src => src.Vuelo.Origen.Ciudad))
                 .ForMember(dest => dest.Destino, opt => opt.MapFrom(src => src.Vuelo.Destino.Ciudad))
-                .ForMember(dest => dest.Factura, opt => opt.MapFrom(src => src.Factura)) // Mapear Factura
+                .ForMember(dest => dest.Factura, opt => opt.MapFrom(src => src.Factura)) // ? Mapear Factura
+                .ForMember(dest => dest.PrecioTotal, opt => opt.MapFrom(src => src.Factura != null ? src.Factura.Monto : 0)) // ? Precio desde factura
                 // Mapear horas de salida y llegada desde Vuelo
                 .ForMember(dest => dest.HoraSalida, opt => opt.MapFrom(src => src.Vuelo.HoraSalida))
                 .ForMember(dest => dest.HoraLlegada, opt => opt.MapFrom(src => src.Vuelo.HoraLlegada));
