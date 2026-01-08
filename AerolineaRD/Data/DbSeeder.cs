@@ -35,6 +35,9 @@ namespace AerolineaRD.Data
             // 3. TRIPULACIÓN
             await SeedTripulacionAsync(context);
 
+            // ✅ NUEVO: 3.5 PERSONAL Y EQUIPOS (Sistema Nuevo)
+            await SeedPersonalYEquiposAsync(context);
+
             // 4. VUELOS
             await SeedVuelosAsync(context);
 
@@ -121,32 +124,35 @@ namespace AerolineaRD.Data
         private static async Task SeedAeropuertosAsync(AppDbContext context)
         {
             var aeropuertos = new List<Aeropuerto>
-            {
-                // República Dominicana
-                new Aeropuerto { Codigo = "SDQ", Nombre = "Las Américas", Ciudad = "Santo Domingo", Pais = "República Dominicana", CapacidadVuelosPorHora = 15 },
-                new Aeropuerto { Codigo = "PUJ", Nombre = "Punta Cana", Ciudad = "Punta Cana", Pais = "República Dominicana", CapacidadVuelosPorHora = 12 },
-                new Aeropuerto { Codigo = "STI", Nombre = "Cibao", Ciudad = "Santiago", Pais = "República Dominicana", CapacidadVuelosPorHora = 10 },
-                new Aeropuerto { Codigo = "POP", Nombre = "Gregorio Luperón", Ciudad = "Puerto Plata", Pais = "República Dominicana", CapacidadVuelosPorHora = 8 },
-                new Aeropuerto { Codigo = "LRM", Nombre = "La Romana", Ciudad = "La Romana", Pais = "República Dominicana", CapacidadVuelosPorHora = 6 },
-                
-                // Estados Unidos
-                new Aeropuerto { Codigo = "JFK", Nombre = "John F. Kennedy", Ciudad = "Nueva York", Pais = "Estados Unidos", CapacidadVuelosPorHora = 30 },
+    {
+         // ✅ AEROPUERTO DE PRUEBA - Para demostrar validaciones
+    new Aeropuerto { Codigo = "TEST", Nombre = "Aeropuerto de Prueba Validaciones", Ciudad = "Test City", Pais = "República Dominicana", CapacidadVuelosPorHora = 1 },
+            
+       // República Dominicana
+              new Aeropuerto { Codigo = "SDQ", Nombre = "Las Américas", Ciudad = "Santo Domingo", Pais = "República Dominicana", CapacidadVuelosPorHora = 15 },
+        new Aeropuerto { Codigo = "PUJ", Nombre = "Punta Cana", Ciudad = "Punta Cana", Pais = "República Dominicana", CapacidadVuelosPorHora = 12 },
+  new Aeropuerto { Codigo = "STI", Nombre = "Cibao", Ciudad = "Santiago", Pais = "República Dominicana", CapacidadVuelosPorHora = 10 },
+      new Aeropuerto { Codigo = "POP", Nombre = "Gregorio Luperón", Ciudad = "Puerto Plata", Pais = "República Dominicana", CapacidadVuelosPorHora = 8 },
+     new Aeropuerto { Codigo = "LRM", Nombre = "La Romana", Ciudad = "La Romana", Pais = "República Dominicana", CapacidadVuelosPorHora = 6 },
+          
+     // Estados Unidos
+ new Aeropuerto { Codigo = "JFK", Nombre = "John F. Kennedy", Ciudad = "Nueva York", Pais = "Estados Unidos", CapacidadVuelosPorHora = 30 },
                 new Aeropuerto { Codigo = "MIA", Nombre = "Miami International", Ciudad = "Miami", Pais = "Estados Unidos", CapacidadVuelosPorHora = 25 },
-                new Aeropuerto { Codigo = "EWR", Nombre = "Newark Liberty", Ciudad = "Newark", Pais = "Estados Unidos", CapacidadVuelosPorHora = 28 },
-                new Aeropuerto { Codigo = "FLL", Nombre = "Fort Lauderdale", Ciudad = "Fort Lauderdale", Pais = "Estados Unidos", CapacidadVuelosPorHora = 20 },
-                new Aeropuerto { Codigo = "ATL", Nombre = "Hartsfield-Jackson", Ciudad = "Atlanta", Pais = "Estados Unidos", CapacidadVuelosPorHora = 35 },
-                
+    new Aeropuerto { Codigo = "EWR", Nombre = "Newark Liberty", Ciudad = "Newark", Pais = "Estados Unidos", CapacidadVuelosPorHora = 28 },
+  new Aeropuerto { Codigo = "FLL", Nombre = "Fort Lauderdale", Ciudad = "Fort Lauderdale", Pais = "Estados Unidos", CapacidadVuelosPorHora = 20 },
+     new Aeropuerto { Codigo = "ATL", Nombre = "Hartsfield-Jackson", Ciudad = "Atlanta", Pais = "Estados Unidos", CapacidadVuelosPorHora = 35 },
+
                 // Europa
-                new Aeropuerto { Codigo = "MAD", Nombre = "Adolfo Suárez", Ciudad = "Madrid", Pais = "España", CapacidadVuelosPorHora = 30 },
-                new Aeropuerto { Codigo = "BCN", Nombre = "El Prat", Ciudad = "Barcelona", Pais = "España", CapacidadVuelosPorHora = 25 },
-                new Aeropuerto { Codigo = "CDG", Nombre = "Charles de Gaulle", Ciudad = "París", Pais = "Francia", CapacidadVuelosPorHora = 32 },
+      new Aeropuerto { Codigo = "MAD", Nombre = "Adolfo Suárez", Ciudad = "Madrid", Pais = "España", CapacidadVuelosPorHora = 30 },
+   new Aeropuerto { Codigo = "BCN", Nombre = "El Prat", Ciudad = "Barcelona", Pais = "España", CapacidadVuelosPorHora = 25 },
+     new Aeropuerto { Codigo = "CDG", Nombre = "Charles de Gaulle", Ciudad = "París", Pais = "Francia", CapacidadVuelosPorHora = 32 },
         
-                // Latinoamérica
-                new Aeropuerto { Codigo = "CUN", Nombre = "Cancún", Ciudad = "Cancún", Pais = "México", CapacidadVuelosPorHora = 18 },
-                new Aeropuerto { Codigo = "PTY", Nombre = "Tocumen", Ciudad = "Panamá", Pais = "Panamá", CapacidadVuelosPorHora = 15 },
-                new Aeropuerto { Codigo = "BOG", Nombre = "El Dorado", Ciudad = "Bogotá", Pais = "Colombia", CapacidadVuelosPorHora = 22 },
-                new Aeropuerto { Codigo = "LIM", Nombre = "Jorge Chávez", Ciudad = "Lima", Pais = "Perú", CapacidadVuelosPorHora = 20 }
-            };
+        // Latinoamérica
+ new Aeropuerto { Codigo = "CUN", Nombre = "Cancún", Ciudad = "Cancún", Pais = "México", CapacidadVuelosPorHora = 18 },
+    new Aeropuerto { Codigo = "PTY", Nombre = "Tocumen", Ciudad = "Panamá", Pais = "Panamá", CapacidadVuelosPorHora = 15 },
+    new Aeropuerto { Codigo = "BOG", Nombre = "El Dorado", Ciudad = "Bogotá", Pais = "Colombia", CapacidadVuelosPorHora = 22 },
+     new Aeropuerto { Codigo = "LIM", Nombre = "Jorge Chávez", Ciudad = "Lima", Pais = "Perú", CapacidadVuelosPorHora = 20 }
+    };
 
             await context.Aeropuertos.AddRangeAsync(aeropuertos);
             await context.SaveChangesAsync();
@@ -166,245 +172,457 @@ namespace AerolineaRD.Data
               new Aeronave { Matricula = "HI-1008RD", Modelo = "Embraer E195", Capacidad = 132, Estado = "Mantenimiento", TiempoPreparacionMinutos = 90 }
          };
 
-        await context.Aeronaves.AddRangeAsync(aeronaves);
-                await context.SaveChangesAsync();
+            await context.Aeronaves.AddRangeAsync(aeronaves);
+            await context.SaveChangesAsync();
         }
 
         private static async Task SeedTripulacionAsync(AppDbContext context)
         {
             var tripulacion = new List<Tripulacion>
             {
-                // Pilotos
-                new Tripulacion { Nombre = "Carlos", Apellido = "Rodríguez", Rol = "Piloto", Licencia = "ATP-001", TiempoDescansoMinutos = 480, CertificacionesAeronave = "Boeing 737,Boeing 737-800,Boeing 737-MAX" },
-                new Tripulacion { Nombre = "María", Apellido = "Santos", Rol = "Piloto", Licencia = "ATP-002", TiempoDescansoMinutos = 480, CertificacionesAeronave = "Airbus A320,Airbus A321" },
-                new Tripulacion { Nombre = "Juan", Apellido = "Pérez", Rol = "Piloto", Licencia = "ATP-003", TiempoDescansoMinutos = 480, CertificacionesAeronave = "Boeing 787,Boeing 737" },
-                new Tripulacion { Nombre = "Ana", Apellido = "Martínez", Rol = "Piloto", Licencia = "ATP-004", TiempoDescansoMinutos = 480, CertificacionesAeronave = "Airbus A320,Airbus A321,Boeing 737" },
+   // Pilotos
+    new Tripulacion { Nombre = "Carlos", Apellido = "Rodríguez", Rol = "Piloto", Licencia = "ATP-001", TiempoDescansoMinutos = 480, CertificacionesAeronave = "Boeing 737,Boeing 737-800,Boeing 737-MAX" },
+  new Tripulacion { Nombre = "María", Apellido = "Santos", Rol = "Piloto", Licencia = "ATP-002", TiempoDescansoMinutos = 480, CertificacionesAeronave = "Airbus A320,Airbus A321" },
+  new Tripulacion { Nombre = "Juan", Apellido = "Pérez", Rol = "Piloto", Licencia = "ATP-003", TiempoDescansoMinutos = 480, CertificacionesAeronave = "Boeing 787,Boeing 737" },
+           new Tripulacion { Nombre = "Ana", Apellido = "Martínez", Rol = "Piloto", Licencia = "ATP-004", TiempoDescansoMinutos = 480, CertificacionesAeronave = "Airbus A320,Airbus A321,Boeing 737" },
             
-                // Copilotos
-                new Tripulacion { Nombre = "Luis", Apellido = "García", Rol = "Copiloto", Licencia = "CPL-001", TiempoDescansoMinutos = 480, CertificacionesAeronave = "Boeing 737,Boeing 737-800" },
-                new Tripulacion { Nombre = "Carmen", Apellido = "López", Rol = "Copiloto", Licencia = "CPL-002", TiempoDescansoMinutos = 480, CertificacionesAeronave = "Airbus A320,Airbus A321" },
-                new Tripulacion { Nombre = "Pedro", Apellido = "Hernández", Rol = "Copiloto", Licencia = "CPL-003", TiempoDescansoMinutos = 480, CertificacionesAeronave = "Boeing 787,Boeing 737-MAX" },
-                new Tripulacion { Nombre = "Isabel", Apellido = "Gómez", Rol = "Copiloto", Licencia = "CPL-004", TiempoDescansoMinutos = 480, CertificacionesAeronave = "Embraer E195,Airbus A320" },
-            
+    // Copilotos
+            new Tripulacion { Nombre = "Luis", Apellido = "García", Rol = "Copiloto", Licencia = "CPL-001", TiempoDescansoMinutos = 480, CertificacionesAeronave = "Boeing 737,Boeing 737-800" },
+     new Tripulacion { Nombre = "Carmen", Apellido = "López", Rol = "Copiloto", Licencia = "CPL-002", TiempoDescansoMinutos = 480, CertificacionesAeronave = "Airbus A320,Airbus A321" },
+     new Tripulacion { Nombre = "Pedro", Apellido = "Hernández", Rol = "Copiloto", Licencia = "CPL-003", TiempoDescansoMinutos = 480, CertificacionesAeronave = "Boeing 787,Boeing 737-MAX" },
+             new Tripulacion { Nombre = "Isabel", Apellido = "Gómez", Rol = "Copiloto", Licencia = "CPL-004", TiempoDescansoMinutos = 480, CertificacionesAeronave = "Embraer E195,Airbus A320" },
+  
                 // Sobrecargos
-                new Tripulacion { Nombre = "Rosa", Apellido = "Díaz", Rol = "Sobrecargo Jefe", Licencia = "FA-001", TiempoDescansoMinutos = 480 },
-                new Tripulacion { Nombre = "Miguel", Apellido = "Torres", Rol = "Sobrecargo", Licencia = "FA-002", TiempoDescansoMinutos = 480 },
-                new Tripulacion { Nombre = "Laura", Apellido = "Ramírez", Rol = "Sobrecargo", Licencia = "FA-003", TiempoDescansoMinutos = 480 },
-                new Tripulacion { Nombre = "José", Apellido = "Flores", Rol = "Sobrecargo", Licencia = "FA-004", TiempoDescansoMinutos = 480 },
-                new Tripulacion { Nombre = "Patricia", Apellido = "Morales", Rol = "Sobrecargo", Licencia = "FA-005", TiempoDescansoMinutos = 480 },
-                new Tripulacion { Nombre = "Roberto", Apellido = "Cruz", Rol = "Sobrecargo", Licencia = "FA-006", TiempoDescansoMinutos = 480 }
-            };
+           new Tripulacion { Nombre = "Rosa", Apellido = "Díaz", Rol = "Sobrecargo Jefe", Licencia = "FA-001", TiempoDescansoMinutos = 480 },
+             new Tripulacion { Nombre = "Miguel", Apellido = "Torres", Rol = "Sobrecargo", Licencia = "FA-002", TiempoDescansoMinutos = 480 },
+     new Tripulacion { Nombre = "Laura", Apellido = "Ramírez", Rol = "Sobrecargo", Licencia = "FA-003", TiempoDescansoMinutos = 480 },
+    new Tripulacion { Nombre = "José", Apellido = "Flores", Rol = "Sobrecargo", Licencia = "FA-004", TiempoDescansoMinutos = 480 },
+    new Tripulacion { Nombre = "Patricia", Apellido = "Morales", Rol = "Sobrecargo", Licencia = "FA-005", TiempoDescansoMinutos = 480 },
+  new Tripulacion { Nombre = "Roberto", Apellido = "Cruz", Rol = "Sobrecargo", Licencia = "FA-006", TiempoDescansoMinutos = 480 }
+          };
 
             await context.Tripulaciones.AddRangeAsync(tripulacion);
             await context.SaveChangesAsync();
         }
 
-        private static async Task SeedVuelosAsync(AppDbContext context)
+        /// <summary>
+        /// ✅ NUEVO: Seed completo de Personal, Equipos y Asignaciones
+        /// Demuestra validaciones de equipos, personal y asignación a aeronaves
+        /// </summary>
+        private static async Task SeedPersonalYEquiposAsync(AppDbContext context)
         {
-            // ⚠️ VUELOS COMENTADOS PARA PRUEBAS DE VALIDACIÓN
-         // Descomenta cuando quieras restaurar los 250 vuelos de ejemplo
-            
-            Console.WriteLine("⚠️  Creación de vuelos deshabilitada - Tabla Vuelos vacía para pruebas de validación");
-            return;
-     
-/* ========== CÓDIGO DE VUELOS COMENTADO ==========
-            
-            // ✅ FECHA BASE: Siempre un día después de hoy
-        var fechaBase = DateTime.Today.AddDays(1);
-         
- var vuelos = new List<Vuelo>();
-var matriculas = new[] { "HI-1001RD", "HI-1002RD", "HI-1003RD", "HI-1004RD", "HI-1005RD", "HI-1006RD", "HI-1007RD" };
-      var random = new Random();
-
-            // Rutas de ejemplo - VUELOS ESTÁNDAR (Economica/Ejecutiva)
-         var rutasBase = new[]
-   {
-      (origen: "SDQ", destino: "JFK", precio:450.00m, duracion:255),
-      (origen: "SDQ", destino: "MIA", precio:320.00m, duracion:150),
-        (origen: "SDQ", destino: "ATL", precio:380.00m, duracion:180),
-      (origen: "SDQ", destino: "MAD", precio:850.00m, duracion:540),
-     (origen: "SDQ", destino: "CDG", precio:920.00m, duracion:600),
-  (origen: "PUJ", destino: "JFK", precio:480.00m, duracion:270),
-      (origen: "PUJ", destino: "MIA", precio:340.00m, duracion:160),
-      (origen: "PUJ", destino: "EWR", precio:460.00m, duracion:265),
-      (origen: "PUJ", destino: "CDG", precio:920.00m, duracion:600),
-                (origen: "STI", destino: "MIA", precio:340.00m, duracion:150),
-   (origen: "STI", destino: "JFK", precio:470.00m, duracion:260),
-       (origen: "POP", destino: "MIA", precio:330.00m, duracion:145),
-      (origen: "POP", destino: "CUN", precio:280.00m, duracion:120),
-                (origen: "SDQ", destino: "CUN", precio:380.00m, duracion:150),
- (origen: "SDQ", destino: "PTY", precio:320.00m, duracion:130),
-   (origen: "SDQ", destino: "BOG", precio:420.00m, duracion:180),
-             (origen: "SDQ", destino: "LIM", precio:550.00m, duracion:300),
- (origen: "PUJ", destino: "BCN", precio:980.00m, duracion:620),
-      (origen: "STI", destino: "ATL", precio:390.00m, duracion:185),
-       (origen: "LRM", destino: "MIA", precio:340.00m, duracion:155),
-        // Rutas de regreso
-    (origen: "ATL", destino: "SDQ", precio:380.00m, duracion:180),
-    (origen: "ATL", destino: "PUJ", precio:400.00m, duracion:185),
-       (origen: "JFK", destino: "SDQ", precio:450.00m, duracion:255),
-    (origen: "MIA", destino: "SDQ", precio:320.00m, duracion:150),
-              (origen: "MIA", destino: "PUJ", precio:340.00m, duracion:160)
-    };
-
-      // ✈️ Rutas PREMIUM de Primera Clase (vuelos internacionales largos)
-  var rutasPremium = new[]
-      {
-   (origen: "SDQ", destino: "MAD", precio:1200.00m, duracion:540),
-            (origen: "SDQ", destino: "CDG", precio:1350.00m, duracion:600),
-   (origen: "SDQ", destino: "BCN", precio:1250.00m, duracion:560),
-                (origen: "PUJ", destino: "MAD", precio:1250.00m, duracion:550),
-    (origen: "PUJ", destino: "CDG", precio:1400.00m, duracion:610),
-    (origen: "PUJ", destino: "BCN", precio:1300.00m, duracion:570),
-        (origen: "SDQ", destino: "JFK", precio:750.00m, duracion:255),
-                (origen: "SDQ", destino: "EWR", precio:780.00m, duracion:260),
-   (origen: "PUJ", destino: "JFK", precio:800.00m, duracion:270),
-                (origen: "PUJ", destino: "EWR", precio:820.00m, duracion:275),
-         // Rutas de regreso premium
-           (origen: "MAD", destino: "SDQ", precio:1200.00m, duracion:540),
-    (origen: "CDG", destino: "SDQ", precio:1350.00m, duracion:600),
-                (origen: "BCN", destino: "PUJ", precio:1300.00m, duracion:570),
-           (origen: "JFK", destino: "SDQ", precio:750.00m, duracion:255),
-    (origen: "EWR", destino: "PUJ", precio:820.00m, duracion:275)
-            };
-
-       int numeroVuelo = 1000;
-
- // Generar 120 vuelos ESTÁNDAR de IDA Y VUELTA
-        for (int i = 0; i < 120; i++)
+            // Si ya existen datos, no duplicar
+            if (await context.Personal.AnyAsync())
             {
-      var ruta = rutasBase[i % rutasBase.Length];
-       var diasAdelante = i % 90; // distribuir en 90 días
-       var fechaSalida = fechaBase.AddDays(diasAdelante);
-   
-          var horaSalida = new TimeSpan(6 + (i % 16), random.Next(0, 60), 0);
-   var horaLlegada = horaSalida.Add(TimeSpan.FromMinutes(ruta.duracion));
-       var fechaRegreso = fechaSalida.AddDays(7 + random.Next(0, 14));
-
-   // ✅ Determinar clase del vuelo (80% Economica, 20% Ejecutiva)
-          string claseVuelo = i % 5 == 0 ? "Ejecutiva" : "Economica";
-
-           vuelos.Add(new Vuelo
-        {
-         NumeroVuelo = $"RD{numeroVuelo++}",
-     Fecha = fechaSalida,
-             HoraSalida = horaSalida,
-           HoraLlegada = horaLlegada,
-          Duracion = ruta.duracion,
-      PrecioBase = ruta.precio,
-    OrigenCodigo = ruta.origen,
-          DestinoCodigo = ruta.destino,
- Matricula = matriculas[i % matriculas.Length],
-      Estado = "Programado",
-  TipoVuelo = "IdaYVuelta",
-         FechaRegreso = fechaRegreso,
-     Clase = claseVuelo
-      });
-     }
-
- // ✈️ Generar 30 vuelos PREMIUM de Primera Clase (IDA Y VUELTA)
-   for (int i = 0; i < 30; i++)
-            {
-       var ruta = rutasPremium[i % rutasPremium.Length];
-         var diasAdelante = i % 60; // distribuir en 60 días
-       var fechaSalida = fechaBase.AddDays(diasAdelante);
-
-   var horaSalida = new TimeSpan(8 + (i % 12), random.Next(0, 60), 0); // Horarios premium
-         var horaLlegada = horaSalida.Add(TimeSpan.FromMinutes(ruta.duracion));
-       var fechaRegreso = fechaSalida.AddDays(10 + random.Next(0, 20)); // Estancias más largas
-
-    vuelos.Add(new Vuelo
-                {
-          NumeroVuelo = $"RD{numeroVuelo++}",
-          Fecha = fechaSalida,
-         HoraSalida = horaSalida,
-  HoraLlegada = horaLlegada,
-        Duracion = ruta.duracion,
-  PrecioBase = ruta.precio,
-      OrigenCodigo = ruta.origen,
-    DestinoCodigo = ruta.destino,
-         Matricula = "HI-1005RD", // Boeing 787-9 (aeronave grande y moderna)
-           Estado = "Programado",
-         TipoVuelo = "IdaYVuelta",
-  FechaRegreso = fechaRegreso,
-        Clase = "Primera" // ✅ Vuelos Premium son de Primera Clase
-    });
+                Console.WriteLine("⏭️  Personal ya existe, saltando seed de equipos");
+                return;
             }
 
-     // Generar 80 vuelos ESTÁNDAR de SOLO IDA
-       for (int i = 0; i < 80; i++)
-     {
-          var ruta = rutasBase[i % rutasBase.Length];
-                var diasAdelante = i % 60;
-           var fechaSalida = fechaBase.AddDays(diasAdelante);
+            // ========== 1. CREAR PERSONAL ==========
+            var personal = new List<Personal>();
 
-var horaSalida = new TimeSpan(6 + (i % 16), random.Next(0, 60), 0);
-      var horaLlegada = horaSalida.Add(TimeSpan.FromMinutes(ruta.duracion));
-
-    // ✅ Determinar clase del vuelo (80% Economica, 20% Ejecutiva)
-       string claseVuelo = i % 5 == 0 ? "Ejecutiva" : "Economica";
-
-   vuelos.Add(new Vuelo
+            // ✅ Pilotos (4 pilotos para 2 equipos)
+            personal.AddRange(new[]
+              {
+       new Personal
   {
-   NumeroVuelo = $"RD{numeroVuelo++}",
-  Fecha = fechaSalida,
-         HoraSalida = horaSalida,
-     HoraLlegada = horaLlegada,
-          Duracion = ruta.duracion,
-        PrecioBase = ruta.precio,
-      OrigenCodigo = ruta.origen,
-       DestinoCodigo = ruta.destino,
-        Matricula = matriculas[i % matriculas.Length],
-        Estado = "Programado",
-    TipoVuelo = "SoloIda",
- FechaRegreso = null,
-         Clase = claseVuelo
-         });
-          }
-
- // ✈️ Generar 20 vuelos PREMIUM de Primera Clase (SOLO IDA)
-            for (int i = 0; i < 20; i++)
-     {
-         var ruta = rutasPremium[i % rutasPremium.Length];
-      var diasAdelante = i % 45;
-          var fechaSalida = fechaBase.AddDays(diasAdelante);
-
-       var horaSalida = new TimeSpan(9 + (i % 10), random.Next(0, 60), 0);
-                var horaLlegada = horaSalida.Add(TimeSpan.FromMinutes(ruta.duracion));
-
-         vuelos.Add(new Vuelo
-             {
-  NumeroVuelo = $"RD{numeroVuelo++}",
-            Fecha = fechaSalida,
- HoraSalida = horaSalida,
-           HoraLlegada = horaLlegada,
-        Duracion = ruta.duracion,
-     PrecioBase = ruta.precio,
-         OrigenCodigo = ruta.origen,
-   DestinoCodigo = ruta.destino,
-        Matricula = "HI-1005RD", // Boeing 787-9
-  Estado = "Programado",
-       TipoVuelo = "SoloIda",
-             FechaRegreso = null,
-        Clase = "Primera" // ✅ Vuelos Premium son de Primera Clase
+    Nombre = "Capitán Roberto",
+ Apellido = "Fernández",
+  Rol = "Piloto",
+Licencia = "ATP-P001",
+     CertificacionesAeronave = "Boeing 737,Boeing 737-800,Airbus A320",
+        TiempoDescansoMinutos = 480,
+Estado = "Disponible",
+       FechaContratacion = DateTime.Today.AddYears(-5),
+        Activo = true
+  },
+      new Personal
+  {
+       Nombre = "Capitán Daniel",
+      Apellido = "Moreno",
+Rol = "Piloto",
+        Licencia = "ATP-P002",
+      CertificacionesAeronave = "Boeing 737,Boeing 787-9,Airbus A321",
+      TiempoDescansoMinutos = 480,
+Estado = "Disponible",
+FechaContratacion = DateTime.Today.AddYears(-4),
+     Activo = true
+},
+   new Personal
+  {
+    Nombre = "Capitana Sofía",
+Apellido = "Ramírez",
+       Rol = "Piloto",
+   Licencia = "ATP-P003",
+CertificacionesAeronave = "Airbus A320,Airbus A321,Boeing 737-MAX",
+    TiempoDescansoMinutos = 480,
+   Estado = "Disponible",
+       FechaContratacion = DateTime.Today.AddYears(-6),
+  Activo = true
+ },
+    new Personal
+ {
+      Nombre = "Capitán Miguel",
+    Apellido = "Vargas",
+  Rol = "Piloto",
+ Licencia = "ATP-P004",
+CertificacionesAeronave = "Boeing 787-9,Embraer E195",
+      TiempoDescansoMinutos = 480,
+   Estado = "Disponible",
+        FechaContratacion = DateTime.Today.AddYears(-3),
+    Activo = true
+ }
    });
-     }
 
-  await context.Vuelos.AddRangeAsync(vuelos);
-       await context.SaveChangesAsync();
+            // ✅ Copilotos (4 copilotos para 2 equipos)
+            personal.AddRange(new[]
+                    {
+      new Personal
+     {
+      Nombre = "Primer Oficial Carlos",
+   Apellido = "Jiménez",
+Rol = "Copiloto",
+      Licencia = "CPL-C001",
+ CertificacionesAeronave = "Boeing 737,Boeing 737-800",
+       TiempoDescansoMinutos = 480,
+   Estado = "Disponible",
+       FechaContratacion = DateTime.Today.AddYears(-3),
+       Activo = true
+ },
+      new Personal
+     {
+       Nombre = "Primer Oficial Andrea",
+Apellido = "Castillo",
+      Rol = "Copiloto",
+   Licencia = "CPL-C002",
+        CertificacionesAeronave = "Airbus A320,Airbus A321",
+   TiempoDescansoMinutos = 480,
+       Estado = "Disponible",
+       FechaContratacion = DateTime.Today.AddYears(-2),
+Activo = true
+  },
+       new Personal
+{
+   Nombre = "Primer Oficial Jorge",
+Apellido = "Silva",
+      Rol = "Copiloto",
+Licencia = "CPL-C003",
+       CertificacionesAeronave = "Boeing 787-9,Boeing 737-MAX",
+TiempoDescansoMinutos = 480,
+        Estado = "Disponible",
+ FechaContratacion = DateTime.Today.AddYears(-4),
+    Activo = true
+ },
+      new Personal
+     {
+     Nombre = "Primer Oficial Valentina",
+Apellido = "Ortiz",
+      Rol = "Copiloto",
+Licencia = "CPL-C004",
+    CertificacionesAeronave = "Embraer E195,Airbus A320",
+  TiempoDescansoMinutos = 480,
+       Estado = "Disponible",
+FechaContratacion = DateTime.Today.AddYears(-2),
+    Activo = true
+   }
+   });
 
-            Console.WriteLine($"   ✅ Creados {vuelos.Count} vuelos:");
-            Console.WriteLine($"      - Fecha base: {fechaBase:dd/MM/yyyy} (mañana)");
-            Console.WriteLine($"      - Rango: hasta {fechaBase.AddDays(90):dd/MM/yyyy}");
-         Console.WriteLine($"   - 96 vuelos Economica ida y vuelta");
-   Console.WriteLine($"- 24 vuelos Ejecutiva ida y vuelta");
-         Console.WriteLine($"    - 30 vuelos Primera ida y vuelta");
-            Console.WriteLine($"      - 64 vuelos Economica solo ida");
-            Console.WriteLine($"      - 16 vuelos Ejecutiva solo ida");
-     Console.WriteLine($"      - 20 vuelos Primera solo ida");
-      
-            ========== FIN CÓDIGO COMENTADO ========== */
+            // ✅ Sobrecargos Jefe (2 para cada equipo)
+            personal.AddRange(new[]
+           {
+new Personal
+     {
+     Nombre = "Jefe de Cabina Elena",
+       Apellido = "Rojas",
+      Rol = "Sobrecargo Jefe",
+Licencia = "FA-J001",
+     TiempoDescansoMinutos = 480,
+  Estado = "Disponible",
+   FechaContratacion = DateTime.Today.AddYears(-7),
+Activo = true
+     },
+     new Personal
+     {
+      Nombre = "Jefe de Cabina Fernando",
+      Apellido = "Mendoza",
+    Rol = "Sobrecargo Jefe",
+        Licencia = "FA-J002",
+TiempoDescansoMinutos = 480,
+ Estado = "Disponible",
+    FechaContratacion = DateTime.Today.AddYears(-6),
+ Activo = true
      }
+   });
+
+            // ✅ Sobrecargos (12 para distribuir entre 2 equipos: 6 c/u, cumplir 3-6 requeridos)
+            personal.AddRange(new[]
+      {
+      new Personal { Nombre = "Sobrecargo Lucía", Apellido = "Pérez", Rol = "Sobrecargo", Licencia = "FA-S001", TiempoDescansoMinutos = 480, Estado = "Disponible", FechaContratacion = DateTime.Today.AddYears(-5), Activo = true },
+    new Personal { Nombre = "Sobrecargo Marcos", Apellido = "Reyes", Rol = "Sobrecargo", Licencia = "FA-S002", TiempoDescansoMinutos = 480, Estado = "Disponible", FechaContratacion = DateTime.Today.AddYears(-4), Activo = true },
+ new Personal { Nombre = "Sobrecargo Diana", Apellido = "Herrera", Rol = "Sobrecargo", Licencia = "FA-S003", TiempoDescansoMinutos = 480, Estado = "Disponible", FechaContratacion = DateTime.Today.AddYears(-3), Activo = true },
+   new Personal { Nombre = "Sobrecargo Esteban", Apellido = "Gutiérrez", Rol = "Sobrecargo", Licencia = "FA-S004", TiempoDescansoMinutos = 480, Estado = "Disponible", FechaContratacion = DateTime.Today.AddYears(-3), Activo = true },
+      new Personal { Nombre = "Sobrecargo Camila", Apellido = "Navarro", Rol = "Sobrecargo", Licencia = "FA-S005", TiempoDescansoMinutos = 480, Estado = "Disponible", FechaContratacion = DateTime.Today.AddYears(-2), Activo = true },
+ new Personal { Nombre = "Sobrecargo Antonio", Apellido = "Ríos", Rol = "Sobrecargo", Licencia = "FA-S006", TiempoDescansoMinutos = 480, Estado = "Disponible", FechaContratacion = DateTime.Today.AddYears(-2), Activo = true },
+      new Personal { Nombre = "Sobrecargo Natalia", Apellido = "Molina", Rol = "Sobrecargo", Licencia = "FA-S007", TiempoDescansoMinutos = 480, Estado = "Disponible", FechaContratacion = DateTime.Today.AddYears(-4), Activo = true },
+        new Personal { Nombre = "Sobrecargo Rodrigo", Apellido = "Vega", Rol = "Sobrecargo", Licencia = "FA-S008", TiempoDescansoMinutos = 480, Estado = "Disponible", FechaContratacion = DateTime.Today.AddYears(-3), Activo = true },
+new Personal { Nombre = "Sobrecargo Gabriela", Apellido = "Luna", Rol = "Sobrecargo", Licencia = "FA-S009", TiempoDescansoMinutos = 480, Estado = "Disponible", FechaContratacion = DateTime.Today.AddYears(-2), Activo = true },
+      new Personal { Nombre = "Sobrecargo Manuel", Apellido = "Cruz", Rol = "Sobrecargo", Licencia = "FA-S010", TiempoDescansoMinutos = 480, Estado = "Disponible", FechaContratacion = DateTime.Today.AddYears(-5), Activo = true },
+    new Personal { Nombre = "Sobrecargo Victoria", Apellido = "Pardo", Rol = "Sobrecargo", Licencia = "FA-S011", TiempoDescansoMinutos = 480, Estado = "Disponible", FechaContratacion = DateTime.Today.AddYears(-1), Activo = true },
+    new Personal { Nombre = "Sobrecargo Andrés", Apellido = "Campos", Rol = "Sobrecargo", Licencia = "FA-S012", TiempoDescansoMinutos = 480, Estado = "Disponible", FechaContratacion = DateTime.Today.AddYears(-1), Activo = true }
+  });
+
+            await context.Personal.AddRangeAsync(personal);
+            await context.SaveChangesAsync();
+
+            // ========== 2. CREAR EQUIPOS COMPLETOS ==========
+            var equipos = new List<Equipo>
+        {
+       new Equipo
+ {
+   Nombre = "Equipo Alpha",
+      Codigo = "ALPHA-01",
+     Estado = "Disponible",
+     FechaCreacion = DateTime.Today.AddMonths(-6),
+Activo = true
+      },
+    new Equipo
+      {
+Nombre = "Equipo Bravo",
+   Codigo = "BRAVO-01",
+     Estado = "Disponible",
+        FechaCreacion = DateTime.Today.AddMonths(-5),
+        Activo = true
+  },
+    new Equipo
+  {
+Nombre = "Equipo Charlie",
+  Codigo = "CHARLIE-01",
+   Estado = "Incompleto", // ✅ Este NO tiene miembros asignados (para demostrar validación)
+       FechaCreacion = DateTime.Today.AddMonths(-1),
+        Activo = true
+  }
+        };
+
+            await context.Equipos.AddRangeAsync(equipos);
+            await context.SaveChangesAsync();
+
+            // ========== 3. ASIGNAR PERSONAL A EQUIPOS ==========
+            var equiposPersonal = new List<EquipoPersonal>();
+
+            // ✅ EQUIPO ALPHA (Completo y válido)
+            var equipoAlpha = equipos[0];
+            equiposPersonal.AddRange(new[]
+              {
+     new EquipoPersonal { IdEquipo = equipoAlpha.Id, IdPersonal = personal[0].Id, FechaAsignacion = DateTime.Today.AddMonths(-6), Activo = true }, // Piloto 1
+       new EquipoPersonal { IdEquipo = equipoAlpha.Id, IdPersonal = personal[4].Id, FechaAsignacion = DateTime.Today.AddMonths(-6), Activo = true }, // Copiloto 1
+   new EquipoPersonal { IdEquipo = equipoAlpha.Id, IdPersonal = personal[8].Id, FechaAsignacion = DateTime.Today.AddMonths(-6), Activo = true }, // Sobrecargo Jefe 1
+ new EquipoPersonal { IdEquipo = equipoAlpha.Id, IdPersonal = personal[10].Id, FechaAsignacion = DateTime.Today.AddMonths(-6), Activo = true }, // Sobrecargo 1
+       new EquipoPersonal { IdEquipo = equipoAlpha.Id, IdPersonal = personal[11].Id, FechaAsignacion = DateTime.Today.AddMonths(-6), Activo = true }, // Sobrecargo 2
+ new EquipoPersonal { IdEquipo = equipoAlpha.Id, IdPersonal = personal[12].Id, FechaAsignacion = DateTime.Today.AddMonths(-6), Activo = true }, // Sobrecargo 3
+      new EquipoPersonal { IdEquipo = equipoAlpha.Id, IdPersonal = personal[13].Id, FechaAsignacion = DateTime.Today.AddMonths(-6), Activo = true }  // Sobrecargo 4
+   });
+
+            // ✅ EQUIPO BRAVO (Completo y válido)
+            var equipoBravo = equipos[1];
+            equiposPersonal.AddRange(new[]
+        {
+     new EquipoPersonal { IdEquipo = equipoBravo.Id, IdPersonal = personal[1].Id, FechaAsignacion = DateTime.Today.AddMonths(-5), Activo = true }, // Piloto 2
+      new EquipoPersonal { IdEquipo = equipoBravo.Id, IdPersonal = personal[5].Id, FechaAsignacion = DateTime.Today.AddMonths(-5), Activo = true }, // Copiloto 2
+       new EquipoPersonal { IdEquipo = equipoBravo.Id, IdPersonal = personal[9].Id, FechaAsignacion = DateTime.Today.AddMonths(-5), Activo = true }, // Sobrecargo Jefe 2
+new EquipoPersonal { IdEquipo = equipoBravo.Id, IdPersonal = personal[14].Id, FechaAsignacion = DateTime.Today.AddMonths(-5), Activo = true }, // Sobrecargo 5
+   new EquipoPersonal { IdEquipo = equipoBravo.Id, IdPersonal = personal[15].Id, FechaAsignacion = DateTime.Today.AddMonths(-5), Activo = true }, // Sobrecargo 6
+        new EquipoPersonal { IdEquipo = equipoBravo.Id, IdPersonal = personal[16].Id, FechaAsignacion = DateTime.Today.AddMonths(-5), Activo = true }, // Sobrecargo 7
+      new EquipoPersonal { IdEquipo = equipoBravo.Id, IdPersonal = personal[17].Id, FechaAsignacion = DateTime.Today.AddMonths(-5), Activo = true }, // Sobrecargo 8
+   new EquipoPersonal { IdEquipo = equipoBravo.Id, IdPersonal = personal[18].Id, FechaAsignacion = DateTime.Today.AddMonths(-5), Activo = true }  // Sobrecargo 9
+        });
+
+            // ❌ EQUIPO CHARLIE no tiene miembros (para demostrar validación de equipo incompleto)
+
+            await context.EquipoPersonal.AddRangeAsync(equiposPersonal);
+            await context.SaveChangesAsync();
+
+            // ========== 4. ASIGNAR EQUIPOS A AERONAVES ==========
+            var asignaciones = new List<AsignacionEquipoAeronave>
+     {
+    new AsignacionEquipoAeronave
+      {
+IdEquipo = equipoAlpha.Id,
+    Matricula = "HI-1001RD",
+       FechaAsignacion = DateTime.Today.AddMonths(-6),
+      Activa = true,
+Observaciones = "Asignación inicial - Equipo Alpha certificado en Boeing 737-800"
+        },
+new AsignacionEquipoAeronave
+{
+          IdEquipo = equipoBravo.Id,
+       Matricula = "HI-1002RD",
+FechaAsignacion = DateTime.Today.AddMonths(-5),
+  Activa = true,
+         Observaciones = "Asignación inicial - Equipo Bravo certificado en Boeing 737-800"
+}
+  };
+
+            await context.AsignacionesEquipoAeronave.AddRangeAsync(asignaciones);
+            await context.SaveChangesAsync();
+
+            Console.WriteLine($"   ✅ Seed de Personal y Equipos completado:");
+            Console.WriteLine($"      - {personal.Count} miembros de personal creados");
+            Console.WriteLine($"      - {equipos.Count} equipos creados (2 completos, 1 incompleto)");
+            Console.WriteLine($"      - {equiposPersonal.Count} asignaciones personal-equipo");
+            Console.WriteLine($"      - {asignaciones.Count} equipos asignados a aeronaves");
+            Console.WriteLine($"      - HI-1001RD → Equipo Alpha");
+            Console.WriteLine($"  - HI-1002RD → Equipo Bravo");
+            Console.WriteLine($"      - HI-1003RD, HI-1004RD, HI-1005RD, HI-1006RD, HI-1007RD → SIN EQUIPO (para validaciones)");
+        }
+        private static async Task SeedVuelosAsync(AppDbContext context)
+        {
+            // ✅ FECHA BASE: Siempre mañana
+            var fechaBase = DateTime.Today.AddDays(1);
+
+            var vuelos = new List<Vuelo>();
+
+            // ✅ AEROPUERTO DE PRUEBA: 1 vuelo/hora, 24 vuelos/día
+            // Ya debe existir (se agrega en SeedAeropuertosAsync)
+            var aeropuertoPrueba = await context.Aeropuertos.FirstOrDefaultAsync(a => a.Codigo == "TEST");
+            if (aeropuertoPrueba == null)
+            {
+                // Crear aeropuerto de prueba si no existe
+                aeropuertoPrueba = new Aeropuerto
+                {
+                    Codigo = "TEST",
+                    Nombre = "Aeropuerto de Prueba Validaciones",
+                    Ciudad = "Test City",
+                    Pais = "República Dominicana",
+                    CapacidadVuelosPorHora = 1 // ⚠️ Solo 1 vuelo por hora
+                };
+                await context.Aeropuertos.AddAsync(aeropuertoPrueba);
+                await context.SaveChangesAsync();
+            }
+
+            // ✅ Crear 23 vuelos en el aeropuerto TEST (dejando espacio para 1 más)
+            // Esto demostrará las validaciones de capacidad
+            int numeroVuelo = 2000;
+            for (int hora = 6; hora < 22; hora++) // 6 AM a 9 PM = 16 vuelos
+            {
+                vuelos.Add(new Vuelo
+                {
+                    NumeroVuelo = $"TEST{numeroVuelo++}",
+                    Fecha = fechaBase,
+                    HoraSalida = new TimeSpan(hora, 0, 0),
+                    HoraLlegada = new TimeSpan(hora + 2, 0, 0),
+                    Duracion = 120,
+                    PrecioBase = 200.00m,
+                    OrigenCodigo = "TEST",
+                    DestinoCodigo = "SDQ",
+                    Matricula = "HI-1001RD",
+                    Estado = "Programado",
+                    TipoVuelo = "SoloIda",
+                    Clase = "Economica"
+                });
+            }
+
+            // ✅ Crear más vuelos para el día siguiente (7 vuelos)
+            for (int hora = 6; hora < 13; hora++) // 6 AM a 12 PM = 7 vuelos
+            {
+                vuelos.Add(new Vuelo
+                {
+                    NumeroVuelo = $"TEST{numeroVuelo++}",
+                    Fecha = fechaBase.AddDays(1),
+                    HoraSalida = new TimeSpan(hora, 0, 0),
+                    HoraLlegada = new TimeSpan(hora + 2, 0, 0),
+                    Duracion = 120,
+                    PrecioBase = 200.00m,
+                    OrigenCodigo = "TEST",
+                    DestinoCodigo = "SDQ",
+                    Matricula = "HI-1001RD",
+                    Estado = "Programado",
+                    TipoVuelo = "SoloIda",
+                    Clase = "Economica"
+                });
+            }
+
+            // ✅ AEROPUERTO CIBAO: Crear 9 vuelos (capacidad: 10/hora)
+            // Dejar espacio para demostrar validación diaria
+            numeroVuelo = 3000;
+            for (int i = 0; i < 9; i++)
+            {
+                vuelos.Add(new Vuelo
+                {
+                    NumeroVuelo = $"STI{numeroVuelo++}",
+                    Fecha = fechaBase,
+                    HoraSalida = new TimeSpan(8 + i, 0, 0),
+                    HoraLlegada = new TimeSpan(10 + i, 30, 0),
+                    Duracion = 150,
+                    PrecioBase = 320.00m,
+                    OrigenCodigo = "STI",
+                    DestinoCodigo = "MIA",
+                    Matricula = "HI-1002RD",
+                    Estado = "Programado",
+                    TipoVuelo = "SoloIda",
+                    Clase = "Economica"
+                });
+            }
+
+            // ✅ Vuelos variados para demostrar otras funcionalidades
+            numeroVuelo = 1000;
+            var rutasVariadas = new[]
+       {
+    (origen: "SDQ", destino: "JFK", precio: 450.00m, duracion: 255, matricula: "HI-1003RD"),
+      (origen: "SDQ", destino: "MIA", precio: 320.00m, duracion: 150, matricula: "HI-1004RD"),
+  (origen: "PUJ", destino: "ATL", precio: 400.00m, duracion: 185, matricula: "HI-1005RD"),
+        (origen: "PUJ", destino: "JFK", precio: 480.00m, duracion: 270, matricula: "HI-1006RD"),
+    (origen: "SDQ", destino: "MAD", precio: 850.00m, duracion: 540, matricula: "HI-1007RD")
+ };
+
+            for (int i = 0; i < rutasVariadas.Length; i++)
+            {
+                var ruta = rutasVariadas[i];
+
+                // Vuelos de ida y vuelta
+                vuelos.Add(new Vuelo
+                {
+                    NumeroVuelo = $"RD{numeroVuelo++}",
+                    Fecha = fechaBase.AddDays(i + 2),
+                    HoraSalida = new TimeSpan(10, 0, 0),
+                    HoraLlegada = new TimeSpan(10, 0, 0).Add(TimeSpan.FromMinutes(ruta.duracion)),
+                    Duracion = ruta.duracion,
+                    PrecioBase = ruta.precio,
+                    OrigenCodigo = ruta.origen,
+                    DestinoCodigo = ruta.destino,
+                    Matricula = ruta.matricula,
+                    Estado = "Programado",
+                    TipoVuelo = "IdaYVuelta",
+                    FechaRegreso = fechaBase.AddDays(i + 9),
+                    Clase = i % 3 == 0 ? "Primera" : (i % 2 == 0 ? "Ejecutiva" : "Economica")
+                });
+
+                // Vuelos de solo ida
+                vuelos.Add(new Vuelo
+                {
+                    NumeroVuelo = $"RD{numeroVuelo++}",
+                    Fecha = fechaBase.AddDays(i + 10),
+                    HoraSalida = new TimeSpan(14, 0, 0),
+                    HoraLlegada = new TimeSpan(14, 0, 0).Add(TimeSpan.FromMinutes(ruta.duracion)),
+                    Duracion = ruta.duracion,
+                    PrecioBase = ruta.precio,
+                    OrigenCodigo = ruta.origen,
+                    DestinoCodigo = ruta.destino,
+                    Matricula = ruta.matricula,
+                    Estado = "Programado",
+                    TipoVuelo = "SoloIda",
+                    Clase = "Economica"
+                });
+            }
+
+            await context.Vuelos.AddRangeAsync(vuelos);
+            await context.SaveChangesAsync();
+
+            Console.WriteLine($"   ✅ Creados {vuelos.Count} vuelos de PRUEBA:");
+            Console.WriteLine($"      - 23 vuelos en TEST (capacidad: 1/hora, 24/día) - CASI LLENO");
+            Console.WriteLine($"      - 9 vuelos en STI (Cibao) - Capacidad para 1 más");
+            Console.WriteLine($"      - {rutasVariadas.Length * 2} vuelos variados en otros aeropuertos");
+            Console.WriteLine($"      - Fecha base: {fechaBase:dd/MM/yyyy}");
+        }
         private static async Task SeedAsientosAsync(AppDbContext context)
         {
             // ⬅️ CAMBIO: Ahora los asientos pertenecen a AERONAVES, no a VUELOS
@@ -507,7 +725,7 @@ var horaSalida = new TimeSpan(6 + (i % 16), random.Next(0, 60), 0);
         private static string GeneratePasaporte(Random rnd)
         {
             // Formato: P +8 dígitos
-            return "P" + rnd.Next(10_000_000,99_999_999).ToString();
+            return "P" + rnd.Next(10_000_000, 99_999_999).ToString();
         }
 
         private static async Task SeedPasajerosAsync(AppDbContext context)
@@ -521,40 +739,40 @@ var horaSalida = new TimeSpan(6 + (i % 16), random.Next(0, 60), 0);
             var pasajeros = new List<Pasajero>();
 
             // Obtener clientes existentes para vincular algunos pasajeros
-             var clientes = await context.Clientes.ToListAsync();
-            
-             // Crear pasajeros, asignando IdCliente cuando sea posible
-             var nombres = new[] { "Juan", "María", "Pedro", "Ana", "Luis" };
-             var apellidos = new[] { "Cliente", "González", "Sánchez", "Martínez", "Rodríguez" };
-            
-             for (int i =0; i < nombres.Length; i++)
-             {
+            var clientes = await context.Clientes.ToListAsync();
+
+            // Crear pasajeros, asignando IdCliente cuando sea posible
+            var nombres = new[] { "Juan", "María", "Pedro", "Ana", "Luis" };
+            var apellidos = new[] { "Cliente", "González", "Sánchez", "Martínez", "Rodríguez" };
+
+            for (int i = 0; i < nombres.Length; i++)
+            {
                 string pasaporte;
                 // Generar pasaporte único
-                 do
-                 {
-                     pasaporte = GeneratePasaporte(rnd);
-                 } while (await context.Pasajeros.AnyAsync(p => p.Pasaporte == pasaporte));
-            
-                 var pasajero = new Pasajero
-                 {
-                     Nombre = nombres[i],
-                     Apellido = apellidos[i],
-                     Pasaporte = pasaporte,
-                     IdCliente = clientes.Count > i ? clientes[i].Id : (int?)null
-                 };
+                do
+                {
+                    pasaporte = GeneratePasaporte(rnd);
+                } while (await context.Pasajeros.AnyAsync(p => p.Pasaporte == pasaporte));
+
+                var pasajero = new Pasajero
+                {
+                    Nombre = nombres[i],
+                    Apellido = apellidos[i],
+                    Pasaporte = pasaporte,
+                    IdCliente = clientes.Count > i ? clientes[i].Id : (int?)null
+                };
                 pasajeros.Add(pasajero);
-             }
-            
-             await context.Pasajeros.AddRangeAsync(pasajeros);
-             await context.SaveChangesAsync();
+            }
+
+            await context.Pasajeros.AddRangeAsync(pasajeros);
+            await context.SaveChangesAsync();
         }
 
         private static async Task SeedReservasAsync(AppDbContext context)
         {
             // ⚠️ RESERVAS COMENTADAS - Dependen de vuelos que no existen
             Console.WriteLine("⚠️  Creación de reservas deshabilitada - Sin vuelos para reservar");
-  return;
+            return;
 
             /* ========== CÓDIGO COMENTADO ==========
 var vuelos = await context.Vuelos
@@ -601,41 +819,41 @@ var vuelos = await context.Vuelos
         private static async Task SeedFacturasAsync(AppDbContext context)
         {
             // ⚠️ FACTURAS COMENTADAS - Dependen de reservas que no existen
- Console.WriteLine("⚠️  Creación de facturas deshabilitada - Sin reservas para facturar");
-         return;
+            Console.WriteLine("⚠️  Creación de facturas deshabilitada - Sin reservas para facturar");
+            return;
 
-    /* ========== CÓDIGO COMENTADO ==========
-     var reservas = await context.Reservas.ToListAsync();
+            /* ========== CÓDIGO COMENTADO ==========
+             var reservas = await context.Reservas.ToListAsync();
 
-      if (!reservas.Any())
-        return;
+              if (!reservas.Any())
+                return;
 
-    var facturas = new List<Factura>
+            var facturas = new List<Factura>
+                    {
+            new Factura
             {
-    new Factura
-    {
-        Codigo = "FAC001",
-        CodReserva = reservas[0].Codigo,
-         Monto = reservas[0].PrecioTotal,
-     MetodoPago = "Tarjeta de Crédito",
-       FechaEmision = reservas[0].FechaReserva,
-       EstadoPago = "Pagado"
- },
-          new Factura
-    {
-   Codigo = "FAC002",
-         CodReserva = reservas[1].Codigo,
-      Monto = reservas[1].PrecioTotal,
-    MetodoPago = "PayPal",
-        FechaEmision = reservas[1].FechaReserva,
-      EstadoPago = "Pagado"
-  }
-  };
+                Codigo = "FAC001",
+                CodReserva = reservas[0].Codigo,
+                 Monto = reservas[0].PrecioTotal,
+             MetodoPago = "Tarjeta de Crédito",
+               FechaEmision = reservas[0].FechaReserva,
+               EstadoPago = "Pagado"
+         },
+                  new Factura
+            {
+           Codigo = "FAC002",
+                 CodReserva = reservas[1].Codigo,
+              Monto = reservas[1].PrecioTotal,
+            MetodoPago = "PayPal",
+                FechaEmision = reservas[1].FechaReserva,
+              EstadoPago = "Pagado"
+          }
+          };
 
-       await context.Facturas.AddRangeAsync(facturas);
-        await context.SaveChangesAsync();
-     ========== FIN CÓDIGO COMENTADO ========== */
-  }
+               await context.Facturas.AddRangeAsync(facturas);
+                await context.SaveChangesAsync();
+             ========== FIN CÓDIGO COMENTADO ========== */
+        }
 
         private static async Task SeedEquipajesAsync(AppDbContext context)
         {
@@ -657,80 +875,80 @@ var vuelos = await context.Vuelos
 
         private static async Task SeedEstadosVueloAsync(AppDbContext context)
         {
-  // ⚠️ ESTADOS DE VUELO COMENTADOS - Dependen de vuelos que no existen
-     Console.WriteLine("⚠️  Creación de estados de vuelo deshabilitada - Sin vuelos para asignar estados");
+            // ⚠️ ESTADOS DE VUELO COMENTADOS - Dependen de vuelos que no existen
+            Console.WriteLine("⚠️  Creación de estados de vuelo deshabilitada - Sin vuelos para asignar estados");
             return;
 
-    /* ========== CÓDIGO COMENTADO ==========
- var vuelosHoy = await context.Vuelos
-      .Where(v => v.Fecha == DateTime.Today)
-    .Take(5)
-        .ToListAsync();
+            /* ========== CÓDIGO COMENTADO ==========
+         var vuelosHoy = await context.Vuelos
+              .Where(v => v.Fecha == DateTime.Today)
+            .Take(5)
+                .ToListAsync();
 
-    var estadosVuelo = new List<EstadoVuelo>();
+            var estadosVuelo = new List<EstadoVuelo>();
 
-       foreach (var vuelo in vuelosHoy)
-      {
-        estadosVuelo.Add(new EstadoVuelo
-  {
-      IdVuelo = vuelo.Id,
-        Estado = "Embarcando",
-       HoraSalidaProgramada = DateTime.Today.Add(vuelo.HoraSalida),
-      HoraLlegadaProgramada = DateTime.Today.Add(vuelo.HoraLlegada),
-       Puerta = $"A{new Random().Next(1, 20)}",
-          Observaciones = "Vuelo en tiempo"
-  });
- }
+               foreach (var vuelo in vuelosHoy)
+              {
+                estadosVuelo.Add(new EstadoVuelo
+          {
+              IdVuelo = vuelo.Id,
+                Estado = "Embarcando",
+               HoraSalidaProgramada = DateTime.Today.Add(vuelo.HoraSalida),
+              HoraLlegadaProgramada = DateTime.Today.Add(vuelo.HoraLlegada),
+               Puerta = $"A{new Random().Next(1, 20)}",
+                  Observaciones = "Vuelo en tiempo"
+          });
+         }
 
-        await context.EstadosVuelo.AddRangeAsync(estadosVuelo);
-        await context.SaveChangesAsync();
-       ========== FIN CÓDIGO COMENTADO ========== */
- }
+                await context.EstadosVuelo.AddRangeAsync(estadosVuelo);
+                await context.SaveChangesAsync();
+               ========== FIN CÓDIGO COMENTADO ========== */
+        }
 
         private static async Task SeedVueloTripulacionAsync(AppDbContext context)
         {
-        // ⚠️ ASIGNACIÓN DE TRIPULACIÓN COMENTADA - Depende de vuelos que no existen
-  Console.WriteLine("⚠️  Asignación de tripulación deshabilitada - Sin vuelos para asignar tripulantes");
-     return;
+            // ⚠️ ASIGNACIÓN DE TRIPULACIÓN COMENTADA - Depende de vuelos que no existen
+            Console.WriteLine("⚠️  Asignación de tripulación deshabilitada - Sin vuelos para asignar tripulantes");
+            return;
 
-/* ========== CÓDIGO COMENTADO ==========
-     var vuelos = await context.Vuelos.Take(10).ToListAsync();
-       var pilotos = await context.Tripulaciones.Where(t => t.Rol == "Piloto").ToListAsync();
-        var copilotos = await context.Tripulaciones.Where(t => t.Rol == "Copiloto").ToListAsync();
-     var sobrecargos = await context.Tripulaciones.Where(t => t.Rol!.Contains("Sobrecargo")).ToListAsync();
+            /* ========== CÓDIGO COMENTADO ==========
+                 var vuelos = await context.Vuelos.Take(10).ToListAsync();
+                   var pilotos = await context.Tripulaciones.Where(t => t.Rol == "Piloto").ToListAsync();
+                    var copilotos = await context.Tripulaciones.Where(t => t.Rol == "Copiloto").ToListAsync();
+                 var sobrecargos = await context.Tripulaciones.Where(t => t.Rol!.Contains("Sobrecargo")).ToListAsync();
 
-    var vueloTripulaciones = new List<VueloTripulacion>();
+                var vueloTripulaciones = new List<VueloTripulacion>();
 
-for (int i = 0; i < vuelos.Count; i++)
-  {
-    // Asignar piloto
-     vueloTripulaciones.Add(new VueloTripulacion
-  {
-        IdVuelo = vuelos[i].Id,
-IdTripulacion = pilotos[i % pilotos.Count].Id
-    });
+            for (int i = 0; i < vuelos.Count; i++)
+              {
+                // Asignar piloto
+                 vueloTripulaciones.Add(new VueloTripulacion
+              {
+                    IdVuelo = vuelos[i].Id,
+            IdTripulacion = pilotos[i % pilotos.Count].Id
+                });
 
-      // Asignar copiloto
-vueloTripulaciones.Add(new VueloTripulacion
-     {
-IdVuelo = vuelos[i].Id,
-       IdTripulacion = copilotos[i % copilotos.Count].Id
-});
+                  // Asignar copiloto
+            vueloTripulaciones.Add(new VueloTripulacion
+                 {
+            IdVuelo = vuelos[i].Id,
+                   IdTripulacion = copilotos[i % copilotos.Count].Id
+            });
 
-        // Asignar 4 sobrecargos
-    for (int j = 0; j < 4; j++)
-      {
-  vueloTripulaciones.Add(new VueloTripulacion
-{
- IdVuelo = vuelos[i].Id,
-       IdTripulacion = sobrecargos[(i * 4 + j) % sobrecargos.Count].Id
-   });
-  }
- }
+                    // Asignar 4 sobrecargos
+                for (int j = 0; j < 4; j++)
+                  {
+              vueloTripulaciones.Add(new VueloTripulacion
+            {
+             IdVuelo = vuelos[i].Id,
+                   IdTripulacion = sobrecargos[(i * 4 + j) % sobrecargos.Count].Id
+               });
+              }
+             }
 
-      await context.VueloTripulaciones.AddRangeAsync(vueloTripulaciones);
-   await context.SaveChangesAsync();
-      ========== FIN CÓDIGO COMENTADO ========== */
+                  await context.VueloTripulaciones.AddRangeAsync(vueloTripulacion);
+               await context.SaveChangesAsync();
+                  ========== FIN CÓDIGO COMENTADO ========== */
         }
 
         private static async Task SeedNotificacionesAsync(AppDbContext context)
@@ -769,38 +987,38 @@ IdVuelo = vuelos[i].Id,
         /// </summary>
         private static async Task ActualizarFechasVuelosAsync(AppDbContext context)
         {
- var hoy = DateTime.Today;
+            var hoy = DateTime.Today;
             var vuelosEnPasado = await context.Vuelos
     .Where(v => v.Fecha < hoy)
       .ToListAsync();
 
             if (!vuelosEnPasado.Any())
             {
-     Console.WriteLine("✅ No hay vuelos en el pasado para actualizar");
-        return;
-         }
+                Console.WriteLine("✅ No hay vuelos en el pasado para actualizar");
+                return;
+            }
 
-        Console.WriteLine($"📅 Actualizando {vuelosEnPasado.Count} vuelos del pasado...");
+            Console.WriteLine($"📅 Actualizando {vuelosEnPasado.Count} vuelos del pasado...");
 
-       foreach (var vuelo in vuelosEnPasado)
-         {
-      // Calcular cuántos días en el pasado está el vuelo
+            foreach (var vuelo in vuelosEnPasado)
+            {
+                // Calcular cuántos días en el pasado está el vuelo
                 var diasEnPasado = (hoy - vuelo.Fecha).Days;
-           
-    // Mover el vuelo al futuro: mañana + el mismo offset relativo
-        vuelo.Fecha = hoy.AddDays(1 + (diasEnPasado % 90));
-  
-            // Actualizar también la fecha de regreso si existe
- if (vuelo.FechaRegreso.HasValue && vuelo.FechaRegreso.Value < hoy)
-        {
-    var diasDespuesDeSalida = (vuelo.FechaRegreso.Value - vuelo.Fecha.AddDays(-diasEnPasado)).Days;
-      vuelo.FechaRegreso = vuelo.Fecha.AddDays(Math.Max(1, diasDespuesDeSalida));
-                }
-     }
 
-    await context.SaveChangesAsync();
-         Console.WriteLine($"✅ {vuelosEnPasado.Count} vuelos actualizados a fechas futuras");
-  Console.WriteLine($"   - Primera fecha: {vuelosEnPasado.Min(v => v.Fecha):dd/MM/yyyy}");
+                // Mover el vuelo al futuro: mañana + el mismo offset relativo
+                vuelo.Fecha = hoy.AddDays(1 + (diasEnPasado % 90));
+
+                // Actualizar también la fecha de regreso si existe
+                if (vuelo.FechaRegreso.HasValue && vuelo.FechaRegreso.Value < hoy)
+                {
+                    var diasDespuesDeSalida = (vuelo.FechaRegreso.Value - vuelo.Fecha.AddDays(-diasEnPasado)).Days;
+                    vuelo.FechaRegreso = vuelo.Fecha.AddDays(Math.Max(1, diasDespuesDeSalida));
+                }
+            }
+
+            await context.SaveChangesAsync();
+            Console.WriteLine($"✅ {vuelosEnPasado.Count} vuelos actualizados a fechas futuras");
+            Console.WriteLine($"   - Primera fecha: {vuelosEnPasado.Min(v => v.Fecha):dd/MM/yyyy}");
             Console.WriteLine($"   - Última fecha: {vuelosEnPasado.Max(v => v.Fecha):dd/MM/yyyy}");
         }
     }
