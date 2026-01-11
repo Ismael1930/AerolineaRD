@@ -1,4 +1,4 @@
-﻿using AerolineaRD.Data;
+using AerolineaRD.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -6,234 +6,286 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace AerolineaRD.Services.BackgroundServices
 {
-    /// <summary>
-    /// Servicio en segundo plano que actualiza automáticamente los estados de:
-    /// - Aeronaves (Operativa → Mantenimiento después de cada vuelo)
-    /// - Equipos (Disponible → Descanso después de cada vuelo)
-    /// - Vuelos (Programado → En Curso → Completado según fecha/hora)
-    /// </summary>
     public class EstadosAutomaticosService : BackgroundService
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<EstadosAutomaticosService> _logger;
-        private readonly TimeSpan _intervalo = TimeSpan.FromMinutes(5); // Ejecutar cada 5 minutos
+        private readonly TimeSpan _intervalo = TimeSpan.FromMinutes(1);
 
-        public EstadosAutomaticosService(
-      IServiceProvider serviceProvider,
-     ILogger<EstadosAutomaticosService> logger)
+    public EstadosAutomaticosService(
+    IServiceProvider serviceProvider,
+    ILogger<EstadosAutomaticosService> logger)
+      {
+ _serviceProvider = serviceProvider;
+        _logger = logger;
+    }
+
+      protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _serviceProvider = serviceProvider;
-            _logger = logger;
-        }
+            _logger.LogInformation("? Servicio de Estados Autom�ticos iniciado");
+            await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-        {
-            _logger.LogInformation("✅ Servicio de Estados Automáticos iniciado");
-
-            while (!stoppingToken.IsCancellationRequested)
+        while (!stoppingToken.IsCancellationRequested)
             {
-                try
-                {
-                    await ActualizarEstadosAsync();
-                    await Task.Delay(_intervalo, stoppingToken);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "❌ Error al actualizar estados automáticos");
-                    await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
-                }
-            }
+          try
+          {
+      await ActualizarEstadosAsync();
+               await Task.Delay(_intervalo, stoppingToken);
+      }
+     catch (Exception ex)
+    {
+          _logger.LogError(ex, "? Error al actualizar estados autom�ticos");
+              await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
+      }
+}
 
-            _logger.LogInformation("⏹️ Servicio de Estados Automáticos detenido");
-        }
+     _logger.LogInformation("?? Servicio de Estados Autom�ticos detenido");
+  }
 
         private async Task ActualizarEstadosAsync()
         {
-            using var scope = _serviceProvider.CreateScope();
-            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            var ahora = DateTime.Now;
+   using var scope = _serviceProvider.CreateScope();
+ var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+   var ahora = DateTime.Now;
 
-            _logger.LogDebug($"🔄 Actualizando estados automáticos... ({ahora:dd/MM/yyyy HH:mm})");
-
-            try
+ try
+         {
+     await ActualizarEstadosVuelosAsync(context, ahora);
+     await ActualizarEstadosRecursosAsync(context, ahora);
+          await LiberarRecursosAsync(context, ahora);
+  await context.SaveChangesAsync();
+    }
+     catch (Exception ex)
             {
-                // 1️⃣ Actualizar estados de VUELOS
-                await ActualizarEstadosVuelosAsync(context, ahora);
+      _logger.LogError(ex, "? Error al actualizar estados");
+         }
+        }
 
-                // 2️⃣ Actualizar estados de AERONAVES (después de vuelos completados)
-                await ActualizarEstadosAeronavesAsync(context, ahora);
+     private async Task ActualizarEstadosVuelosAsync(AppDbContext context, DateTime ahora)
+        {
+var vuelosPendientes = await context.Vuelos
+   .Where(v => v.Estado != "Completado" && v.Estado != "Cancelado")
+      .ToListAsync();
 
-                // 3️⃣ Actualizar estados de EQUIPOS (después de vuelos completados)
-                await ActualizarEstadosEquiposAsync(context, ahora);
+        foreach (var vuelo in vuelosPendientes)
+         {
+   var horaSalida = vuelo.Fecha.Date.Add(vuelo.HoraSalida);
+            var horaLlegada = vuelo.Fecha.Date.Add(vuelo.HoraLlegada);
+     var horaCompletado = horaLlegada.AddMinutes(30);
+           var estadoAnterior = vuelo.Estado;
 
-                await context.SaveChangesAsync();
-                _logger.LogDebug("✅ Estados actualizados correctamente");
+    if (ahora >= horaCompletado)
+              {
+    vuelo.Estado = "Completado";
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "❌ Error al actualizar estados");
+      else if (ahora >= horaLlegada)
+  {
+           vuelo.Estado = "Aterrizado";
+         }
+        else if (ahora >= horaSalida)
+   {
+     vuelo.Estado = "En Vuelo";
+     }
+
+   if (estadoAnterior != vuelo.Estado)
+         {
+        _logger.LogInformation($"?? Vuelo {vuelo.NumeroVuelo} cambi� de '{estadoAnterior}' a '{vuelo.Estado}' " +
+                  $"(Salida: {horaSalida:dd/MM/yyyy HH:mm}, Llegada: {horaLlegada:dd/MM/yyyy HH:mm}, Ahora: {ahora:dd/MM/yyyy HH:mm})");
+          }
             }
         }
 
-        /// <summary>
-        /// Actualiza estados de vuelos según la fecha/hora actual
-        /// </summary>
-        private async Task ActualizarEstadosVuelosAsync(AppDbContext context, DateTime ahora)
+      private async Task ActualizarEstadosRecursosAsync(AppDbContext context, DateTime ahora)
         {
-            // 🔹 Vuelos que deben pasar a "En Curso" (hora de salida pasada pero no llegada)
-            var vuelosEnCurso = await context.Vuelos
-                    .Where(v => v.Estado == "Programado"
-          && v.Fecha.Date <= ahora.Date
-            && v.HoraSalida <= ahora.TimeOfDay)
-                    .ToListAsync();
+            _logger.LogInformation($"=== INICIANDO ActualizarEstadosRecursosAsync - Hora actual: {ahora:dd/MM/yyyy HH:mm:ss} ===");
+      
+          // Vuelos EN VUELO
+         var vuelosEnVuelo = await context.Vuelos
+  .Where(v => v.Estado == "En Vuelo")
+  .ToListAsync();
 
-            foreach (var vuelo in vuelosEnCurso)
-            {
-                vuelo.Estado = "En Curso";
-                _logger.LogInformation($"✈️ Vuelo {vuelo.NumeroVuelo} cambió a 'En Curso'");
-            }
+         _logger.LogInformation($"Encontrados {vuelosEnVuelo.Count} vuelos en estado 'En Vuelo'");
 
-            // 🔹 Vuelos que deben pasar a "Completado" (hora de llegada pasada)
-            var vuelosCompletados = await context.Vuelos
-     .Where(v => (v.Estado == "Programado" || v.Estado == "En Curso")
- && v.Fecha.Date < ahora.Date
-   || (v.Fecha.Date == ahora.Date && v.HoraLlegada < ahora.TimeOfDay))
-                .ToListAsync();
-
-            foreach (var vuelo in vuelosCompletados)
-            {
-                vuelo.Estado = "Completado";
-                _logger.LogInformation($"✅ Vuelo {vuelo.NumeroVuelo} cambió a 'Completado'");
-            }
+       foreach (var vuelo in vuelosEnVuelo)
+       {
+     var horaSalida = vuelo.Fecha.Date.Add(vuelo.HoraSalida);
+       _logger.LogInformation($"Procesando vuelo {vuelo.NumeroVuelo} - Matricula: {vuelo.Matricula}, Hora Salida: {horaSalida:dd/MM/yyyy HH:mm}");
+           
+           if (ahora >= horaSalida)
+           {
+      if (!string.IsNullOrEmpty(vuelo.Matricula))
+   {
+   var aeronave = await context.Aeronaves.FirstOrDefaultAsync(a => a.Matricula == vuelo.Matricula);
+     _logger.LogInformation($"Aeronave encontrada: {aeronave?.Matricula ?? "NULL"}, Estado actual: {aeronave?.Estado ?? "NULL"}");
+          
+         if (aeronave != null && aeronave.Estado != "En Vuelo")
+        {
+aeronave.Estado = "En Vuelo";
+     _logger.LogInformation($"?? Aeronave {aeronave.Matricula} cambi� a 'En Vuelo' (Vuelo {vuelo.NumeroVuelo})");
+     }
         }
 
-        /// <summary>
-        /// Actualiza estados de aeronaves después de vuelos completados
-        /// </summary>
-        private async Task ActualizarEstadosAeronavesAsync(AppDbContext context, DateTime ahora)
+       var asignacion = await context.AsignacionesEquipoAeronave
+      .Include(a => a.Equipo)
+      .ThenInclude(e => e.EquiposPersonal)
+         .ThenInclude(ep => ep.Personal)
+.FirstOrDefaultAsync(a => a.Matricula == vuelo.Matricula && a.Activa);
+
+   _logger.LogInformation($"Asignaci�n encontrada: {(asignacion != null ? $"Equipo {asignacion.Equipo.Nombre}" : "NULL")}");
+
+      if (asignacion != null)
         {
-            // 🔹 Aeronaves que acaban de completar un vuelo → Mantenimiento
-            var aeronavesParaMantenimiento = await context.Aeronaves
-                   .Include(a => a.Vuelos)
-               .Where(a => a.Estado == "Operativa"
-                        && a.Vuelos.Any(v => v.Estado == "Completado"
-               && v.Fecha.Date == ahora.Date
-          && v.HoraLlegada < ahora.TimeOfDay))
-          .ToListAsync();
+      _logger.LogInformation($"Estado actual del equipo: {asignacion.Equipo.Estado}");
+            
+    if (asignacion.Equipo.Estado != "En Servicio")
+   {
+          asignacion.Equipo.Estado = "En Servicio";
+          _logger.LogInformation($"?? Equipo {asignacion.Equipo.Nombre} cambi� a 'En Servicio' (Vuelo {vuelo.NumeroVuelo})");
+  }
 
-            foreach (var aeronave in aeronavesParaMantenimiento)
-            {
-                var ultimoVuelo = aeronave.Vuelos
-                    .Where(v => v.Estado == "Completado")
-            .OrderByDescending(v => v.Fecha)
-                    .ThenByDescending(v => v.HoraLlegada)
-            .FirstOrDefault();
+         _logger.LogInformation($"Personal activo en el equipo: {asignacion.Equipo.EquiposPersonal.Count(ep => ep.Activo)}");
 
-                if (ultimoVuelo != null)
-                {
-                    // Tiempo de mantenimiento: por defecto 2 horas (TiempoPreparacionMinutos)
-                    var tiempoMantenimiento = aeronave.TiempoPreparacionMinutos > 0
-          ? aeronave.TiempoPreparacionMinutos
-              : 120;
+       foreach (var ep in asignacion.Equipo.EquiposPersonal.Where(ep => ep.Activo))
+         {
+            _logger.LogInformation($"Procesando personal: {ep.Personal.Nombre} {ep.Personal.Apellido}, Estado: {ep.Personal.Estado}");
+            
+          if (ep.Personal.Estado != "En Servicio")
+          {
+  ep.Personal.Estado = "En Servicio";
+ _logger.LogInformation($"?? {ep.Personal.Nombre} {ep.Personal.Apellido} cambi� a 'En Servicio' (Vuelo {vuelo.NumeroVuelo})");
+}
+  }
+      }
+      else
+  {
+                     _logger.LogWarning($"?? NO se encontr� asignaci�n de equipo para la aeronave {vuelo.Matricula} del vuelo {vuelo.NumeroVuelo}");
+     }
+       }
+       else
+     {
+      _logger.LogInformation($"Vuelo {vuelo.NumeroVuelo} a�n no ha alcanzado su hora de salida");
+         }
+}
 
-                    var horaLlegada = ultimoVuelo.Fecha.Date.Add(ultimoVuelo.HoraLlegada);
-                    var disponibleDesde = horaLlegada.AddMinutes(tiempoMantenimiento);
-
-                    // Solo poner en mantenimiento si aún no ha pasado el tiempo
-                    if (ahora < disponibleDesde)
-                    {
-                        aeronave.Estado = "En Mantenimiento";
-                        _logger.LogInformation(
-                      $"🔧 Aeronave {aeronave.Matricula} en mantenimiento hasta {disponibleDesde:dd/MM/yyyy HH:mm}");
-                    }
-                }
-            }
-
-            // 🔹 Aeronaves que terminaron mantenimiento → Operativa
-            var aeronavesOperativas = await context.Aeronaves
-                .Include(a => a.Vuelos)
-     .Where(a => a.Estado == "En Mantenimiento")
-       .ToListAsync();
-
-            foreach (var aeronave in aeronavesOperativas)
-            {
-                var ultimoVuelo = aeronave.Vuelos
-                   .Where(v => v.Estado == "Completado")
-                 .OrderByDescending(v => v.Fecha)
-                             .ThenByDescending(v => v.HoraLlegada)
-                                 .FirstOrDefault();
-
-                if (ultimoVuelo != null)
-                {
-                    var tiempoMantenimiento = aeronave.TiempoPreparacionMinutos > 0
-                           ? aeronave.TiempoPreparacionMinutos
-                              : 120;
-
-                    var horaLlegada = ultimoVuelo.Fecha.Date.Add(ultimoVuelo.HoraLlegada);
-                    var disponibleDesde = horaLlegada.AddMinutes(tiempoMantenimiento);
-
-                    // Si ya pasó el tiempo de mantenimiento, volver a Operativa
-                    if (ahora >= disponibleDesde)
-                    {
-                        aeronave.Estado = "Operativa";
-                        _logger.LogInformation($"✅ Aeronave {aeronave.Matricula} volvió a estado 'Operativa'");
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Actualiza estados de equipos después de vuelos completados
-        /// </summary>
-        private async Task ActualizarEstadosEquiposAsync(AppDbContext context, DateTime ahora)
-        {
-            // 🔹 Equipos que acaban de completar un vuelo → Descanso
-            var asignaciones = await context.AsignacionesEquipoAeronave
-            .Include(a => a.Equipo)
-             .Include(a => a.Aeronave)
-          .ThenInclude(aer => aer.Vuelos)
-                   .Where(a => a.Activa && a.Equipo.Estado == "En Servicio")
-              .ToListAsync();
-
-            foreach (var asignacion in asignaciones)
-            {
-                var ultimoVuelo = asignacion.Aeronave.Vuelos
-                .Where(v => v.Estado == "Completado" && v.Matricula == asignacion.Matricula)
-                               .OrderByDescending(v => v.Fecha)
-                    .ThenByDescending(v => v.HoraLlegada)
-                .FirstOrDefault();
-
-                if (ultimoVuelo != null)
-                {
-                    var horaLlegada = ultimoVuelo.Fecha.Date.Add(ultimoVuelo.HoraLlegada);
-
-                    // Tiempo de descanso: 8 horas (regulación estándar)
-                    var tiempoDescanso = 480; // 8 horas en minutos
-                    var disponibleDesde = horaLlegada.AddMinutes(tiempoDescanso);
-
-                    if (ahora < disponibleDesde)
-                    {
-                        asignacion.Equipo.Estado = "Descanso";
-                        asignacion.Equipo.UltimoVueloFin = horaLlegada;
-                        asignacion.Equipo.DisponibleDesde = disponibleDesde;
-
-                        _logger.LogInformation(
-                        $"💤 Equipo {asignacion.Equipo.Nombre} en descanso hasta {disponibleDesde:dd/MM/yyyy HH:mm}");
-                    }
-                }
-            }
-
-            // 🔹 Equipos que terminaron descanso → Disponible
-            var equiposDisponibles = await context.Equipos
-                .Where(e => e.Estado == "Descanso" && e.DisponibleDesde.HasValue && e.DisponibleDesde.Value <= ahora)
+   _logger.LogInformation("=== Procesando vuelos TERMINADOS ===");
+            
+         // Vuelos TERMINADOS
+         var vuelosTerminados = await context.Vuelos
+     .Where(v => v.Estado == "Aterrizado" || v.Estado == "Completado")
     .ToListAsync();
 
-            foreach (var equipo in equiposDisponibles)
+ _logger.LogInformation($"Encontrados {vuelosTerminados.Count} vuelos terminados (Aterrizado o Completado)");
+
+       foreach (var vuelo in vuelosTerminados)
+        {
+    var horaLlegada = vuelo.Fecha.Date.Add(vuelo.HoraLlegada);
+      _logger.LogInformation($"Procesando vuelo terminado {vuelo.NumeroVuelo} - Hora Llegada: {horaLlegada:dd/MM/yyyy HH:mm}");
+      
+ if (ahora >= horaLlegada)
+  {
+   if (!string.IsNullOrEmpty(vuelo.Matricula))
+        {
+        var aeronave = await context.Aeronaves.FirstOrDefaultAsync(a => a.Matricula == vuelo.Matricula);
+       _logger.LogInformation($"Aeronave: {aeronave?.Matricula ?? "NULL"}, Estado: {aeronave?.Estado ?? "NULL"}");
+    
+   if (aeronave != null && aeronave.Estado == "En Vuelo")
+   {
+ aeronave.Estado = "En Mantenimiento";
+    var disponibleDesde = horaLlegada.AddMinutes(150);
+      _logger.LogInformation($"?? Aeronave {aeronave.Matricula} en mantenimiento hasta {disponibleDesde:dd/MM/yyyy HH:mm} (2 horas) - Vuelo {vuelo.NumeroVuelo}");
+      }
+      }
+
+          var asignacion = await context.AsignacionesEquipoAeronave
+         .Include(a => a.Equipo)
+.ThenInclude(e => e.EquiposPersonal)
+          .ThenInclude(ep => ep.Personal)
+ .FirstOrDefaultAsync(a => a.Matricula == vuelo.Matricula && a.Activa);
+
+     _logger.LogInformation($"Asignaci�n: {(asignacion != null ? $"Equipo {asignacion.Equipo.Nombre}, Estado: {asignacion.Equipo.Estado}" : "NULL")}");
+
+     if (asignacion != null && asignacion.Equipo.Estado == "En Servicio")
+     {
+    var horaFinVuelo = horaLlegada.AddMinutes(30);
+var disponibleDesde = horaFinVuelo.AddMinutes(720);
+
+ asignacion.Equipo.Estado = "Descanso";
+  asignacion.Equipo.UltimoVueloFin = horaFinVuelo;
+        asignacion.Equipo.DisponibleDesde = disponibleDesde;
+      _logger.LogInformation($"?? Equipo {asignacion.Equipo.Nombre} en descanso hasta {disponibleDesde:dd/MM/yyyy HH:mm} (12 horas) - Vuelo {vuelo.NumeroVuelo}");
+
+  int personalActualizado = 0;
+foreach (var ep in asignacion.Equipo.EquiposPersonal.Where(ep => ep.Activo))
+       {
+   if (ep.Personal.Estado == "En Servicio")
+  {
+   ep.Personal.Estado = "Descanso";
+        ep.Personal.UltimoVueloFin = horaFinVuelo;
+             personalActualizado++;
+   _logger.LogInformation($"?? {ep.Personal.Nombre} {ep.Personal.Apellido} en descanso hasta {disponibleDesde:dd/MM/yyyy HH:mm} (12 horas) - Vuelo {vuelo.NumeroVuelo}");
+     }
+  }
+        _logger.LogInformation($"Total personal actualizado a Descanso: {personalActualizado}");
+      }
+   }
+     }
+       
+     _logger.LogInformation("=== FIN ActualizarEstadosRecursosAsync ===");
+  }
+
+        private async Task LiberarRecursosAsync(AppDbContext context, DateTime ahora)
+     {
+      var aeronavesParaLiberar = await context.Aeronaves
+          .Include(a => a.Vuelos)
+  .Where(a => a.Estado == "En Mantenimiento")
+         .ToListAsync();
+
+          foreach (var aeronave in aeronavesParaLiberar)
             {
-                equipo.Estado = "Disponible";
-                equipo.DisponibleDesde = null;
-                _logger.LogInformation($"✅ Equipo {equipo.Nombre} volvió a estado 'Disponible'");
+     var ultimoVuelo = aeronave.Vuelos
+       .Where(v => v.Estado == "Completado")
+            .OrderByDescending(v => v.Fecha)
+     .ThenByDescending(v => v.HoraLlegada)
+      .FirstOrDefault();
+
+if (ultimoVuelo != null)
+    {
+       var horaLlegada = ultimoVuelo.Fecha.Date.Add(ultimoVuelo.HoraLlegada).AddMinutes(30);
+    var disponibleDesde = horaLlegada.AddMinutes(120);
+
+           if (ahora >= disponibleDesde)
+    {
+  aeronave.Estado = "Operativa";
+               _logger.LogInformation($"? Aeronave {aeronave.Matricula} volvi� a estado 'Operativa' (despu�s de 2 horas de mantenimiento)");
+     }
+    }
             }
-        }
+
+      var equiposParaLiberar = await context.Equipos
+     .Include(e => e.EquiposPersonal)
+       .ThenInclude(ep => ep.Personal)
+             .Where(e => e.Estado == "Descanso" && e.DisponibleDesde.HasValue && e.DisponibleDesde.Value <= ahora)
+     .ToListAsync();
+
+  foreach (var equipo in equiposParaLiberar)
+         {
+equipo.Estado = "Disponible";
+         equipo.DisponibleDesde = null;
+           _logger.LogInformation($"? Equipo {equipo.Nombre} volvi� a estado 'Disponible' (despu�s de 12 horas de descanso)");
+
+           foreach (var ep in equipo.EquiposPersonal.Where(ep => ep.Activo))
+           {
+            if (ep.Personal.Estado == "Descanso" && ep.Personal.UltimoVueloFin.HasValue)
+         {
+          var disponibleDesde = ep.Personal.UltimoVueloFin.Value.AddMinutes(ep.Personal.TiempoDescansoMinutos);
+   if (ahora >= disponibleDesde)
+       {
+      ep.Personal.Estado = "Disponible";
+              _logger.LogInformation($"? {ep.Personal.Nombre} {ep.Personal.Apellido} volvi� a estado 'Disponible' (despu�s de {ep.Personal.TiempoDescansoMinutos} minutos de descanso)");
+          }
+         }
+    }
+            }
+      }
     }
 }

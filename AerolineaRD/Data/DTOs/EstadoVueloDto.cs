@@ -19,6 +19,13 @@ namespace AerolineaRD.Data.DTOs
         public DateTime? HoraLlegada { get; set; }
         public DateTime HoraSalidaProgramada { get; set; }
         public DateTime HoraLlegadaProgramada { get; set; }
+        
+        // ? NUEVO: Propiedades formateadas con AM/PM
+        public string? HoraSalidaFormato => HoraSalida?.ToString("hh:mm tt");
+        public string? HoraLlegadaFormato => HoraLlegada?.ToString("hh:mm tt");
+        public string HoraSalidaProgramadaFormato => HoraSalidaProgramada.ToString("hh:mm tt");
+        public string HoraLlegadaProgramadaFormato => HoraLlegadaProgramada.ToString("hh:mm tt");
+        
         public string? Puerta { get; set; }
         public string? Observaciones { get; set; }
     }

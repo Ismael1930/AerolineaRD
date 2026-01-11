@@ -96,7 +96,10 @@ namespace AerolineaRD.Data.DTOs
     public class UsoHorarioDto
     {
         public int Hora { get; set; } // 0-23
-        public string HoraFormato { get; set; } = null!; // "08:00 - 08:59"
+        public string HoraFormato { get; set; } = null!; // "08:00 AM - 08:59 AM"
+        
+        // ? NUEVO: Formato de 12 horas con AM/PM
+        public string HoraFormato12h => $"{FormatearHora(Hora)}  - {FormatearHora(Hora)}:59";
         
         public int VuelosSalida { get; set; }
         public int VuelosLlegada { get; set; }
@@ -107,11 +110,19 @@ namespace AerolineaRD.Data.DTOs
         
         public decimal PorcentajeUsoHora { get; set; }
         public bool SobreCapacidadHora { get; set; }
+      
+        // ? Método auxiliar para formatear horas en formato 12h
+        private static string FormatearHora(int hora24)
+        {
+            var periodo = hora24 >= 12 ? "PM" : "AM";
+            var hora12 = hora24 == 0 ? 12 : (hora24 > 12 ? hora24 - 12 : hora24);
+     return $"{hora12}:00 {periodo}";
+        }
     }
 
     /// <summary>
  /// DTO para el reporte de capacidad de todos los aeropuertos
-    /// </summary>
+ /// </summary>
     public class ReporteCapacidadAeropuertosDto
     {
         public DateTime FechaInicio { get; set; }
