@@ -20,6 +20,7 @@ namespace AerolineaRD.Repositories.Implements
         {
             var query = _context.Vuelos
                 .AsNoTracking()
+                .AsSplitQuery() // ? AGREGAR ESTO: Evita problemas de performance con múltiples Includes
                 .Include(v => v.Origen)
                 .Include(v => v.Destino)
                 .Include(v => v.Aeronave)
@@ -66,17 +67,6 @@ namespace AerolineaRD.Repositories.Implements
             var vuelosEnMemoria = await query
                 .OrderBy(v => v.Fecha)
                 .ToListAsync();
-
-            // ? Filtrar por clase EN MEMORIA (después de traer los datos)
-            if (!string.IsNullOrEmpty(clase))
-            {
-                // Normalizar y extraer solo la primera palabra
-                // "Primera Clase" -> "primera" -> coincide con "Primera"
-                var claseNormalizada = NormalizarClase(clase);
-                vuelosEnMemoria = vuelosEnMemoria
-                    .Where(v => v.Clase != null && NormalizarClase(v.Clase) == claseNormalizada)
-                    .ToList();
-            }
 
             // Ordenar por fecha y hora
             vuelosEnMemoria = vuelosEnMemoria

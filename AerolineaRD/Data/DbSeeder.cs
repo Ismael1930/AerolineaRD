@@ -477,152 +477,173 @@ FechaAsignacion = DateTime.Today.AddMonths(-5),
         private static async Task SeedVuelosAsync(AppDbContext context)
         {
             // ✅ FECHA BASE: Siempre mañana
-            var fechaBase = DateTime.Today.AddDays(1);
+          var fechaBase = DateTime.Today.AddDays(1);
+          var ayer = DateTime.Today.AddDays(-1); // ✅ NUEVO: Para vuelo en el pasado
 
-            var vuelos = new List<Vuelo>();
+   var vuelos = new List<Vuelo>();
 
             // ✅ AEROPUERTO DE PRUEBA: 1 vuelo/hora, 24 vuelos/día
-            // Ya debe existir (se agrega en SeedAeropuertosAsync)
-            var aeropuertoPrueba = await context.Aeropuertos.FirstOrDefaultAsync(a => a.Codigo == "TEST");
-            if (aeropuertoPrueba == null)
+    // Ya debe existir (se agrega en SeedAeropuertosAsync)
+  var aeropuertoPrueba = await context.Aeropuertos.FirstOrDefaultAsync(a => a.Codigo == "TEST");
+         if (aeropuertoPrueba == null)
             {
-                // Crear aeropuerto de prueba si no existe
-                aeropuertoPrueba = new Aeropuerto
-                {
-                    Codigo = "TEST",
-                    Nombre = "Aeropuerto de Prueba Validaciones",
-                    Ciudad = "Test City",
-                    Pais = "República Dominicana",
-                    CapacidadVuelosPorHora = 1 // ⚠️ Solo 1 vuelo por hora
-                };
+       // Crear aeropuerto de prueba si no existe
+    aeropuertoPrueba = new Aeropuerto
+        {
+       Codigo = "TEST",
+         Nombre = "Aeropuerto de Prueba Validaciones",
+    Ciudad = "Test City",
+    Pais = "República Dominicana",
+      CapacidadVuelosPorHora = 1 // ⚠️ Solo 1 vuelo por hora
+  };
                 await context.Aeropuertos.AddAsync(aeropuertoPrueba);
-                await context.SaveChangesAsync();
+     await context.SaveChangesAsync();
             }
 
-            // ✅ Crear 23 vuelos en el aeropuerto TEST (dejando espacio para 1 más)
+            // ✅ NUEVO: Crear 1 VUELO EN EL PASADO (para demostrar cambio automático de estado)
+            vuelos.Add(new Vuelo
+         {
+    NumeroVuelo = "PAST001",
+      Fecha = ayer,
+       HoraSalida = new TimeSpan(8, 0, 0),
+ HoraLlegada = new TimeSpan(12, 0, 0),
+            Duracion = 240,
+  PrecioBase = 250.00m,
+       OrigenCodigo = "SDQ",
+ DestinoCodigo = "MIA",
+   Matricula = "HI-1001RD",
+          Estado = "Programado", // El background service lo cambiará a "Completado"
+    TipoVuelo = "SoloIda",
+       ClasesDisponibles = "Economica,Ejecutiva,Primera" // ✅ Las 3 clases disponibles
+    });
+
+   // ✅ Crear 23 vuelos en el aeropuerto TEST (dejando espacio para 1 más)
             // Esto demostrará las validaciones de capacidad
-            int numeroVuelo = 2000;
-            for (int hora = 6; hora < 22; hora++) // 6 AM a 9 PM = 16 vuelos
-            {
-                vuelos.Add(new Vuelo
-                {
-                    NumeroVuelo = $"TEST{numeroVuelo++}",
-                    Fecha = fechaBase,
-                    HoraSalida = new TimeSpan(hora, 0, 0),
-                    HoraLlegada = new TimeSpan(hora + 2, 0, 0),
-                    Duracion = 120,
-                    PrecioBase = 200.00m,
-                    OrigenCodigo = "TEST",
-                    DestinoCodigo = "SDQ",
+      int numeroVuelo = 2000;
+for (int hora = 6; hora < 22; hora++) // 6 AM a 9 PM = 16 vuelos
+        {
+         vuelos.Add(new Vuelo
+     {
+           NumeroVuelo = $"TEST{numeroVuelo++}",
+    Fecha = fechaBase,
+           HoraSalida = new TimeSpan(hora, 0, 0),
+       HoraLlegada = new TimeSpan(hora + 2, 0, 0),
+         Duracion = 120,
+            PrecioBase = 200.00m,
+         OrigenCodigo = "TEST",
+             DestinoCodigo = "SDQ",
                     Matricula = "HI-1001RD",
-                    Estado = "Programado",
-                    TipoVuelo = "SoloIda",
-                    Clase = "Economica"
-                });
-            }
+      Estado = "Programado",
+            TipoVuelo = "SoloIda",
+         ClasesDisponibles = "Economica,Ejecutiva,Primera"
+        });
+         }
 
             // ✅ Crear más vuelos para el día siguiente (7 vuelos)
             for (int hora = 6; hora < 13; hora++) // 6 AM a 12 PM = 7 vuelos
             {
-                vuelos.Add(new Vuelo
+        vuelos.Add(new Vuelo
                 {
-                    NumeroVuelo = $"TEST{numeroVuelo++}",
-                    Fecha = fechaBase.AddDays(1),
-                    HoraSalida = new TimeSpan(hora, 0, 0),
-                    HoraLlegada = new TimeSpan(hora + 2, 0, 0),
-                    Duracion = 120,
-                    PrecioBase = 200.00m,
-                    OrigenCodigo = "TEST",
-                    DestinoCodigo = "SDQ",
-                    Matricula = "HI-1001RD",
-                    Estado = "Programado",
-                    TipoVuelo = "SoloIda",
-                    Clase = "Economica"
-                });
-            }
+          NumeroVuelo = $"TEST{numeroVuelo++}",
+            Fecha = fechaBase.AddDays(1),
+          HoraSalida = new TimeSpan(hora, 0, 0),
+  HoraLlegada = new TimeSpan(hora + 2, 0, 0),
+           Duracion = 120,
+        PrecioBase = 200.00m,
+            OrigenCodigo = "TEST",
+             DestinoCodigo = "SDQ",
+ Matricula = "HI-1001RD",
+         Estado = "Programado",
+            TipoVuelo = "SoloIda",
+       ClasesDisponibles = "Economica,Ejecutiva,Primera"
+         });
+          }
 
-            // ✅ AEROPUERTO CIBAO: Crear 9 vuelos (capacidad: 10/hora)
+        // ✅ AEROPUERTO CIBAO: Crear 9 vuelos (capacidad: 10/hora)
             // Dejar espacio para demostrar validación diaria
-            numeroVuelo = 3000;
-            for (int i = 0; i < 9; i++)
-            {
-                vuelos.Add(new Vuelo
-                {
-                    NumeroVuelo = $"STI{numeroVuelo++}",
-                    Fecha = fechaBase,
-                    HoraSalida = new TimeSpan(8 + i, 0, 0),
-                    HoraLlegada = new TimeSpan(10 + i, 30, 0),
-                    Duracion = 150,
-                    PrecioBase = 320.00m,
-                    OrigenCodigo = "STI",
-                    DestinoCodigo = "MIA",
-                    Matricula = "HI-1002RD",
-                    Estado = "Programado",
-                    TipoVuelo = "SoloIda",
-                    Clase = "Economica"
-                });
+   numeroVuelo = 3000;
+      for (int i = 0; i < 9; i++)
+    {
+ vuelos.Add(new Vuelo
+    {
+          NumeroVuelo = $"STI{numeroVuelo++}",
+         Fecha = fechaBase,
+    HoraSalida = new TimeSpan(8 + i, 0, 0),
+             HoraLlegada = new TimeSpan(10 + i, 30, 0),
+      Duracion = 150,
+       PrecioBase = 320.00m,
+         OrigenCodigo = "STI",
+            DestinoCodigo = "MIA",
+      Matricula = "HI-1002RD",
+            Estado = "Programado",
+  TipoVuelo = "SoloIda",
+    ClasesDisponibles = "Economica,Ejecutiva,Primera"
+       });
             }
 
             // ✅ Vuelos variados para demostrar otras funcionalidades
-            numeroVuelo = 1000;
+ numeroVuelo = 1000;
             var rutasVariadas = new[]
-       {
-    (origen: "SDQ", destino: "JFK", precio: 450.00m, duracion: 255, matricula: "HI-1003RD"),
-      (origen: "SDQ", destino: "MIA", precio: 320.00m, duracion: 150, matricula: "HI-1004RD"),
-  (origen: "PUJ", destino: "ATL", precio: 400.00m, duracion: 185, matricula: "HI-1005RD"),
-        (origen: "PUJ", destino: "JFK", precio: 480.00m, duracion: 270, matricula: "HI-1006RD"),
-    (origen: "SDQ", destino: "MAD", precio: 850.00m, duracion: 540, matricula: "HI-1007RD")
- };
+            {
+   (origen: "SDQ", destino: "JFK", precio: 450.00m, duracion: 255, matricula: "HI-1003RD"),
+    (origen: "SDQ", destino: "MIA", precio: 320.00m, duracion: 150, matricula: "HI-1004RD"),
+     (origen: "PUJ", destino: "ATL", precio: 400.00m, duracion: 185, matricula: "HI-1005RD"),
+      (origen: "PUJ", destino: "JFK", precio: 480.00m, duracion: 270, matricula: "HI-1006RD"),
+  (origen: "SDQ", destino: "MAD", precio: 850.00m, duracion: 540, matricula: "HI-1007RD")
+            };
 
-            for (int i = 0; i < rutasVariadas.Length; i++)
+     for (int i = 0; i < rutasVariadas.Length; i++)
             {
                 var ruta = rutasVariadas[i];
 
-                // Vuelos de ida y vuelta
-                vuelos.Add(new Vuelo
+     // Vuelos de ida y vuelta
+        vuelos.Add(new Vuelo
                 {
-                    NumeroVuelo = $"RD{numeroVuelo++}",
-                    Fecha = fechaBase.AddDays(i + 2),
-                    HoraSalida = new TimeSpan(10, 0, 0),
-                    HoraLlegada = new TimeSpan(10, 0, 0).Add(TimeSpan.FromMinutes(ruta.duracion)),
-                    Duracion = ruta.duracion,
-                    PrecioBase = ruta.precio,
-                    OrigenCodigo = ruta.origen,
-                    DestinoCodigo = ruta.destino,
-                    Matricula = ruta.matricula,
-                    Estado = "Programado",
-                    TipoVuelo = "IdaYVuelta",
-                    FechaRegreso = fechaBase.AddDays(i + 9),
-                    Clase = i % 3 == 0 ? "Primera" : (i % 2 == 0 ? "Ejecutiva" : "Economica")
-                });
+         NumeroVuelo = $"RD{numeroVuelo++}",
+                 Fecha = fechaBase.AddDays(i + 2),
+                  HoraSalida = new TimeSpan(10, 0, 0),
+       HoraLlegada = new TimeSpan(10, 0, 0).Add(TimeSpan.FromMinutes(ruta.duracion)),
+         Duracion = ruta.duracion,
+     PrecioBase = ruta.precio,
+                 OrigenCodigo = ruta.origen,
+         DestinoCodigo = ruta.destino,
+          Matricula = ruta.matricula,
+     Estado = "Programado",
+         TipoVuelo = "IdaYVuelta",
+        FechaRegreso = fechaBase.AddDays(i + 9),
+          ClasesDisponibles = "Economica,Ejecutiva,Primera"
+});
 
-                // Vuelos de solo ida
-                vuelos.Add(new Vuelo
-                {
-                    NumeroVuelo = $"RD{numeroVuelo++}",
-                    Fecha = fechaBase.AddDays(i + 10),
-                    HoraSalida = new TimeSpan(14, 0, 0),
-                    HoraLlegada = new TimeSpan(14, 0, 0).Add(TimeSpan.FromMinutes(ruta.duracion)),
-                    Duracion = ruta.duracion,
-                    PrecioBase = ruta.precio,
-                    OrigenCodigo = ruta.origen,
-                    DestinoCodigo = ruta.destino,
-                    Matricula = ruta.matricula,
-                    Estado = "Programado",
-                    TipoVuelo = "SoloIda",
-                    Clase = "Economica"
-                });
-            }
+          // Vuelos de solo ida
+        vuelos.Add(new Vuelo
+     {
+              NumeroVuelo = $"RD{numeroVuelo++}",
+ Fecha = fechaBase.AddDays(i + 10),
+  HoraSalida = new TimeSpan(14, 0, 0),
+             HoraLlegada = new TimeSpan(14, 0, 0).Add(TimeSpan.FromMinutes(ruta.duracion)),
+        Duracion = ruta.duracion,
+  PrecioBase = ruta.precio,
+           OrigenCodigo = ruta.origen,
+               DestinoCodigo = ruta.destino,
+     Matricula = ruta.matricula,
+           Estado = "Programado",
+          TipoVuelo = "SoloIda",
+      ClasesDisponibles = "Economica,Ejecutiva,Primera"
+  });
+  }
 
             await context.Vuelos.AddRangeAsync(vuelos);
             await context.SaveChangesAsync();
 
             Console.WriteLine($"   ✅ Creados {vuelos.Count} vuelos de PRUEBA:");
-            Console.WriteLine($"      - 23 vuelos en TEST (capacidad: 1/hora, 24/día) - CASI LLENO");
-            Console.WriteLine($"      - 9 vuelos en STI (Cibao) - Capacidad para 1 más");
-            Console.WriteLine($"      - {rutasVariadas.Length * 2} vuelos variados en otros aeropuertos");
-            Console.WriteLine($"      - Fecha base: {fechaBase:dd/MM/yyyy}");
+            Console.WriteLine($"   - 1 vuelo PASADO (PAST001) - El background service lo marcará como Completado");
+        Console.WriteLine($" - 23 vuelos en TEST (capacidad: 1/hora, 24/día) - CASI LLENO");
+     Console.WriteLine($"      - 9 vuelos en STI (Cibao) - Capacidad para 1 más");
+   Console.WriteLine($"      - {rutasVariadas.Length * 2} vuelos variados en otros aeropuertos");
+ Console.WriteLine($"      - Fecha base: {fechaBase:dd/MM/yyyy}");
+  Console.WriteLine($"      - ✅ TODOS los vuelos tienen ClasesDisponibles: 'Economica,Ejecutiva,Primera'");
         }
+
         private static async Task SeedAsientosAsync(AppDbContext context)
         {
             // ⬅️ CAMBIO: Ahora los asientos pertenecen a AERONAVES, no a VUELOS
@@ -988,38 +1009,45 @@ var vuelos = await context.Vuelos
         private static async Task ActualizarFechasVuelosAsync(AppDbContext context)
         {
             var hoy = DateTime.Today;
-            var vuelosEnPasado = await context.Vuelos
+ var vuelosEnPasado = await context.Vuelos
     .Where(v => v.Fecha < hoy)
       .ToListAsync();
 
-            if (!vuelosEnPasado.Any())
+    if (!vuelosEnPasado.Any())
             {
-                Console.WriteLine("✅ No hay vuelos en el pasado para actualizar");
-                return;
+       Console.WriteLine("✅ No hay vuelos en el pasado para actualizar");
+    return;
             }
 
-            Console.WriteLine($"📅 Actualizando {vuelosEnPasado.Count} vuelos del pasado...");
+ Console.WriteLine($"📅 Actualizando {vuelosEnPasado.Count} vuelos del pasado...");
 
             foreach (var vuelo in vuelosEnPasado)
-            {
-                // Calcular cuántos días en el pasado está el vuelo
-                var diasEnPasado = (hoy - vuelo.Fecha).Days;
+ {
+             // Calcular cuántos días en el pasado está el vuelo
+       var diasEnPasado = (hoy - vuelo.Fecha).Days;
 
-                // Mover el vuelo al futuro: mañana + el mismo offset relativo
-                vuelo.Fecha = hoy.AddDays(1 + (diasEnPasado % 90));
+            // Mover el vuelo al futuro: mañana + el mismo offset relativo
+    vuelo.Fecha = hoy.AddDays(1 + (diasEnPasado % 90));
 
-                // Actualizar también la fecha de regreso si existe
-                if (vuelo.FechaRegreso.HasValue && vuelo.FechaRegreso.Value < hoy)
-                {
-                    var diasDespuesDeSalida = (vuelo.FechaRegreso.Value - vuelo.Fecha.AddDays(-diasEnPasado)).Days;
-                    vuelo.FechaRegreso = vuelo.Fecha.AddDays(Math.Max(1, diasDespuesDeSalida));
-                }
-            }
+  // Actualizar también la fecha de regreso si existe
+    if (vuelo.FechaRegreso.HasValue && vuelo.FechaRegreso.Value < hoy)
+  {
+          var diasDespuesDeSalida = (vuelo.FechaRegreso.Value - vuelo.Fecha.AddDays(-diasEnPasado)).Days;
+          vuelo.FechaRegreso = vuelo.Fecha.AddDays(Math.Max(1, diasDespuesDeSalida));
+     }
 
-            await context.SaveChangesAsync();
+                // ✅ NUEVO: Asegurar que ClasesDisponibles esté presente
+      if (string.IsNullOrEmpty(vuelo.ClasesDisponibles))
+      {
+          vuelo.ClasesDisponibles = "Economica,Ejecutiva,Primera";
+          Console.WriteLine($"   - Vuelo {vuelo.NumeroVuelo}: ClasesDisponibles actualizado");
+         }
+         }
+
+ await context.SaveChangesAsync();
             Console.WriteLine($"✅ {vuelosEnPasado.Count} vuelos actualizados a fechas futuras");
             Console.WriteLine($"   - Primera fecha: {vuelosEnPasado.Min(v => v.Fecha):dd/MM/yyyy}");
-            Console.WriteLine($"   - Última fecha: {vuelosEnPasado.Max(v => v.Fecha):dd/MM/yyyy}");
-        }
+      Console.WriteLine($"   - Última fecha: {vuelosEnPasado.Max(v => v.Fecha):dd/MM/yyyy}");
+    }
     }
 }

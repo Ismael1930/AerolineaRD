@@ -67,35 +67,45 @@ namespace AerolineaRD.Services
             var vuelo = await _vueloRepository.ObtenerVueloConDetallesAsync(dto.IdVuelo);
             if (vuelo != null)
             {
-                // Calcular precio total según clase
-                decimal montoTotal = dto.PrecioTotal ?? vuelo.PrecioBase;
-
-                // Si no se proporcionó precio pero sí clase, calcular según clase
-                if (!dto.PrecioTotal.HasValue && !string.IsNullOrEmpty(dto.Clase))
+                // ? Calcular precio total según clase solicitada
+                decimal montoTotal;
+               
+                  if (dto.PrecioTotal.HasValue)
                 {
-                    montoTotal = vuelo.CalcularPrecioTotal(vuelo.PrecioBase, dto.Clase);
-                }
+                  // Si el cliente proporcionó el precio, usarlo
+                     montoTotal = dto.PrecioTotal.Value;
+             }
+                else
+          {
+                 // ? Calcular según la clase seleccionada
+               string claseReserva = dto.Clase ?? "Economica";
+               montoTotal = vuelo.CalcularPrecioTotal(vuelo.PrecioBase, claseReserva);
+                   }
 
-                var factura = new Factura
-                {
-                    Codigo = GenerarCodigoFactura(),
-                    CodReserva = reserva.Codigo,
-                    Monto = montoTotal,
-                    MetodoPago = dto.MetodoPago ?? "Pendiente",
-                    FechaEmision = DateTime.Now,
-                    EstadoPago = string.IsNullOrEmpty(dto.MetodoPago) ? "Pendiente" : "Pagado"
-                };
+                        // ? Actualizar el precio total en la reserva
+              reserva.PrecioTotal = montoTotal;
+             _reservaRepository.Update(reserva);
 
-                await _facturaRepository.AddAsync(factura);
-                await _facturaRepository.SaveAsync();
+             var factura = new Factura
+              {
+           Codigo = GenerarCodigoFactura(),
+       CodReserva = reserva.Codigo,
+          Monto = montoTotal,
+           MetodoPago = dto.MetodoPago ?? "Pendiente",
+          FechaEmision = DateTime.Now,
+                 EstadoPago = string.IsNullOrEmpty(dto.MetodoPago) ? "Pendiente" : "Pagado"
+                  };
 
-                // Enviar notificación de confirmación
-                await _notificacionService.EnviarNotificacionAsync(
-                    reserva.IdCliente,
-                    "Confirmacion",
-                    $"Su reserva {reserva.Codigo} ha sido confirmada. Factura: {factura.Codigo} por ${montoTotal:F2}"
-                );
-            }
+             await _facturaRepository.AddAsync(factura);
+              await _facturaRepository.SaveAsync();
+
+         // Enviar notificación de confirmación
+           await _notificacionService.EnviarNotificacionAsync(
+        reserva.IdCliente,
+            "Confirmacion",
+  $"Su reserva {reserva.Codigo} ha sido confirmada. Factura: {factura.Codigo} por ${montoTotal:F2}"
+          );
+ }
 
             var reservaCreada = await _reservaRepository.ObtenerReservaConDetallesAsync(reserva.Codigo);
             return _mapper.Map<ReservaResponseDto>(reservaCreada);

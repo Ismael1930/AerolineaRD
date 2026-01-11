@@ -235,10 +235,20 @@ namespace AerolineaRD.Services
                 return OperationResult<VueloDetalleDto>.ValidationFailure(errores);
             }
 
+            // ? Si hay errores de validación, devolver resultado fallido
+            if (errores.Any())
+            {
+                return OperationResult<VueloDetalleDto>.ValidationFailure(errores);
+            }
+
+            // ? Todo válido, crear el vuelo
             var vuelo = _mapper.Map<Vuelo>(dto);
             vuelo.Estado = "Programado";
+            
+            // ✅ NUEVO: Siempre establecer las 3 clases disponibles
+            vuelo.ClasesDisponibles = "Economica,Ejecutiva,Primera";
 
-            // ? Asignar clase del vuelo
+            // ? Asignar clase del vuelo (por defecto Económica, pero el vuelo soporta las 3 clases)
             if (!string.IsNullOrEmpty(dto.Clase))
             {
                 vuelo.Clase = dto.Clase;
@@ -337,9 +347,32 @@ namespace AerolineaRD.Services
             var vueloCreado = await _vueloRepository.ObtenerVueloConDetallesAsync(vuelo.Id);
             var vueloDto = _mapper.Map<VueloDetalleDto>(vueloCreado);
 
+            // ✅ NUEVO: Agregar información de las 3 clases disponibles con sus precios
+            vueloDto.ClasesDisponibles = new List<ClaseDisponibilidadDto>
+ {
+    new ClaseDisponibilidadDto
+{
+   Clase = "Economica",
+ AsientosDisponibles = vueloCreado?.Aeronave?.Asientos?.Count(a => a.Clase == "Economica") ?? 0,
+Precio = dto.PrecioBase
+            },
+ new ClaseDisponibilidadDto
+    {
+   Clase = "Ejecutiva",
+   AsientosDisponibles = vueloCreado?.Aeronave?.Asientos?.Count(a => a.Clase == "Ejecutiva") ?? 0,
+       Precio = dto.PrecioBase + 100m
+   },
+     new ClaseDisponibilidadDto
+{
+  Clase = "Primera",
+ AsientosDisponibles = vueloCreado?.Aeronave?.Asientos?.Count(a => a.Clase == "Primera") ?? 0,
+Precio = dto.PrecioBase + 200m
+   }
+    };
+
             return OperationResult<VueloDetalleDto>.SuccessResult(
-                vueloDto,
-               "Vuelo creado exitosamente"
+               vueloDto,
+               $"Vuelo creado exitosamente. Clases disponibles: Económica (${dto.PrecioBase}), Ejecutiva (${dto.PrecioBase + 100m}), Primera (${dto.PrecioBase + 200m})"
                  );
         }
 
@@ -352,21 +385,44 @@ namespace AerolineaRD.Services
 
             var vueloDto = _mapper.Map<VueloDetalleDto>(vuelo);
 
-            // ? Agregar información de la aeronave si existe
-            if (vuelo.Aeronave != null)
-            {
-                vueloDto.Aeronave = new AeronaveInfoDto
+            // ✅ Agregar información de las 3 clases disponibles con sus precios
+            vueloDto.ClasesDisponibles = new List<ClaseDisponibilidadDto>
+   {
+         new ClaseDisponibilidadDto
                 {
-                    Matricula = vuelo.Aeronave.Matricula,
-                    Modelo = vuelo.Aeronave.Modelo,
-                    Capacidad = vuelo.Aeronave.Capacidad,
-                    Estado = vuelo.Aeronave.Estado,
-                    TiempoPreparacionMinutos = vuelo.Aeronave.TiempoPreparacionMinutos,
-                    TotalAsientos = vuelo.Aeronave.Asientos?.Count ?? 0
-                };
+   Clase = "Economica",
+           AsientosDisponibles = vuelo.Aeronave?.Asientos?.Count(a => a.Clase == "Economica") ?? 0,
+  Precio = vuelo.PrecioBase
+      },
+      new ClaseDisponibilidadDto
+    {
+         Clase = "Ejecutiva",
+        AsientosDisponibles = vuelo.Aeronave?.Asientos?.Count(a => a.Clase == "Ejecutiva") ?? 0,
+          Precio = vuelo.PrecioBase + 100m
+            },
+     new ClaseDisponibilidadDto
+       {
+       Clase = "Primera",
+        AsientosDisponibles = vuelo.Aeronave?.Asientos?.Count(a => a.Clase == "Primera") ?? 0,
+Precio = vuelo.PrecioBase + 200m
+ }
+   };
+
+      // ? Agregar información de la aeronave si existe
+if (vuelo.Aeronave != null)
+          {
+         vueloDto.Aeronave = new AeronaveInfoDto
+       {
+          Matricula = vuelo.Aeronave.Matricula,
+         Modelo = vuelo.Aeronave.Modelo,
+           Capacidad = vuelo.Aeronave.Capacidad,
+    Estado = vuelo.Aeronave.Estado,
+      TiempoPreparacionMinutos = vuelo.Aeronave.TiempoPreparacionMinutos,
+    TotalAsientos = vuelo.Aeronave.Asientos?.Count ?? 0
+         };
             }
 
-            return vueloDto;
+          return vueloDto;
         }
 
         public async Task<OperationResult<VueloDetalleDto>> ActualizarVueloAsync(ActualizarVueloDto dto)
@@ -511,18 +567,41 @@ namespace AerolineaRD.Services
             var vueloActualizado = await _vueloRepository.ObtenerVueloConDetallesAsync(dto.Id);
             var vueloDto = _mapper.Map<VueloDetalleDto>(vueloActualizado);
 
-            if (vueloActualizado?.Aeronave != null)
-            {
-                vueloDto.Aeronave = new AeronaveInfoDto
-                {
-                    Matricula = vueloActualizado.Aeronave.Matricula,
-                    Modelo = vueloActualizado.Aeronave.Modelo,
-                    Capacidad = vueloActualizado.Aeronave.Capacidad,
-                    Estado = vueloActualizado.Aeronave.Estado,
-                    TiempoPreparacionMinutos = vueloActualizado.Aeronave.TiempoPreparacionMinutos,
-                    TotalAsientos = vueloActualizado.Aeronave.Asientos?.Count ?? 0
-                };
-            }
+            // ✅ Agregar información de las 3 clases disponibles con sus precios
+     vueloDto.ClasesDisponibles = new List<ClaseDisponibilidadDto>
+     {
+     new ClaseDisponibilidadDto
+        {
+   Clase = "Economica",
+    AsientosDisponibles = vueloActualizado?.Aeronave?.Asientos?.Count(a => a.Clase == "Economica") ?? 0,
+       Precio = vueloActualizado?.PrecioBase ?? 0m
+        },
+   new ClaseDisponibilidadDto
+         {
+ Clase = "Ejecutiva",
+  AsientosDisponibles = vueloActualizado?.Aeronave?.Asientos?.Count(a => a.Clase == "Ejecutiva") ?? 0,
+          Precio = (vueloActualizado?.PrecioBase ?? 0m) + 100m
+       },
+     new ClaseDisponibilidadDto
+{
+Clase = "Primera",
+      AsientosDisponibles = vueloActualizado?.Aeronave?.Asientos?.Count(a => a.Clase == "Primera") ?? 0,
+       Precio = (vueloActualizado?.PrecioBase ?? 0m) + 200m
+     }
+   };
+
+   if (vueloActualizado?.Aeronave != null)
+   {
+     vueloDto.Aeronave = new AeronaveInfoDto
+ {
+    Matricula = vueloActualizado.Aeronave.Matricula,
+ Modelo = vueloActualizado.Aeronave.Modelo,
+    Capacidad = vueloActualizado.Aeronave.Capacidad,
+  Estado = vueloActualizado.Aeronave.Estado,
+       TiempoPreparacionMinutos = vueloActualizado.Aeronave.TiempoPreparacionMinutos,
+  TotalAsientos = vueloActualizado.Aeronave.Asientos?.Count ?? 0
+    };
+         }
 
             return OperationResult<VueloDetalleDto>.SuccessResult(
                 vueloDto,
@@ -560,35 +639,58 @@ namespace AerolineaRD.Services
             var vuelos = await _vueloRepository.GetAllAsync();
             var vuelosConDetalles = new List<VueloDetalleDto>();
 
-            foreach (var vuelo in vuelos)
-            {
-                var vueloDetallado = await _vueloRepository.ObtenerVueloConDetallesAsync(vuelo.Id);
+        foreach (var vuelo in vuelos)
+ {
+      var vueloDetallado = await _vueloRepository.ObtenerVueloConDetallesAsync(vuelo.Id);
 
-                if (vueloDetallado != null)
-                {
-                    var vueloDto = _mapper.Map<VueloDetalleDto>(vueloDetallado);
+ if (vueloDetallado != null)
+     {
+        var vueloDto = _mapper.Map<VueloDetalleDto>(vueloDetallado);
 
-                    if (vueloDetallado.Aeronave != null)
-                    {
-                        vueloDto.Aeronave = new AeronaveInfoDto
-                        {
-                            Matricula = vueloDetallado.Aeronave.Matricula,
-                            Modelo = vueloDetallado.Aeronave.Modelo,
-                            Capacidad = vueloDetallado.Aeronave.Capacidad,
-                            Estado = vueloDetallado.Aeronave.Estado,
-                            TiempoPreparacionMinutos = vueloDetallado.Aeronave.TiempoPreparacionMinutos,
-                            TotalAsientos = vueloDetallado.Aeronave.Asientos?.Count ?? 0
-                        };
-                    }
+      // ✅ Agregar información de las 3 clases disponibles con sus precios
+            vueloDto.ClasesDisponibles = new List<ClaseDisponibilidadDto>
+        {
+ new ClaseDisponibilidadDto
+        {
+     Clase = "Economica",
+       AsientosDisponibles = vueloDetallado.Aeronave?.Asientos?.Count(a => a.Clase == "Economica") ?? 0,
+  Precio = vueloDetallado.PrecioBase
+      },
+       new ClaseDisponibilidadDto
+        {
+          Clase = "Ejecutiva",
+      AsientosDisponibles = vueloDetallado.Aeronave?.Asientos?.Count(a => a.Clase == "Ejecutiva") ?? 0,
+ Precio = vueloDetallado.PrecioBase + 100m
+     },
+         new ClaseDisponibilidadDto
+         {
+          Clase = "Primera",
+     AsientosDisponibles = vueloDetallado.Aeronave?.Asientos?.Count(a => a.Clase == "Primera") ?? 0,
+       Precio = vueloDetallado.PrecioBase + 200m
+     }
+         };
 
-                    vuelosConDetalles.Add(vueloDto);
-                }
-            }
+  if (vueloDetallado.Aeronave != null)
+    {
+   vueloDto.Aeronave = new AeronaveInfoDto
+       {
+    Matricula = vueloDetallado.Aeronave.Matricula,
+            Modelo = vueloDetallado.Aeronave.Modelo,
+              Capacidad = vueloDetallado.Aeronave.Capacidad,
+        Estado = vueloDetallado.Aeronave.Estado,
+      TiempoPreparacionMinutos = vueloDetallado.Aeronave.TiempoPreparacionMinutos,
+         TotalAsientos = vueloDetallado.Aeronave.Asientos?.Count ?? 0
+         };
+         }
 
-            return vuelosConDetalles
-           .OrderBy(v => v.Fecha)
+       vuelosConDetalles.Add(vueloDto);
+     }
+     }
+
+ return vuelosConDetalles
+     .OrderBy(v => v.Fecha)
            .ThenBy(v => v.HoraSalida)
          .ToList();
-        }
+  }
     }
 }

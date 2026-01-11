@@ -32,14 +32,58 @@ namespace AerolineaRD.Services
                 filtros.TipoViaje
             );
 
+            // ✅ NO filtrar vuelos - TODOS los vuelos tienen las 3 clases disponibles
+            // Solo calcular el precio según la clase solicitada
             var resultados = vuelos
-                .Where(v => v.Aeronave?.Asientos != null && v.Aeronave.Asientos.Any())
+  .Where(v => v.Aeronave?.Asientos != null && v.Aeronave.Asientos.Any())
                 .Select(vuelo =>
-                {
-                    var vueloDto = _mapper.Map<VueloResponseDto>(vuelo);
-                    vueloDto.ClasesDisponibles = CalcularClasesDisponibles(vuelo, filtros.Clase);
-                    return vueloDto;
-                })
+{
+    var vueloDto = _mapper.Map<VueloResponseDto>(vuelo);
+
+    // ✅ Calcular disponibilidad de asientos por clase (TODAS las clases)
+    var clasesDisponibles = CalcularClasesDisponibles(vuelo, null);
+
+    // ✅ Si se especificó una clase, mostrar solo esa clase con su precio
+    if (!string.IsNullOrEmpty(filtros.Clase))
+    {
+        // ✅ Normalizar la clase: "Primera Clase" -> "Primera", "Ejecutiva" -> "Ejecutiva"
+        var claseNormalizada = filtros.Clase.Split(' ', StringSplitOptions.RemoveEmptyEntries)[0];
+        
+        var claseSeleccionada = clasesDisponibles
+         .FirstOrDefault(c => string.Equals(c.Clase, claseNormalizada, StringComparison.OrdinalIgnoreCase));
+
+        if (claseSeleccionada != null)
+        {
+            // Mostrar solo la clase solicitada
+            vueloDto.ClasesDisponibles = new List<ClaseDisponibilidadDto> { claseSeleccionada };
+            // Actualizar el precio base del DTO para reflejar el precio de esta clase
+            vueloDto.PrecioBase = claseSeleccionada.Precio;
+        }
+        else
+          {
+       // ✅ Si la clase no existe en la aeronave (caso raro), crear la entrada manualmente
+   var precioClase = CalcularPrecioPorClase(vuelo.PrecioBase, claseNormalizada);
+    vueloDto.ClasesDisponibles = new List<ClaseDisponibilidadDto>
+        {
+     new ClaseDisponibilidadDto
+   {
+         Clase = claseNormalizada,
+      AsientosDisponibles = 0,
+  Precio = precioClase
+     }
+    };
+      vueloDto.PrecioBase = precioClase;
+     }
+   }
+    else
+    {
+        // Sin filtro de clase - mostrar todas las clases disponibles
+        vueloDto.ClasesDisponibles = clasesDisponibles;
+    }
+
+    return vueloDto;
+})
+           .Where(v => v.ClasesDisponibles.Any()) // Solo mostrar vuelos con clases definidas
                 .ToList();
 
             return resultados;
@@ -53,8 +97,8 @@ namespace AerolineaRD.Services
 
             var vueloDto = _mapper.Map<VueloResponseDto>(vuelo);
             vueloDto.ClasesDisponibles = vuelo.Aeronave?.Asientos != null
-                ? CalcularClasesDisponibles(vuelo, null)
-                : new List<ClaseDisponibilidadDto>();
+       ? CalcularClasesDisponibles(vuelo, null)
+          : new List<ClaseDisponibilidadDto>();
 
             return vueloDto;
         }
@@ -67,28 +111,27 @@ namespace AerolineaRD.Services
                 return new List<AsientoDisponibleDto>();
 
             // Normalizar la clase para comparación
-            // "Primera Clase" -> "primera", "Primera" -> "primera"
             var claseNormalizada = NormalizarClase(clase);
 
             // Obtener asientos ocupados
             var asientosOcupados = (vuelo.Reservas ?? Enumerable.Empty<Reserva>())
-                .Where(r => r.Estado == "Confirmada" && !string.IsNullOrEmpty(r.NumAsiento))
-                .Select(r => r.NumAsiento!)
+            .Where(r => r.Estado == "Confirmada" && !string.IsNullOrEmpty(r.NumAsiento))
+                  .Select(r => r.NumAsiento!)
                 .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
             // Filtrar asientos por clase y mapear a DTO
             var asientos = vuelo.Aeronave.Asientos
-                .Where(a => NormalizarClase(a.Clase ?? "Economica") == claseNormalizada)
-                .OrderBy(a => a.NumeroAsiento)
-                .Select(a => new AsientoDisponibleDto
-                {
-                    Numero = a.NumeroAsiento ?? "",
-                    Clase = a.Clase ?? "Economica",
-                    Disponible = !asientosOcupados.Contains(a.NumeroAsiento ?? ""),
-                    Fila = ExtraerFila(a.NumeroAsiento ?? ""),
-                    Columna = ExtraerColumna(a.NumeroAsiento ?? "")
-                })
-                .ToList();
+       .Where(a => NormalizarClase(a.Clase ?? "Economica") == claseNormalizada)
+             .OrderBy(a => a.NumeroAsiento)
+        .Select(a => new AsientoDisponibleDto
+        {
+            Numero = a.NumeroAsiento ?? "",
+            Clase = a.Clase ?? "Economica",
+            Disponible = !asientosOcupados.Contains(a.NumeroAsiento ?? ""),
+            Fila = ExtraerFila(a.NumeroAsiento ?? ""),
+            Columna = ExtraerColumna(a.NumeroAsiento ?? "")
+        })
+          .ToList();
 
             return asientos;
         }
@@ -113,59 +156,60 @@ namespace AerolineaRD.Services
         private List<ClaseDisponibilidadDto> CalcularClasesDisponibles(Vuelo vuelo, string? filtroClase)
         {
             if (vuelo.Aeronave?.Asientos == null || !vuelo.Aeronave.Asientos.Any())
-                return new List<ClaseDisponibilidadDto>();
+         return new List<ClaseDisponibilidadDto>();
 
-            var asientosOcupados = (vuelo.Reservas ?? Enumerable.Empty<Reserva>())
-                .Where(r => r.Estado == "Confirmada" && !string.IsNullOrEmpty(r.NumAsiento))
-                .Select(r => r.NumAsiento!)
-                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+            // ✅ Obtener asientos ocupados
+ var asientosOcupados = (vuelo.Reservas ?? Enumerable.Empty<Reserva>())
+     .Where(r => r.Estado == "Confirmada" && !string.IsNullOrEmpty(r.NumAsiento))
+     .Select(r => r.NumAsiento!)
+     .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-            var clasesCalculadas = vuelo.Aeronave.Asientos
-                .GroupBy(a => a.Clase ?? "Economica")
-                .Select(g => new ClaseDisponibilidadDto
-                {
-                    Clase = g.Key,
-                    AsientosDisponibles = g.Count(a => !asientosOcupados.Contains(a.NumeroAsiento ?? "")),
-                    Precio = CalcularPrecioPorClase(vuelo.PrecioBase, g.Key)
-                })
-                .Where(c => c.AsientosDisponibles > 0)
-                .ToList();
+  // ✅ Agrupar por clase normalizada para evitar problemas con mayúsculas/minúsculas
+        var asientosPorClase = vuelo.Aeronave.Asientos
+ .GroupBy(a => (a.Clase ?? "Economica").ToUpperInvariant())
+     .ToList();
 
-            if (!string.IsNullOrEmpty(filtroClase))
-            {
-                var filtroNormalizado = NormalizarClase(filtroClase);
-                clasesCalculadas = clasesCalculadas
-                    .Where(c => NormalizarClase(c.Clase) == filtroNormalizado)
-                    .ToList();
-            }
+      // ✅ Calcular TODAS las clases disponibles (Económica, Ejecutiva, Primera)
+ var clasesCalculadas = asientosPorClase
+          .Select(g => new ClaseDisponibilidadDto
+      {
+  Clase = g.First().Clase ?? "Economica",
+   AsientosDisponibles = g.Count(a => !asientosOcupados.Contains(a.NumeroAsiento ?? "")),
+   Precio = CalcularPrecioPorClase(vuelo.PrecioBase, g.Key)
+      })
+     .ToList();
 
-            return clasesCalculadas;
+     // ✅ Si se especifica un filtro de clase, devolver solo esa clase
+ if (!string.IsNullOrEmpty(filtroClase))
+    {
+      var filtroNormalizado = filtroClase.Split(' ', StringSplitOptions.RemoveEmptyEntries)[0].ToUpperInvariant();
+   clasesCalculadas = clasesCalculadas
+     .Where(c => c.Clase.ToUpperInvariant() == filtroNormalizado)
+    .ToList();
+   }
+
+     return clasesCalculadas;
         }
 
         private static decimal CalcularPrecioPorClase(decimal precioBase, string clase)
         {
-            return clase switch
-            {
-                "Primera" => precioBase * 3.5m,
-                "Ejecutiva" => precioBase * 2.0m,
-                "Economica" => precioBase,
-                _ => precioBase
-            };
+    // ✅ Normalizar la clase para comparación case-insensitive
+    var claseNormalizada = clase.ToUpperInvariant();
+            
+    return claseNormalizada switch
+       {
+   "PRIMERA" => precioBase + 200m,
+     "EJECUTIVA" => precioBase + 100m,
+       "ECONOMICA" => precioBase,
+     _ => precioBase
+        };
         }
 
-        /// <summary>
-        /// Normaliza el nombre de la clase para comparación
-        /// "Primera Clase" -> "primera"
-        /// "Primera" -> "primera"
-        /// "Ejecutiva" -> "ejecutiva"
-        /// "Economica" -> "economica"
-        /// </summary>
         private static string NormalizarClase(string? clase)
         {
             if (string.IsNullOrEmpty(clase))
                 return string.Empty;
 
-            // Tomar solo la primera palabra y normalizar
             var primeraPalabra = clase.Split(' ', StringSplitOptions.RemoveEmptyEntries)[0];
             return NormalizarTexto(primeraPalabra);
         }
@@ -188,8 +232,8 @@ namespace AerolineaRD.Services
             }
 
             return stringBuilder.ToString()
-                .Normalize(NormalizationForm.FormC)
-                .ToLowerInvariant();
+       .Normalize(NormalizationForm.FormC)
+           .ToLowerInvariant();
         }
     }
 }

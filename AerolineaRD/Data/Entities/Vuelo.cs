@@ -64,6 +64,15 @@ namespace AerolineaRD.Entity
         [MaxLength(20)]
         public string? Clase { get; set; } = "Economica";
 
+        /// <summary>
+        /// ✅ NUEVO: Lista de clases disponibles en este vuelo (CSV)
+        /// Por defecto: "Economica,Ejecutiva,Primera"
+        /// Indica qué clases están disponibles para reserva
+        /// </summary>
+        [Column("ClasesDisponibles")]
+        [MaxLength(100)]
+        public string? ClasesDisponibles { get; set; } = "Economica,Ejecutiva,Primera";
+
         [Column("FechaRegreso")]
         public DateTime? FechaRegreso { get; set; } // Solo para vuelos de ida y vuelta
 
