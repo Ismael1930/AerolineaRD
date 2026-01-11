@@ -34,65 +34,103 @@ namespace AerolineaRD.Services
             if (aeropuerto == null)
                 throw new KeyNotFoundException($"Aeropuerto '{codigoAeropuerto}' no encontrado");
 
-            // ✅ NUEVO: Obtener todos los vuelos en el rango de fechas
+            // ✅ Obtener todos los vuelos en el rango de fechas
+            // ⚠️ EXCLUIR vuelos "Completado" y "Cancelado" - ya no ocupan espacio en calendario
             var fechaInicioSolo = fechaInicio.Date;
             var fechaFinSolo = fechaFin.Date.AddDays(1); // Incluir el último día completo
 
-            // Obtener vuelos de salida desde este aeropuerto
-            var vuelosSalida = await _vueloRepository.Context.Vuelos
+            // Estados que NO ocupan capacidad del aeropuerto
+            var estadosExcluidos = new[] { "Completado", "Cancelado" };
+
+            // 📊 Estadísticas de vuelos por estado (para logging)
+            var todosVuelosSalida = await _vueloRepository.Context.Vuelos
           .Where(v => v.OrigenCodigo == codigoAeropuerto
-      && v.Fecha >= fechaInicioSolo
- && v.Fecha < fechaFinSolo
-           && v.Estado != "Cancelado")
+       && v.Fecha >= fechaInicioSolo
+       && v.Fecha < fechaFinSolo)
      .ToListAsync();
 
-            // Obtener vuelos de llegada a este aeropuerto
-            var vuelosLlegada = await _vueloRepository.Context.Vuelos
-             .Where(v => v.DestinoCodigo == codigoAeropuerto
-           && v.Fecha >= fechaInicioSolo
-                  && v.Fecha < fechaFinSolo
-            && v.Estado != "Cancelado")
-               .ToListAsync();
-
-            // ✅ NUEVO: Agregar vuelos de regreso (IdaYVuelta)
-            // Si un vuelo es ATL→BCN con regreso, el retorno BCN→ATL se considera automáticamente
-            var vuelosIdaYVueltasalenDeAqui = await _vueloRepository.Context.Vuelos
-         .Where(v => v.OrigenCodigo == codigoAeropuerto
-            && v.TipoVuelo == "IdaYVuelta"
-              && v.FechaRegreso.HasValue
-        && v.FechaRegreso.Value >= fechaInicioSolo
-        && v.FechaRegreso.Value < fechaFinSolo
-        && v.Estado != "Cancelado")
-             .ToListAsync();
-
-            // ✅ NUEVO: Vuelos de regreso que llegan a este aeropuerto
-            var vuelosIdaYVueltaLleganAqui = await _vueloRepository.Context.Vuelos
-    .Where(v => v.DestinoCodigo == codigoAeropuerto
-        && v.TipoVuelo == "IdaYVuelta"
-        && v.FechaRegreso.HasValue
-             && v.FechaRegreso.Value >= fechaInicioSolo
-   && v.FechaRegreso.Value < fechaFinSolo
-        && v.Estado != "Cancelado")
+            var todosVuelosLlegada = await _vueloRepository.Context.Vuelos
+     .Where(v => v.DestinoCodigo == codigoAeropuerto
+          && v.Fecha >= fechaInicioSolo
+         && v.Fecha < fechaFinSolo)
   .ToListAsync();
 
-            // 📝 Crear "vuelos virtuales" para los regresos
-            // Vuelo original: ATL→BCN (01/01 10:00)
-            // Vuelo virtual: BCN→ATL (05/01 10:00) - mismo horario
-            var vuelosRegresoComoSalida = vuelosIdaYVueltaLleganAqui.Select(v => new
-            {
-                Vuelo = v,
-                FechaRegreso = v.FechaRegreso!.Value,
-                HoraSalida = v.HoraSalida, // Misma hora de salida original
-                EsVueloDeRegreso = true
-            }).ToList();
+            var vuelosCompletados = todosVuelosSalida.Count(v => v.Estado == "Completado") + 
+        todosVuelosLlegada.Count(v => v.Estado == "Completado");
+            var vuelosCancelados = todosVuelosSalida.Count(v => v.Estado == "Cancelado") + 
+      todosVuelosLlegada.Count(v => v.Estado == "Cancelado");
 
-            var vuelosRegresoComoLlegada = vuelosIdaYVueltasalenDeAqui.Select(v => new
-            {
-                Vuelo = v,
-                FechaRegreso = v.FechaRegreso!.Value,
-                HoraLlegada = v.HoraLlegada, // Misma hora de llegada original
-                EsVueloDeRegreso = true
-            }).ToList();
+            // Obtener vuelos de salida desde este aeropuerto (solo vuelos activos/futuros)
+      var vuelosSalida = todosVuelosSalida
+     .Where(v => !estadosExcluidos.Contains(v.Estado ?? ""))
+    .ToList();
+
+            // Obtener vuelos de llegada a este aeropuerto (solo vuelos activos/futuros)
+   var vuelosLlegada = todosVuelosLlegada
+        .Where(v => !estadosExcluidos.Contains(v.Estado ?? ""))
+.ToList();
+
+            // ✅ Agregar vuelos de regreso (IdaYVuelta) - solo activos
+      var vuelosIdaYVueltasalenDeAqui = await _vueloRepository.Context.Vuelos
+.Where(v => v.OrigenCodigo == codigoAeropuerto
+   && v.TipoVuelo == "IdaYVuelta"
+&& v.FechaRegreso.HasValue
+ && v.FechaRegreso.Value >= fechaInicioSolo
+   && v.FechaRegreso.Value < fechaFinSolo
+        && !estadosExcluidos.Contains(v.Estado ?? ""))
+  .ToListAsync();
+
+// ✅ Vuelos de regreso que llegan a este aeropuerto - solo activos
+            var vuelosIdaYVueltaLleganAqui = await _vueloRepository.Context.Vuelos
+         .Where(v => v.DestinoCodigo == codigoAeropuerto
+         && v.TipoVuelo == "IdaYVuelta"
+ && v.FechaRegreso.HasValue
+  && v.FechaRegreso.Value >= fechaInicioSolo
+    && v.FechaRegreso.Value < fechaFinSolo
+&& !estadosExcluidos.Contains(v.Estado ?? ""))
+       .ToListAsync();
+
+  Console.WriteLine($"");
+   Console.WriteLine($"📊 === CAPACIDAD AEROPUERTO {codigoAeropuerto} ({fechaInicio:dd/MM/yyyy} - {fechaFin:dd/MM/yyyy}) ===");
+       Console.WriteLine($"   📝 Total de vuelos en el período:");
+ Console.WriteLine($"      - Salidas totales: {todosVuelosSalida.Count}");
+    Console.WriteLine($"      - Llegadas totales: {todosVuelosLlegada.Count}");
+    Console.WriteLine($"   ✂️  Vuelos excluidos del calendario:");
+     Console.WriteLine($"      - Completados: {vuelosCompletados}");
+     Console.WriteLine($"      - Cancelados: {vuelosCancelados}");
+ Console.WriteLine($"   ✅ Vuelos activos que ocupan capacidad:");
+      Console.WriteLine($"  - Salidas activas: {vuelosSalida.Count}");
+   Console.WriteLine($"   - Llegadas activas: {vuelosLlegada.Count}");
+  Console.WriteLine($"   🔄 Vuelos de regreso (IdaYVuelta):");
+Console.WriteLine($"      - Regresos que salen: {vuelosIdaYVueltasalenDeAqui.Count}");
+  Console.WriteLine($" - Regresos que llegan: {vuelosIdaYVueltaLleganAqui.Count}");
+
+ // 📝 Crear "vuelos virtuales" para los regresos
+ // Vuelo original: ATL→BCN (01/01 10:00)
+            // Vuelo virtual: BCN→ATL (05/01 10:00) - mismo horario
+      var vuelosRegresoComoSalida = vuelosIdaYVueltaLleganAqui.Select(v => new
+   {
+      Vuelo = v,
+    FechaRegreso = v.FechaRegreso!.Value,
+ HoraSalida = v.HoraSalida, // Misma hora de salida original
+ EsVueloDeRegreso = true
+  }).ToList();
+
+       var vuelosRegresoComoLlegada = vuelosIdaYVueltasalenDeAqui.Select(v => new
+ {
+ Vuelo = v,
+  FechaRegreso = v.FechaRegreso!.Value,
+    HoraLlegada = v.HoraLlegada, // Misma hora de llegada original
+    EsVueloDeRegreso = true
+  }).ToList();
+            // Obtener capacidad del aeropuerto
+            // var capacidad = await _aeropuertoRepository.GetCapacidadAsync(codigoAeropuerto, fechaInicio, fechaFin);
+
+            // ✅ NUEVO: Usar la capacidad diaria calculada
+            var capacidadDiaria = aeropuerto.CapacidadVuelosPorHora * 24;
+
+            // ✅ Crear calendario de días con vuelos
+            var diasConVuelos = new List<UsoDiarioDto>();
 
             // ✅ Agrupar vuelos por día (solo días con actividad)
             // Incluir vuelos de ida, llegada Y regresos de IdaYVuelta
@@ -103,12 +141,6 @@ namespace AerolineaRD.Services
            .Distinct()
               .OrderBy(f => f)
                     .ToList();
-
-            // ✅ Capacidad diaria del aeropuerto
-            var capacidadDiaria = aeropuerto.CapacidadVuelosPorHora * 24;
-
-            // ✅ Crear calendario de días con vuelos
-            var diasConVuelos = new List<UsoDiarioDto>();
 
             foreach (var fecha in fechasConVuelos)
             {
@@ -164,10 +196,25 @@ namespace AerolineaRD.Services
                     Console.WriteLine($"   - Vuelo {v.NumeroVuelo} ({v.Tipo}): Hora {v.Hora}");
                 }
 
-                for (int hora = 0; hora < 24; hora++)
+                // Helper local para formatear TimeSpan en12h con AM/PM (coincide con formato usado en DTOs de vuelo)
+                static string FormatearTimeSpan12h(TimeSpan ts)
                 {
-                    var horaInicio = new TimeSpan(hora, 0, 0);
-                    var horaFin = new TimeSpan(hora, 59, 59);
+                    var hh = ts.Hours;
+                    var mm = ts.Minutes;
+                    var periodo = hh >=12 ? "PM" : "AM";
+                    var displayHour = hh ==0 ?12 : (hh >12 ? hh -12 : hh);
+                    return $"{displayHour}:{mm:D2} {periodo}";
+                }
+
+                static string FormatearRangoHora12h(int hora)
+                {
+                    return $"{FormatearTimeSpan12h(new TimeSpan(hora,0,0))} - {FormatearTimeSpan12h(new TimeSpan(hora,59,0))}";
+                }
+
+                for (int hora =0; hora <24; hora++)
+                {
+                    var horaInicio = new TimeSpan(hora,0,0);
+                    var horaFin = new TimeSpan(hora,59,59);
 
                     // ✅ Salidas: vuelos normales + regresos
                     var salidasHora = vuelosSalida.Count(v =>
@@ -208,7 +255,8 @@ namespace AerolineaRD.Services
                         usoPorHora.Add(new UsoHorarioDto
                         {
                             Hora = hora,
-                            HoraFormato = $"{hora:D2}:00 - {hora:D2}:59",
+                            // Usar formato12h AM/PM para que coincida con los DTOs de vuelo en la UI de administrador
+                            HoraFormato = FormatearRangoHora12h(hora),
                             VuelosSalida = salidasHora,
                             VuelosLlegada = llegadasHora,
                             TotalVuelos = totalHora,
