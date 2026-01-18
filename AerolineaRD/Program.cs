@@ -42,6 +42,8 @@ builder.Services.AddScoped<IAsientoRepository, AsientoRepository>();
 // ? NUEVO SISTEMA DE TRIPULACIÓN
 builder.Services.AddScoped<IPersonalRepository, PersonalRepository>();
 builder.Services.AddScoped<IEquipoRepository, EquipoRepository>();
+// ? RUTAS AÉREAS
+builder.Services.AddScoped<IRutaRepository, RutaRepository>();
 
 // Add Services
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -60,6 +62,8 @@ builder.Services.AddScoped<ITicketSoporteService, TicketSoporteService>();
 builder.Services.AddScoped<IClienteService, ClienteService>();
 // ? NUEVO SISTEMA DE TRIPULACIÓN
 builder.Services.AddScoped<IEquipoService, EquipoService>();
+// ? RUTAS AÉREAS
+builder.Services.AddScoped<IRutaService, RutaService>();
 
 // Configuración de Entity Framework con SQLite
 builder.Services.AddDbContext<AppDbContext>(options =>

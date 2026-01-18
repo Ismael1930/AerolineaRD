@@ -33,6 +33,9 @@ namespace AerolineaRD.Data
         public DbSet<EquipoPersonal> EquipoPersonal { get; set; }
         public DbSet<AsignacionEquipoAeronave> AsignacionesEquipoAeronave { get; set; }
 
+        // ✅ RUTAS AÉREAS
+        public DbSet<Ruta> Rutas { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

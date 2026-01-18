@@ -72,7 +72,7 @@ namespace AerolineaRD.Controllers
         }
 
         /// <summary>
-        /// Obtener aeronaves disponibles
+        /// Obtener aeronaves disponibles (operativas)
         /// </summary>
         [HttpGet("disponibles")]
         public async Task<IActionResult> ObtenerDisponibles()
@@ -85,6 +85,81 @@ namespace AerolineaRD.Controllers
             catch (Exception ex)
             {
                 return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Obtener aeronaves disponibles para un horario específico
+        /// Filtra por: operativas, con equipo asignado, y sin conflictos de horario
+        /// </summary>
+        /// <param name="fecha">Fecha del vuelo (formato: yyyy-MM-dd)</param>
+        /// <param name="horaSalida">Hora de salida (formato: HH:mm)</param>
+        /// <param name="horaLlegada">Hora de llegada (formato: HH:mm)</param>
+        /// <param name="vueloId">ID del vuelo a excluir (para edición, opcional)</param>
+        /// <example>
+        /// GET /api/Aeronave/disponibles-horario?fecha=2025-01-20&amp;horaSalida=10:30&amp;horaLlegada=14:45
+        /// GET /api/Aeronave/disponibles-horario?fecha=2025-01-20&amp;horaSalida=22:15&amp;horaLlegada=00:45 (vuelo nocturno)
+        /// GET /api/Aeronave/disponibles-horario?fecha=2025-01-20&amp;horaSalida=10:30&amp;horaLlegada=14:45&amp;vueloId=5
+        /// </example>
+        [HttpGet("disponibles-horario")]
+        public async Task<IActionResult> ObtenerDisponiblesParaHorario(
+            [FromQuery] DateTime fecha,
+            [FromQuery] string horaSalida,
+            [FromQuery] string horaLlegada,
+            [FromQuery] int? vueloId = null)
+        {
+            try
+            {
+                // Validar parámetros
+                if (string.IsNullOrWhiteSpace(horaSalida) || string.IsNullOrWhiteSpace(horaLlegada))
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = "Debe especificar horaSalida y horaLlegada en formato HH:mm"
+                    });
+                }
+
+                // Parsear horas
+                if (!TimeSpan.TryParse(horaSalida, out var horaSalidaParsed))
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = "Formato de horaSalida inválido. Use HH:mm (ej: 10:30)"
+                    });
+                }
+
+                if (!TimeSpan.TryParse(horaLlegada, out var horaLlegadaParsed))
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = "Formato de horaLlegada inválido. Use HH:mm (ej: 14:45)"
+                    });
+                }
+
+                // Nota: NO validamos que horaLlegada > horaSalida porque los vuelos pueden
+                // cruzar la medianoche (ej: salida 22:15, llegada 00:45 del día siguiente)
+
+                var resultado = await _aeronaveService.ObtenerAeronavesDisponiblesParaHorarioAsync(
+                    fecha,
+                    horaSalidaParsed,
+                    horaLlegadaParsed,
+                    vueloId);
+
+                return Ok(new
+                {
+                    success = true,
+                    data = resultado,
+                    message = resultado.Disponibles.Count > 0
+                        ? $"Se encontraron {resultado.Disponibles.Count} aeronave(s) disponible(s)"
+                        : "No hay aeronaves disponibles para el horario solicitado"
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
             }
         }
 

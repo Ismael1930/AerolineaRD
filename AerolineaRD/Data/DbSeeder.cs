@@ -68,6 +68,9 @@ namespace AerolineaRD.Data
             // 13. NOTIFICACIONES
             await SeedNotificacionesAsync(context);
 
+            // 14. RUTAS AÉREAS
+            await SeedRutasAsync(context);
+
             Console.WriteLine("✅ Seeder completado exitosamente!");
             Console.WriteLine($"   - {await context.Aeropuertos.CountAsync()} aeropuertos");
             Console.WriteLine($"   - {await context.Aeronaves.CountAsync()} aeronaves");
@@ -1032,6 +1035,237 @@ var vuelos = await context.Vuelos
             Console.WriteLine($"✅ {vuelosEnPasado.Count} vuelos actualizados a fechas futuras");
             Console.WriteLine($"   - Primera fecha: {vuelosEnPasado.Min(v => v.Fecha):dd/MM/yyyy}");
             Console.WriteLine($"   - Última fecha: {vuelosEnPasado.Max(v => v.Fecha):dd/MM/yyyy}");
+        }
+
+        /// <summary>
+        /// Seed de rutas aéreas con duraciones estimadas entre aeropuertos
+        /// </summary>
+        private static async Task SeedRutasAsync(AppDbContext context)
+        {
+            // Si ya existen rutas, no duplicar
+            if (await context.Rutas.AnyAsync())
+            {
+                Console.WriteLine("⏭️  Rutas ya existen, saltando seed");
+                return;
+            }
+
+            var rutas = new List<Ruta>();
+
+            // ========== RUTAS DESDE REPÚBLICA DOMINICANA ==========
+            
+            // Desde Santo Domingo (SDQ)
+            rutas.AddRange(new[]
+            {
+                // Nacionales
+                new Ruta { OrigenCodigo = "SDQ", DestinoCodigo = "PUJ", DuracionMinutos = 30, DistanciaKm = 150 },
+                new Ruta { OrigenCodigo = "SDQ", DestinoCodigo = "STI", DuracionMinutos = 35, DistanciaKm = 155 },
+                new Ruta { OrigenCodigo = "SDQ", DestinoCodigo = "POP", DuracionMinutos = 40, DistanciaKm = 215 },
+                new Ruta { OrigenCodigo = "SDQ", DestinoCodigo = "LRM", DuracionMinutos = 25, DistanciaKm = 110 },
+                
+                // Estados Unidos
+                new Ruta { OrigenCodigo = "SDQ", DestinoCodigo = "JFK", DuracionMinutos = 255, DistanciaKm = 2540 },  // 4h 15m
+                new Ruta { OrigenCodigo = "SDQ", DestinoCodigo = "MIA", DuracionMinutos = 150, DistanciaKm = 1330 },  // 2h 30m
+                new Ruta { OrigenCodigo = "SDQ", DestinoCodigo = "EWR", DuracionMinutos = 260, DistanciaKm = 2500 },  // 4h 20m
+                new Ruta { OrigenCodigo = "SDQ", DestinoCodigo = "FLL", DuracionMinutos = 155, DistanciaKm = 1350 },  // 2h 35m
+                new Ruta { OrigenCodigo = "SDQ", DestinoCodigo = "ATL", DuracionMinutos = 200, DistanciaKm = 2050 },  // 3h 20m
+                
+                // Europa
+                new Ruta { OrigenCodigo = "SDQ", DestinoCodigo = "MAD", DuracionMinutos = 540, DistanciaKm = 6900 },  // 9h
+                new Ruta { OrigenCodigo = "SDQ", DestinoCodigo = "BCN", DuracionMinutos = 570, DistanciaKm = 7100 },  // 9h 30m
+                new Ruta { OrigenCodigo = "SDQ", DestinoCodigo = "CDG", DuracionMinutos = 555, DistanciaKm = 7050 },  // 9h 15m
+                
+                // Latinoamérica
+                new Ruta { OrigenCodigo = "SDQ", DestinoCodigo = "CUN", DuracionMinutos = 180, DistanciaKm = 1750 },  // 3h
+                new Ruta { OrigenCodigo = "SDQ", DestinoCodigo = "PTY", DuracionMinutos = 195, DistanciaKm = 1900 },  // 3h 15m
+                new Ruta { OrigenCodigo = "SDQ", DestinoCodigo = "BOG", DuracionMinutos = 210, DistanciaKm = 1950 },  // 3h 30m
+                new Ruta { OrigenCodigo = "SDQ", DestinoCodigo = "LIM", DuracionMinutos = 330, DistanciaKm = 3600 },  // 5h 30m
+            });
+
+            // Desde Punta Cana (PUJ)
+            rutas.AddRange(new[]
+            {
+                // Nacionales
+                new Ruta { OrigenCodigo = "PUJ", DestinoCodigo = "SDQ", DuracionMinutos = 30, DistanciaKm = 150 },
+                new Ruta { OrigenCodigo = "PUJ", DestinoCodigo = "STI", DuracionMinutos = 45, DistanciaKm = 200 },
+                new Ruta { OrigenCodigo = "PUJ", DestinoCodigo = "POP", DuracionMinutos = 50, DistanciaKm = 230 },
+                new Ruta { OrigenCodigo = "PUJ", DestinoCodigo = "LRM", DuracionMinutos = 20, DistanciaKm = 70 },
+                
+                // Estados Unidos
+                new Ruta { OrigenCodigo = "PUJ", DestinoCodigo = "JFK", DuracionMinutos = 270, DistanciaKm = 2600 },  // 4h 30m
+                new Ruta { OrigenCodigo = "PUJ", DestinoCodigo = "MIA", DuracionMinutos = 165, DistanciaKm = 1400 },  // 2h 45m
+                new Ruta { OrigenCodigo = "PUJ", DestinoCodigo = "EWR", DuracionMinutos = 275, DistanciaKm = 2550 },  // 4h 35m
+                new Ruta { OrigenCodigo = "PUJ", DestinoCodigo = "FLL", DuracionMinutos = 170, DistanciaKm = 1420 },  // 2h 50m
+                new Ruta { OrigenCodigo = "PUJ", DestinoCodigo = "ATL", DuracionMinutos = 185, DistanciaKm = 2100 },  // 3h 05m
+                
+                // Europa
+                new Ruta { OrigenCodigo = "PUJ", DestinoCodigo = "MAD", DuracionMinutos = 555, DistanciaKm = 6950 },  // 9h 15m
+                new Ruta { OrigenCodigo = "PUJ", DestinoCodigo = "BCN", DuracionMinutos = 585, DistanciaKm = 7150 },  // 9h 45m
+                new Ruta { OrigenCodigo = "PUJ", DestinoCodigo = "CDG", DuracionMinutos = 570, DistanciaKm = 7100 },  // 9h 30m
+                
+                // Latinoamérica
+                new Ruta { OrigenCodigo = "PUJ", DestinoCodigo = "CUN", DuracionMinutos = 195, DistanciaKm = 1800 },  // 3h 15m
+                new Ruta { OrigenCodigo = "PUJ", DestinoCodigo = "PTY", DuracionMinutos = 210, DistanciaKm = 1950 },  // 3h 30m
+                new Ruta { OrigenCodigo = "PUJ", DestinoCodigo = "BOG", DuracionMinutos = 225, DistanciaKm = 2000 },  // 3h 45m
+                new Ruta { OrigenCodigo = "PUJ", DestinoCodigo = "LIM", DuracionMinutos = 345, DistanciaKm = 3650 },  // 5h 45m
+            });
+
+            // Desde Santiago (STI)
+            rutas.AddRange(new[]
+            {
+                new Ruta { OrigenCodigo = "STI", DestinoCodigo = "SDQ", DuracionMinutos = 35, DistanciaKm = 155 },
+                new Ruta { OrigenCodigo = "STI", DestinoCodigo = "PUJ", DuracionMinutos = 45, DistanciaKm = 200 },
+                new Ruta { OrigenCodigo = "STI", DestinoCodigo = "MIA", DuracionMinutos = 150, DistanciaKm = 1320 },  // 2h 30m
+                new Ruta { OrigenCodigo = "STI", DestinoCodigo = "JFK", DuracionMinutos = 250, DistanciaKm = 2480 },  // 4h 10m
+            });
+
+            // Desde Puerto Plata (POP)
+            rutas.AddRange(new[]
+            {
+                new Ruta { OrigenCodigo = "POP", DestinoCodigo = "SDQ", DuracionMinutos = 40, DistanciaKm = 215 },
+                new Ruta { OrigenCodigo = "POP", DestinoCodigo = "JFK", DuracionMinutos = 240, DistanciaKm = 2400 },  // 4h
+                new Ruta { OrigenCodigo = "POP", DestinoCodigo = "MIA", DuracionMinutos = 155, DistanciaKm = 1300 },  // 2h 35m
+            });
+
+            // Desde La Romana (LRM)
+            rutas.AddRange(new[]
+            {
+                new Ruta { OrigenCodigo = "LRM", DestinoCodigo = "SDQ", DuracionMinutos = 25, DistanciaKm = 110 },
+                new Ruta { OrigenCodigo = "LRM", DestinoCodigo = "PUJ", DuracionMinutos = 20, DistanciaKm = 70 },
+                new Ruta { OrigenCodigo = "LRM", DestinoCodigo = "MIA", DuracionMinutos = 160, DistanciaKm = 1360 },  // 2h 40m
+            });
+
+            // ========== RUTAS DESDE ESTADOS UNIDOS ==========
+            
+            // Desde JFK (Nueva York)
+            rutas.AddRange(new[]
+            {
+                new Ruta { OrigenCodigo = "JFK", DestinoCodigo = "SDQ", DuracionMinutos = 255, DistanciaKm = 2540 },
+                new Ruta { OrigenCodigo = "JFK", DestinoCodigo = "PUJ", DuracionMinutos = 270, DistanciaKm = 2600 },
+                new Ruta { OrigenCodigo = "JFK", DestinoCodigo = "MIA", DuracionMinutos = 180, DistanciaKm = 1750 },  // 3h
+                new Ruta { OrigenCodigo = "JFK", DestinoCodigo = "MAD", DuracionMinutos = 450, DistanciaKm = 5760 },  // 7h 30m
+                new Ruta { OrigenCodigo = "JFK", DestinoCodigo = "CDG", DuracionMinutos = 435, DistanciaKm = 5840 },  // 7h 15m
+                new Ruta { OrigenCodigo = "JFK", DestinoCodigo = "CUN", DuracionMinutos = 225, DistanciaKm = 2100 },  // 3h 45m
+                new Ruta { OrigenCodigo = "JFK", DestinoCodigo = "PTY", DuracionMinutos = 330, DistanciaKm = 3550 },  // 5h 30m
+                new Ruta { OrigenCodigo = "JFK", DestinoCodigo = "BOG", DuracionMinutos = 360, DistanciaKm = 3900 },  // 6h
+            });
+
+            // Desde Miami (MIA)
+            rutas.AddRange(new[]
+            {
+                new Ruta { OrigenCodigo = "MIA", DestinoCodigo = "SDQ", DuracionMinutos = 150, DistanciaKm = 1330 },
+                new Ruta { OrigenCodigo = "MIA", DestinoCodigo = "PUJ", DuracionMinutos = 165, DistanciaKm = 1400 },
+                new Ruta { OrigenCodigo = "MIA", DestinoCodigo = "STI", DuracionMinutos = 150, DistanciaKm = 1320 },
+                new Ruta { OrigenCodigo = "MIA", DestinoCodigo = "JFK", DuracionMinutos = 180, DistanciaKm = 1750 },
+                new Ruta { OrigenCodigo = "MIA", DestinoCodigo = "CUN", DuracionMinutos = 90, DistanciaKm = 850 },     // 1h 30m
+                new Ruta { OrigenCodigo = "MIA", DestinoCodigo = "PTY", DuracionMinutos = 180, DistanciaKm = 2050 },  // 3h
+                new Ruta { OrigenCodigo = "MIA", DestinoCodigo = "BOG", DuracionMinutos = 225, DistanciaKm = 2600 },  // 3h 45m
+                new Ruta { OrigenCodigo = "MIA", DestinoCodigo = "LIM", DuracionMinutos = 330, DistanciaKm = 4180 },  // 5h 30m
+                new Ruta { OrigenCodigo = "MIA", DestinoCodigo = "MAD", DuracionMinutos = 540, DistanciaKm = 7150 },  // 9h
+            });
+
+            // Desde Atlanta (ATL)
+            rutas.AddRange(new[]
+            {
+                new Ruta { OrigenCodigo = "ATL", DestinoCodigo = "SDQ", DuracionMinutos = 200, DistanciaKm = 2050 },
+                new Ruta { OrigenCodigo = "ATL", DestinoCodigo = "PUJ", DuracionMinutos = 185, DistanciaKm = 2100 },
+                new Ruta { OrigenCodigo = "ATL", DestinoCodigo = "MIA", DuracionMinutos = 105, DistanciaKm = 970 },   // 1h 45m
+                new Ruta { OrigenCodigo = "ATL", DestinoCodigo = "JFK", DuracionMinutos = 135, DistanciaKm = 1220 },  // 2h 15m
+                new Ruta { OrigenCodigo = "ATL", DestinoCodigo = "CUN", DuracionMinutos = 165, DistanciaKm = 1550 },  // 2h 45m
+            });
+
+            // ========== RUTAS DESDE EUROPA ==========
+            
+            // Desde Madrid (MAD)
+            rutas.AddRange(new[]
+            {
+                new Ruta { OrigenCodigo = "MAD", DestinoCodigo = "SDQ", DuracionMinutos = 540, DistanciaKm = 6900 },
+                new Ruta { OrigenCodigo = "MAD", DestinoCodigo = "PUJ", DuracionMinutos = 555, DistanciaKm = 6950 },
+                new Ruta { OrigenCodigo = "MAD", DestinoCodigo = "JFK", DuracionMinutos = 450, DistanciaKm = 5760 },
+                new Ruta { OrigenCodigo = "MAD", DestinoCodigo = "MIA", DuracionMinutos = 540, DistanciaKm = 7150 },
+                new Ruta { OrigenCodigo = "MAD", DestinoCodigo = "BCN", DuracionMinutos = 75, DistanciaKm = 620 },    // 1h 15m
+                new Ruta { OrigenCodigo = "MAD", DestinoCodigo = "CDG", DuracionMinutos = 120, DistanciaKm = 1050 },  // 2h
+                new Ruta { OrigenCodigo = "MAD", DestinoCodigo = "CUN", DuracionMinutos = 660, DistanciaKm = 8850 },  // 11h
+                new Ruta { OrigenCodigo = "MAD", DestinoCodigo = "BOG", DuracionMinutos = 630, DistanciaKm = 8420 },  // 10h 30m
+                new Ruta { OrigenCodigo = "MAD", DestinoCodigo = "LIM", DuracionMinutos = 720, DistanciaKm = 9900 },  // 12h
+            });
+
+            // Desde Barcelona (BCN)
+            rutas.AddRange(new[]
+            {
+                new Ruta { OrigenCodigo = "BCN", DestinoCodigo = "SDQ", DuracionMinutos = 570, DistanciaKm = 7100 },
+                new Ruta { OrigenCodigo = "BCN", DestinoCodigo = "PUJ", DuracionMinutos = 585, DistanciaKm = 7150 },
+                new Ruta { OrigenCodigo = "BCN", DestinoCodigo = "MAD", DuracionMinutos = 75, DistanciaKm = 620 },
+                new Ruta { OrigenCodigo = "BCN", DestinoCodigo = "CDG", DuracionMinutos = 105, DistanciaKm = 840 },   // 1h 45m
+            });
+
+            // Desde París (CDG)
+            rutas.AddRange(new[]
+            {
+                new Ruta { OrigenCodigo = "CDG", DestinoCodigo = "SDQ", DuracionMinutos = 555, DistanciaKm = 7050 },
+                new Ruta { OrigenCodigo = "CDG", DestinoCodigo = "PUJ", DuracionMinutos = 570, DistanciaKm = 7100 },
+                new Ruta { OrigenCodigo = "CDG", DestinoCodigo = "JFK", DuracionMinutos = 435, DistanciaKm = 5840 },
+                new Ruta { OrigenCodigo = "CDG", DestinoCodigo = "MAD", DuracionMinutos = 120, DistanciaKm = 1050 },
+                new Ruta { OrigenCodigo = "CDG", DestinoCodigo = "BCN", DuracionMinutos = 105, DistanciaKm = 840 },
+            });
+
+            // ========== RUTAS DESDE LATINOAMÉRICA ==========
+            
+            // Desde Cancún (CUN)
+            rutas.AddRange(new[]
+            {
+                new Ruta { OrigenCodigo = "CUN", DestinoCodigo = "SDQ", DuracionMinutos = 180, DistanciaKm = 1750 },
+                new Ruta { OrigenCodigo = "CUN", DestinoCodigo = "PUJ", DuracionMinutos = 195, DistanciaKm = 1800 },
+                new Ruta { OrigenCodigo = "CUN", DestinoCodigo = "MIA", DuracionMinutos = 90, DistanciaKm = 850 },
+                new Ruta { OrigenCodigo = "CUN", DestinoCodigo = "JFK", DuracionMinutos = 225, DistanciaKm = 2100 },
+                new Ruta { OrigenCodigo = "CUN", DestinoCodigo = "ATL", DuracionMinutos = 165, DistanciaKm = 1550 },
+            });
+
+            // Desde Panamá (PTY)
+            rutas.AddRange(new[]
+            {
+                new Ruta { OrigenCodigo = "PTY", DestinoCodigo = "SDQ", DuracionMinutos = 195, DistanciaKm = 1900 },
+                new Ruta { OrigenCodigo = "PTY", DestinoCodigo = "PUJ", DuracionMinutos = 210, DistanciaKm = 1950 },
+                new Ruta { OrigenCodigo = "PTY", DestinoCodigo = "MIA", DuracionMinutos = 180, DistanciaKm = 2050 },
+                new Ruta { OrigenCodigo = "PTY", DestinoCodigo = "JFK", DuracionMinutos = 330, DistanciaKm = 3550 },
+                new Ruta { OrigenCodigo = "PTY", DestinoCodigo = "BOG", DuracionMinutos = 75, DistanciaKm = 700 },    // 1h 15m
+                new Ruta { OrigenCodigo = "PTY", DestinoCodigo = "LIM", DuracionMinutos = 180, DistanciaKm = 1960 },  // 3h
+            });
+
+            // Desde Bogotá (BOG)
+            rutas.AddRange(new[]
+            {
+                new Ruta { OrigenCodigo = "BOG", DestinoCodigo = "SDQ", DuracionMinutos = 210, DistanciaKm = 1950 },
+                new Ruta { OrigenCodigo = "BOG", DestinoCodigo = "PUJ", DuracionMinutos = 225, DistanciaKm = 2000 },
+                new Ruta { OrigenCodigo = "BOG", DestinoCodigo = "MIA", DuracionMinutos = 225, DistanciaKm = 2600 },
+                new Ruta { OrigenCodigo = "BOG", DestinoCodigo = "JFK", DuracionMinutos = 360, DistanciaKm = 3900 },
+                new Ruta { OrigenCodigo = "BOG", DestinoCodigo = "PTY", DuracionMinutos = 75, DistanciaKm = 700 },
+                new Ruta { OrigenCodigo = "BOG", DestinoCodigo = "LIM", DuracionMinutos = 135, DistanciaKm = 1870 },  // 2h 15m
+                new Ruta { OrigenCodigo = "BOG", DestinoCodigo = "MAD", DuracionMinutos = 630, DistanciaKm = 8420 },
+            });
+
+            // Desde Lima (LIM)
+            rutas.AddRange(new[]
+            {
+                new Ruta { OrigenCodigo = "LIM", DestinoCodigo = "SDQ", DuracionMinutos = 330, DistanciaKm = 3600 },
+                new Ruta { OrigenCodigo = "LIM", DestinoCodigo = "PUJ", DuracionMinutos = 345, DistanciaKm = 3650 },
+                new Ruta { OrigenCodigo = "LIM", DestinoCodigo = "MIA", DuracionMinutos = 330, DistanciaKm = 4180 },
+                new Ruta { OrigenCodigo = "LIM", DestinoCodigo = "PTY", DuracionMinutos = 180, DistanciaKm = 1960 },
+                new Ruta { OrigenCodigo = "LIM", DestinoCodigo = "BOG", DuracionMinutos = 135, DistanciaKm = 1870 },
+                new Ruta { OrigenCodigo = "LIM", DestinoCodigo = "MAD", DuracionMinutos = 720, DistanciaKm = 9900 },
+            });
+
+            // Marcar todas las rutas como activas
+            foreach (var ruta in rutas)
+            {
+                ruta.Activa = true;
+            }
+
+            await context.Rutas.AddRangeAsync(rutas);
+            await context.SaveChangesAsync();
+
+            Console.WriteLine($"   ✅ {rutas.Count} rutas aéreas creadas");
+            Console.WriteLine($"      - Rutas nacionales RD: {rutas.Count(r => new[] { "SDQ", "PUJ", "STI", "POP", "LRM" }.Contains(r.OrigenCodigo) && new[] { "SDQ", "PUJ", "STI", "POP", "LRM" }.Contains(r.DestinoCodigo))}");
+            Console.WriteLine($"      - Rutas internacionales: {rutas.Count(r => !(new[] { "SDQ", "PUJ", "STI", "POP", "LRM" }.Contains(r.OrigenCodigo) && new[] { "SDQ", "PUJ", "STI", "POP", "LRM" }.Contains(r.DestinoCodigo)))}");
         }
     }
 }

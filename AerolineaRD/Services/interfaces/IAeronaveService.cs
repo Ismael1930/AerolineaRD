@@ -20,5 +20,19 @@ namespace AerolineaRD.Services.interfaces
         /// Obtiene una aeronave específica con información de disponibilidad de asientos
         /// </summary>
         Task<AeronaveConDisponibilidadDto?> ObtenerConDisponibilidadAsync(string matricula);
+
+        /// <summary>
+        /// Obtiene las aeronaves disponibles para un horario específico
+        /// Filtra por: operativas, con equipo asignado, y sin conflictos de horario
+        /// </summary>
+        /// <param name="fecha">Fecha del vuelo</param>
+        /// <param name="horaSalida">Hora de salida del vuelo</param>
+        /// <param name="horaLlegada">Hora de llegada del vuelo</param>
+        /// <param name="vueloIdExcluir">ID del vuelo a excluir (para edición)</param>
+        Task<AeronavesDisponiblesResponseDto> ObtenerAeronavesDisponiblesParaHorarioAsync(
+            DateTime fecha, 
+            TimeSpan horaSalida, 
+            TimeSpan horaLlegada,
+            int? vueloIdExcluir = null);
     }
 }
