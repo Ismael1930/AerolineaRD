@@ -9,19 +9,23 @@ namespace AerolineaRD.Services
     {
         private readonly IRutaRepository _rutaRepository;
         private readonly IAeropuertoRepository _aeropuertoRepository;
+        private readonly IVueloRepository _vueloRepository;
 
-        // Constantes para cálculo de precios
-        private const decimal PRECIO_BASE_POR_MINUTO = 1.5m;      // $1.50 por minuto de vuelo
-        private const decimal PRECIO_MINIMO = 100m;               // Precio mínimo $100
-        private const decimal CARGO_INTERNACIONAL = 50m;          // Cargo adicional para vuelos internacionales
-        private const decimal CARGO_INTERCONTINENTAL = 150m;      // Cargo adicional para vuelos intercontinentales
-        private const decimal INCREMENTO_EJECUTIVA = 100m;        // +$100 para clase ejecutiva
-        private const decimal INCREMENTO_PRIMERA = 200m;          // +$200 para primera clase
+        private const decimal PRECIO_BASE_POR_MINUTO = 1.5m;
+        private const decimal PRECIO_MINIMO = 100m;
+        private const decimal CARGO_INTERNACIONAL = 50m;
+        private const decimal CARGO_INTERCONTINENTAL = 150m;
+        private const decimal INCREMENTO_EJECUTIVA = 100m;
+        private const decimal INCREMENTO_PRIMERA = 200m;
 
-        public RutaService(IRutaRepository rutaRepository, IAeropuertoRepository aeropuertoRepository)
+        public RutaService(
+            IRutaRepository rutaRepository, 
+            IAeropuertoRepository aeropuertoRepository,
+            IVueloRepository vueloRepository)
         {
             _rutaRepository = rutaRepository;
             _aeropuertoRepository = aeropuertoRepository;
+            _vueloRepository = vueloRepository;
         }
 
         public async Task<RutaDuracionDto> ObtenerDuracionRutaAsync(string origenCodigo, string destinoCodigo)
@@ -31,7 +35,6 @@ namespace AerolineaRD.Services
 
         public async Task<RutaDuracionDto> ObtenerInfoRutaCompletaAsync(string origenCodigo, string destinoCodigo, TimeSpan? horaSalida = null)
         {
-            // Validar que no sea el mismo aeropuerto
             if (origenCodigo == destinoCodigo)
             {
                 return new RutaDuracionDto
@@ -62,13 +65,9 @@ namespace AerolineaRD.Services
                 };
             }
 
-            // Determinar tipo de ruta
             var tipoRuta = DeterminarTipoRuta(ruta.Origen, ruta.Destino, ruta.DuracionMinutos);
-
-            // Calcular precio sugerido
             var precioBase = CalcularPrecioSugerido(ruta.DuracionMinutos, tipoRuta);
 
-            // Calcular precios por clase
             var preciosPorClase = new PreciosPorClaseDto
             {
                 Economica = precioBase,
@@ -92,17 +91,136 @@ namespace AerolineaRD.Services
                 PrecioFormato = $"${precioBase:N2}",
                 PreciosPorClase = preciosPorClase,
                 DistanciaKm = ruta.DistanciaKm,
-                TipoRuta = tipoRuta
+                TipoRuta = tipoRuta,
+                CruzaMedianoche = false
             };
 
-            // Si se proporcionó hora de salida, calcular hora de llegada
             if (horaSalida.HasValue)
             {
                 var horaLlegada = CalcularHoraLlegada(horaSalida.Value, ruta.DuracionMinutos);
                 resultado.HoraLlegadaCalculada = horaLlegada;
                 resultado.HoraLlegadaFormato = FormatearHora(horaLlegada);
-                resultado.Mensaje = $"Duración: {FormatearDuracion(ruta.DuracionMinutos)} | Llegada: {FormatearHora(horaLlegada)}";
+                
+                bool cruzaMedianoche = horaLlegada < horaSalida.Value;
+                resultado.CruzaMedianoche = cruzaMedianoche;
+                
+                if (cruzaMedianoche)
+                {
+                    resultado.NotaMedianoche = "?? Este vuelo llega al día siguiente (cruza medianoche)";
+                    resultado.Mensaje = $"Duración: {FormatearDuracion(ruta.DuracionMinutos)} | Llegada: {FormatearHora(horaLlegada)} (+1 día)";
+                }
+                else
+                {
+                    resultado.Mensaje = $"Duración: {FormatearDuracion(ruta.DuracionMinutos)} | Llegada: {FormatearHora(horaLlegada)}";
+                }
             }
+
+            return resultado;
+        }
+
+        public async Task<HorasDisponiblesDto> ObtenerHorasDisponiblesAsync(string origenCodigo, string destinoCodigo, DateTime fecha)
+        {
+            var resultado = new HorasDisponiblesDto
+            {
+                OrigenCodigo = origenCodigo,
+                DestinoCodigo = destinoCodigo,
+                Fecha = fecha.Date,
+                FechaFormato = fecha.ToString("dddd, dd 'de' MMMM 'de' yyyy", new System.Globalization.CultureInfo("es-ES")),
+                HorasDisponibles = new List<HoraDisponibleDto>(),
+                HorasOcupadas = new List<HoraOcupadaDto>()
+            };
+
+            var aeropuerto = await _aeropuertoRepository.GetByIdAsync(origenCodigo);
+            if (aeropuerto == null)
+            {
+                resultado.Mensaje = $"Aeropuerto de origen '{origenCodigo}' no encontrado";
+                return resultado;
+            }
+
+            resultado.OrigenNombre = aeropuerto.Nombre;
+            resultado.CapacidadPorHora = aeropuerto.CapacidadVuelosPorHora > 0 
+                ? aeropuerto.CapacidadVuelosPorHora 
+                : 10;
+
+            var ruta = await _rutaRepository.ObtenerRutaAsync(origenCodigo, destinoCodigo);
+            if (ruta != null)
+            {
+                resultado.InfoRuta = await ObtenerInfoRutaCompletaAsync(origenCodigo, destinoCodigo, null);
+            }
+
+            var vuelosProgramados = await _vueloRepository.ObtenerVuelosPorOrigenYFechaAsync(origenCodigo, fecha);
+
+            var vuelosPorHora = vuelosProgramados
+                .GroupBy(v => v.HoraSalida.Hours)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            for (int hora = 5; hora <= 23; hora++)
+            {
+                var horaTimeSpan = new TimeSpan(hora, 0, 0);
+                var vuelosEnEstaHora = vuelosPorHora.GetValueOrDefault(hora, new List<Vuelo>());
+                var cantidadVuelos = vuelosEnEstaHora.Count;
+                var espaciosDisponibles = resultado.CapacidadPorHora - cantidadVuelos;
+
+                if (cantidadVuelos > 0)
+                {
+                    resultado.HorasOcupadas.Add(new HoraOcupadaDto
+                    {
+                        Hora = horaTimeSpan,
+                        HoraFormato = FormatearHora(horaTimeSpan),
+                        VuelosProgramados = cantidadVuelos,
+                        CapacidadMaxima = resultado.CapacidadPorHora,
+                        Saturada = espaciosDisponibles <= 0,
+                        VuelosEnHora = vuelosEnEstaHora.Select(v => v.NumeroVuelo ?? "N/A").ToList()
+                    });
+                }
+
+                if (espaciosDisponibles > 0)
+                {
+                    var horaDisponible = new HoraDisponibleDto
+                    {
+                        Hora = horaTimeSpan,
+                        HoraFormato = FormatearHora(horaTimeSpan),
+                        Valor = $"{hora:D2}:00",
+                        EspaciosDisponibles = espaciosDisponibles
+                    };
+
+                    if (ruta != null)
+                    {
+                        var horaLlegada = CalcularHoraLlegada(horaTimeSpan, ruta.DuracionMinutos);
+                        horaDisponible.HoraLlegada = horaLlegada;
+                        horaDisponible.HoraLlegadaFormato = FormatearHora(horaLlegada);
+                        horaDisponible.CruzaMedianoche = horaLlegada < horaTimeSpan;
+                    }
+
+                    resultado.HorasDisponibles.Add(horaDisponible);
+
+                    var horaMediaTimeSpan = new TimeSpan(hora, 30, 0);
+                    var horaDisponibleMedia = new HoraDisponibleDto
+                    {
+                        Hora = horaMediaTimeSpan,
+                        HoraFormato = FormatearHora(horaMediaTimeSpan),
+                        Valor = $"{hora:D2}:30",
+                        EspaciosDisponibles = espaciosDisponibles
+                    };
+
+                    if (ruta != null)
+                    {
+                        var horaLlegadaMedia = CalcularHoraLlegada(horaMediaTimeSpan, ruta.DuracionMinutos);
+                        horaDisponibleMedia.HoraLlegada = horaLlegadaMedia;
+                        horaDisponibleMedia.HoraLlegadaFormato = FormatearHora(horaLlegadaMedia);
+                        horaDisponibleMedia.CruzaMedianoche = horaLlegadaMedia < horaMediaTimeSpan;
+                    }
+
+                    resultado.HorasDisponibles.Add(horaDisponibleMedia);
+                }
+            }
+
+            resultado.HorasDisponibles = resultado.HorasDisponibles.OrderBy(h => h.Hora).ToList();
+            resultado.HorasOcupadas = resultado.HorasOcupadas.OrderBy(h => h.Hora).ToList();
+
+            resultado.Mensaje = resultado.HorasDisponibles.Any()
+                ? $"{resultado.HorasDisponibles.Count} horarios disponibles encontrados"
+                : "No hay horarios disponibles para esta fecha. Todas las horas están saturadas.";
 
             return resultado;
         }
@@ -127,7 +245,6 @@ namespace AerolineaRD.Services
 
         public async Task<RutaDto> CrearRutaAsync(CrearRutaDto dto)
         {
-            // Validar que los aeropuertos existan
             var origen = await _aeropuertoRepository.GetByIdAsync(dto.OrigenCodigo);
             var destino = await _aeropuertoRepository.GetByIdAsync(dto.DestinoCodigo);
 
@@ -137,7 +254,6 @@ namespace AerolineaRD.Services
             if (destino == null)
                 throw new KeyNotFoundException($"Aeropuerto de destino '{dto.DestinoCodigo}' no encontrado");
 
-            // Validar que no exista ya la ruta
             if (await _rutaRepository.ExisteRutaAsync(dto.OrigenCodigo, dto.DestinoCodigo))
                 throw new InvalidOperationException($"Ya existe una ruta entre {dto.OrigenCodigo} y {dto.DestinoCodigo}");
 
@@ -153,7 +269,6 @@ namespace AerolineaRD.Services
             await _rutaRepository.AddAsync(ruta);
             await _rutaRepository.SaveAsync();
 
-            // Recargar con navegaciones
             var rutaCreada = await _rutaRepository.ObtenerRutaAsync(dto.OrigenCodigo, dto.DestinoCodigo);
             return MapToDto(rutaCreada!);
         }
@@ -186,7 +301,6 @@ namespace AerolineaRD.Services
             if (ruta == null)
                 return false;
 
-            // Soft delete - solo desactivar
             ruta.Activa = false;
             _rutaRepository.Update(ruta);
             await _rutaRepository.SaveAsync();
@@ -196,60 +310,33 @@ namespace AerolineaRD.Services
 
         #region Helpers privados
 
-        /// <summary>
-        /// Calcula la hora de llegada basándose en la hora de salida y duración
-        /// </summary>
         private static TimeSpan CalcularHoraLlegada(TimeSpan horaSalida, int duracionMinutos)
         {
             var llegada = horaSalida.Add(TimeSpan.FromMinutes(duracionMinutos));
-            
-            // Si pasa de las 24 horas, ajustar (el vuelo llega al día siguiente)
             if (llegada.TotalHours >= 24)
-            {
                 llegada = TimeSpan.FromHours(llegada.TotalHours - 24);
-            }
-            
             return llegada;
         }
 
-        /// <summary>
-        /// Calcula el precio sugerido basado en la duración y tipo de ruta
-        /// </summary>
         private decimal CalcularPrecioSugerido(int duracionMinutos, string tipoRuta)
         {
-            // Precio base = duración en minutos * tarifa por minuto
             var precio = duracionMinutos * PRECIO_BASE_POR_MINUTO;
-
-            // Agregar cargos según tipo de ruta
             precio += tipoRuta switch
             {
                 "Internacional" => CARGO_INTERNACIONAL,
                 "Intercontinental" => CARGO_INTERCONTINENTAL,
                 _ => 0m
             };
-
-            // Asegurar precio mínimo
             precio = Math.Max(precio, PRECIO_MINIMO);
-
-            // Redondear a múltiplos de 5 para precios más "limpios"
             precio = Math.Ceiling(precio / 5) * 5;
-
             return precio;
         }
 
-        /// <summary>
-        /// Determina el tipo de ruta basado en los países y duración
-        /// </summary>
         private static string DeterminarTipoRuta(Aeropuerto? origen, Aeropuerto? destino, int duracionMinutos)
         {
-            if (origen == null || destino == null)
-                return "Desconocido";
+            if (origen == null || destino == null) return "Desconocido";
+            if (origen.Pais == destino.Pais) return "Nacional";
 
-            // Si son del mismo país
-            if (origen.Pais == destino.Pais)
-                return "Nacional";
-
-            // Definir regiones
             var regionCaribe = new[] { "Republica Dominicana", "Cuba", "Puerto Rico", "Jamaica", "Haiti" };
             var regionNorteamerica = new[] { "Estados Unidos", "Canada", "Mexico" };
             var regionCentroamerica = new[] { "Panama", "Costa Rica", "Guatemala", "Honduras", "El Salvador", "Nicaragua" };
@@ -259,56 +346,33 @@ namespace AerolineaRD.Services
             var origenRegion = ObtenerRegion(origen.Pais, regionCaribe, regionNorteamerica, regionCentroamerica, regionSudamerica, regionEuropa);
             var destinoRegion = ObtenerRegion(destino.Pais, regionCaribe, regionNorteamerica, regionCentroamerica, regionSudamerica, regionEuropa);
 
-            // Si están en la misma región o regiones cercanas
-            if (origenRegion == destinoRegion)
-                return "Regional";
-
-            // Si cruzan continentes (Caribe/América a Europa)
-            if ((origenRegion == "Caribe" || origenRegion == "Norteamerica" || origenRegion == "Sudamerica") && destinoRegion == "Europa")
-                return "Intercontinental";
-
-            if ((destinoRegion == "Caribe" || destinoRegion == "Norteamerica" || destinoRegion == "Sudamerica") && origenRegion == "Europa")
-                return "Intercontinental";
-
-            // Por defecto basarse en duración
-            if (duracionMinutos > 360) // Más de 6 horas
-                return "Intercontinental";
-            
+            if (origenRegion == destinoRegion) return "Regional";
+            if ((origenRegion == "Caribe" || origenRegion == "Norteamerica" || origenRegion == "Sudamerica") && destinoRegion == "Europa") return "Intercontinental";
+            if ((destinoRegion == "Caribe" || destinoRegion == "Norteamerica" || destinoRegion == "Sudamerica") && origenRegion == "Europa") return "Intercontinental";
+            if (duracionMinutos > 360) return "Intercontinental";
             return "Internacional";
         }
 
         private static string ObtenerRegion(string? pais, string[] caribe, string[] norteamerica, string[] centroamerica, string[] sudamerica, string[] europa)
         {
             if (string.IsNullOrEmpty(pais)) return "Desconocido";
-            
             if (caribe.Contains(pais)) return "Caribe";
             if (norteamerica.Contains(pais)) return "Norteamerica";
             if (centroamerica.Contains(pais)) return "Centroamerica";
             if (sudamerica.Contains(pais)) return "Sudamerica";
             if (europa.Contains(pais)) return "Europa";
-            
             return "Otro";
         }
 
-        /// <summary>
-        /// Formatea la duración en formato legible
-        /// </summary>
         private static string FormatearDuracion(int minutos)
         {
             var horas = minutos / 60;
             var mins = minutos % 60;
-
-            if (horas > 0 && mins > 0)
-                return $"{horas}h {mins}m";
-            else if (horas > 0)
-                return $"{horas}h";
-            else
-                return $"{mins}m";
+            if (horas > 0 && mins > 0) return $"{horas}h {mins}m";
+            else if (horas > 0) return $"{horas}h";
+            else return $"{mins}m";
         }
 
-        /// <summary>
-        /// Formatea hora en formato 12h con AM/PM
-        /// </summary>
         private static string FormatearHora(TimeSpan hora)
         {
             var hh = hora.Hours;
@@ -318,9 +382,6 @@ namespace AerolineaRD.Services
             return $"{displayHour}:{mm:D2} {periodo}";
         }
 
-        /// <summary>
-        /// Mapea entidad Ruta a RutaDto
-        /// </summary>
         private static RutaDto MapToDto(Ruta ruta)
         {
             return new RutaDto

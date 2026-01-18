@@ -31,5 +31,15 @@ namespace AerolineaRD.Repositories.interfaces
         /// Obtiene el número de asientos disponibles en un vuelo
         /// </summary>
         Task<int> ObtenerAsientosDisponiblesAsync(int idVuelo);
+
+        /// <summary>
+        /// Obtiene los vuelos programados desde un aeropuerto en una fecha específica
+        /// </summary>
+        Task<List<Vuelo>> ObtenerVuelosPorOrigenYFechaAsync(string origenCodigo, DateTime fecha);
+
+        /// <summary>
+        /// Cuenta los vuelos programados en una hora específica desde un aeropuerto
+        /// </summary>
+        Task<int> ContarVuelosEnHoraAsync(string origenCodigo, DateTime fecha, int hora);
     }
 }

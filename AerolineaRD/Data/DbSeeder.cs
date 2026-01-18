@@ -479,37 +479,116 @@ FechaAsignacion = DateTime.Today.AddMonths(-5),
         }
         private static async Task SeedVuelosAsync(AppDbContext context)
         {
-            // ✅ FECHA BASE: Siempre mañana
-            var fechaBase = DateTime.Today.AddDays(1);
-            var hoy = DateTime.Today;
+            // ✅ FECHAS PARA PRESENTACIÓN (19 de enero 2026 en adelante)
+            var fechaPresentacion = new DateTime(2026, 1, 19);
+            var fechaHistorico = new DateTime(2026, 1, 17); // Vuelo histórico pasado
 
             var vuelos = new List<Vuelo>();
 
-            // ✅ AEROPUERTO DE PRUEBA
-            var aeropuertoPrueba = await context.Aeropuertos.FirstOrDefaultAsync(a => a.Codigo == "TEST");
-            if (aeropuertoPrueba == null)
-            {
-                aeropuertoPrueba = new Aeropuerto
-                {
-                    Codigo = "TEST",
-                    Nombre = "Aeropuerto de Prueba Validaciones",
-                    Ciudad = "Test City",
-                    Pais = "Republica Dominicana",
-                    CapacidadVuelosPorHora = 1
-                };
-                await context.Aeropuertos.AddAsync(aeropuertoPrueba);
-                await context.SaveChangesAsync();
-            }
-
-            // TEST-LIVE hoy10:30 -11:00
+            // ═══════════════════════════════════════════════════════════════════
+            // 🕐 VUELO HISTÓRICO - Día 17 (ya pasó, para demostrar historial)
+            // ═══════════════════════════════════════════════════════════════════
             vuelos.Add(new Vuelo
             {
-                NumeroVuelo = "TEST-LIVE",
-                Fecha = hoy,
-                HoraSalida = new TimeSpan(10,30,0),
-                HoraLlegada = new TimeSpan(11,0,0),
-                Duracion =30,
-                PrecioBase =150.00m,
+                NumeroVuelo = "RD-HIST-001",
+                Fecha = fechaHistorico,
+                HoraSalida = new TimeSpan(8, 0, 0),
+                HoraLlegada = new TimeSpan(10, 30, 0),
+                Duracion = 150,
+                PrecioBase = 320.00m,
+                OrigenCodigo = "SDQ",
+                DestinoCodigo = "MIA",
+                Matricula = "HI-1001RD",
+                Estado = "Completado",
+                TipoVuelo = "SoloIda",
+                ClasesDisponibles = "Economica,Ejecutiva,Primera"
+            });
+
+            // ═══════════════════════════════════════════════════════════════════
+            // ✈️ VUELOS DEL DÍA 19 - Día de la presentación
+            // ═══════════════════════════════════════════════════════════════════
+            
+            // Vuelo temprano SDQ → MIA (HI-1001RD - Equipo Alpha)
+            vuelos.Add(new Vuelo
+            {
+                NumeroVuelo = "RD1001",
+                Fecha = fechaPresentacion,
+                HoraSalida = new TimeSpan(6, 0, 0),
+                HoraLlegada = new TimeSpan(8, 30, 0),
+                Duracion = 150,
+                PrecioBase = 320.00m,
+                OrigenCodigo = "SDQ",
+                DestinoCodigo = "MIA",
+                Matricula = "HI-1001RD",
+                Estado = "Programado",
+                TipoVuelo = "SoloIda",
+                ClasesDisponibles = "Economica,Ejecutiva,Primera"
+            });
+
+            // Vuelo mañana SDQ → JFK (HI-1001RD - Equipo Alpha) - Después de preparación
+            vuelos.Add(new Vuelo
+            {
+                NumeroVuelo = "RD1002",
+                Fecha = fechaPresentacion,
+                HoraSalida = new TimeSpan(11, 0, 0),
+                HoraLlegada = new TimeSpan(15, 15, 0),
+                Duracion = 255,
+                PrecioBase = 450.00m,
+                OrigenCodigo = "SDQ",
+                DestinoCodigo = "JFK",
+                Matricula = "HI-1001RD",
+                Estado = "Programado",
+                TipoVuelo = "IdaYVuelta",
+                FechaRegreso = fechaPresentacion.AddDays(7),
+                ClasesDisponibles = "Economica,Ejecutiva,Primera"
+            });
+
+            // Vuelo tarde PUJ → MIA (HI-1002RD - Equipo Bravo)
+            vuelos.Add(new Vuelo
+            {
+                NumeroVuelo = "RD1003",
+                Fecha = fechaPresentacion,
+                HoraSalida = new TimeSpan(14, 0, 0),
+                HoraLlegada = new TimeSpan(16, 45, 0),
+                Duracion = 165,
+                PrecioBase = 350.00m,
+                OrigenCodigo = "PUJ",
+                DestinoCodigo = "MIA",
+                Matricula = "HI-1002RD",
+                Estado = "Programado",
+                TipoVuelo = "SoloIda",
+                ClasesDisponibles = "Economica,Ejecutiva,Primera"
+            });
+
+            // ✈️ VUELO NOCTURNO - Cruza medianoche (para demostrar funcionalidad)
+            vuelos.Add(new Vuelo
+            {
+                NumeroVuelo = "RD1004-NOCHE",
+                Fecha = fechaPresentacion,
+                HoraSalida = new TimeSpan(22, 15, 0),
+                HoraLlegada = new TimeSpan(0, 45, 0), // Llega día siguiente
+                Duracion = 150,
+                PrecioBase = 380.00m,
+                OrigenCodigo = "SDQ",
+                DestinoCodigo = "MIA",
+                Matricula = "HI-1002RD",
+                Estado = "Programado",
+                TipoVuelo = "SoloIda",
+                ClasesDisponibles = "Economica,Ejecutiva,Primera"
+            });
+
+            // ═══════════════════════════════════════════════════════════════════
+            // ✈️ VUELOS DEL DÍA 20
+            // ═══════════════════════════════════════════════════════════════════
+            
+            vuelos.Add(new Vuelo
+            {
+                NumeroVuelo = "RD2001",
+                Fecha = fechaPresentacion.AddDays(1),
+                HoraSalida = new TimeSpan(7, 30, 0),
+                HoraLlegada = new TimeSpan(8, 0, 0),
+                Duracion = 30,
+                PrecioBase = 150.00m,
                 OrigenCodigo = "SDQ",
                 DestinoCodigo = "PUJ",
                 Matricula = "HI-1001RD",
@@ -518,119 +597,302 @@ FechaAsignacion = DateTime.Today.AddMonths(-5),
                 ClasesDisponibles = "Economica,Ejecutiva,Primera"
             });
 
-            // Saturar aeropuerto TEST en fechaBase:1 vuelo por hora
-            int numeroVuelo =2000;
-            for (int hora =0; hora <24; hora++)
+            vuelos.Add(new Vuelo
             {
-                var fechaVuelo = fechaBase;
-                var salida = new TimeSpan(hora,0,0);
-                var llegada = salida.Add(TimeSpan.FromMinutes(30));
+                NumeroVuelo = "RD2002",
+                Fecha = fechaPresentacion.AddDays(1),
+                HoraSalida = new TimeSpan(10, 0, 0),
+                HoraLlegada = new TimeSpan(19, 0, 0),
+                Duracion = 540,
+                PrecioBase = 850.00m,
+                OrigenCodigo = "SDQ",
+                DestinoCodigo = "MAD",
+                Matricula = "HI-1001RD",
+                Estado = "Programado",
+                TipoVuelo = "IdaYVuelta",
+                FechaRegreso = fechaPresentacion.AddDays(14),
+                ClasesDisponibles = "Economica,Ejecutiva,Primera"
+            });
 
-                // No hace falta evitar TEST-LIVE porque TEST-LIVE es hoy y fechaBase == mañana
-                vuelos.Add(new Vuelo
-                {
-                    NumeroVuelo = $"TEST{numeroVuelo++}",
-                    Fecha = fechaVuelo,
-                    HoraSalida = salida,
-                    HoraLlegada = llegada,
-                    Duracion =30,
-                    PrecioBase =200.00m,
-                    OrigenCodigo = "TEST",
-                    DestinoCodigo = "SDQ",
-                    Matricula = "HI-1001RD",
-                    Estado = "Programado",
-                    TipoVuelo = "SoloIda",
-                    ClasesDisponibles = "Economica,Ejecutiva,Primera"
-                });
-            }
-
-            // Aeropuerto STI
-            numeroVuelo =3000;
-            for (int i =0; i <9; i++)
+            vuelos.Add(new Vuelo
             {
-                vuelos.Add(new Vuelo
-                {
-                    NumeroVuelo = $"STI{numeroVuelo++}",
-                    Fecha = fechaBase,
-                    HoraSalida = new TimeSpan(8 + i,0,0),
-                    HoraLlegada = new TimeSpan(10 + i,30,0),
-                    Duracion =150,
-                    PrecioBase =320.00m,
-                    OrigenCodigo = "STI",
-                    DestinoCodigo = "MIA",
-                    Matricula = "HI-1002RD",
-                    Estado = "Programado",
-                    TipoVuelo = "SoloIda",
-                    ClasesDisponibles = "Economica,Ejecutiva,Primera"
-                });
-            }
+                NumeroVuelo = "RD2003",
+                Fecha = fechaPresentacion.AddDays(1),
+                HoraSalida = new TimeSpan(9, 0, 0),
+                HoraLlegada = new TimeSpan(13, 30, 0),
+                Duracion = 270,
+                PrecioBase = 480.00m,
+                OrigenCodigo = "PUJ",
+                DestinoCodigo = "JFK",
+                Matricula = "HI-1002RD",
+                Estado = "Programado",
+                TipoVuelo = "SoloIda",
+                ClasesDisponibles = "Economica,Ejecutiva,Primera"
+            });
 
-            // Vuelos variados
-            numeroVuelo =1000;
-            var rutasVariadas = new[]
-                 {
-             (origen: "SDQ", destino: "JFK", precio:450.00m, duracion:255, matricula: "HI-1003RD", hora:10),
- (origen: "SDQ", destino: "MIA", precio:320.00m, duracion:150, matricula: "HI-1004RD", hora:11),
-                (origen: "PUJ", destino: "ATL", precio:400.00m, duracion:185, matricula: "HI-1005RD", hora:12),
-                (origen: "PUJ", destino: "JFK", precio:480.00m, duracion:270, matricula: "HI-1006RD", hora:13),
- (origen: "SDQ", destino: "MAD", precio:850.00m, duracion:540, matricula: "HI-1007RD", hora:14)
-            };
-
-            for (int i =0; i < rutasVariadas.Length; i++)
+            // ═══════════════════════════════════════════════════════════════════
+            // ✈️ VUELOS DEL DÍA 21
+            // ═══════════════════════════════════════════════════════════════════
+            
+            vuelos.Add(new Vuelo
             {
-                var ruta = rutasVariadas[i];
+                NumeroVuelo = "RD3001",
+                Fecha = fechaPresentacion.AddDays(2),
+                HoraSalida = new TimeSpan(6, 30, 0),
+                HoraLlegada = new TimeSpan(9, 50, 0),
+                Duracion = 200,
+                PrecioBase = 400.00m,
+                OrigenCodigo = "SDQ",
+                DestinoCodigo = "ATL",
+                Matricula = "HI-1001RD",
+                Estado = "Programado",
+                TipoVuelo = "SoloIda",
+                ClasesDisponibles = "Economica,Ejecutiva,Primera"
+            });
 
-                vuelos.Add(new Vuelo
-                {
-                    NumeroVuelo = $"RD{numeroVuelo++}",
-                    Fecha = fechaBase.AddDays(i +2),
-                    HoraSalida = new TimeSpan(ruta.hora,0,0),
-                    HoraLlegada = new TimeSpan(ruta.hora,0,0).Add(TimeSpan.FromMinutes(ruta.duracion)),
-                    Duracion = ruta.duracion,
-                    PrecioBase = ruta.precio,
-                    OrigenCodigo = ruta.origen,
-                    DestinoCodigo = ruta.destino,
-                    Matricula = ruta.matricula,
-                    Estado = "Programado",
-                    TipoVuelo = "IdaYVuelta",
-                    FechaRegreso = fechaBase.AddDays(i +9),
-                    ClasesDisponibles = "Economica,Ejecutiva,Primera"
-                });
+            vuelos.Add(new Vuelo
+            {
+                NumeroVuelo = "RD3002",
+                Fecha = fechaPresentacion.AddDays(2),
+                HoraSalida = new TimeSpan(8, 0, 0),
+                HoraLlegada = new TimeSpan(11, 15, 0),
+                Duracion = 195,
+                PrecioBase = 420.00m,
+                OrigenCodigo = "SDQ",
+                DestinoCodigo = "PTY",
+                Matricula = "HI-1002RD",
+                Estado = "Programado",
+                TipoVuelo = "IdaYVuelta",
+                FechaRegreso = fechaPresentacion.AddDays(5),
+                ClasesDisponibles = "Economica,Ejecutiva,Primera"
+            });
 
-                vuelos.Add(new Vuelo
-                {
-                    NumeroVuelo = $"RD{numeroVuelo++}",
-                    Fecha = fechaBase.AddDays(i +10),
-                    HoraSalida = new TimeSpan(ruta.hora +5,0,0),
-                    HoraLlegada = new TimeSpan(ruta.hora +5,0,0).Add(TimeSpan.FromMinutes(ruta.duracion)),
-                    Duracion = ruta.duracion,
-                    PrecioBase = ruta.precio,
-                    OrigenCodigo = ruta.origen,
-                    DestinoCodigo = ruta.destino,
-                    Matricula = ruta.matricula,
-                    Estado = "Programado",
-                    TipoVuelo = "SoloIda",
-                    ClasesDisponibles = "Economica,Ejecutiva,Primera"
-                });
-            }
+            // ═══════════════════════════════════════════════════════════════════
+            // ✈️ VUELOS DEL DÍA 22-25 (Más variedad)
+            // ═══════════════════════════════════════════════════════════════════
+            
+            // Día 22 - Vuelos a Colombia y México
+            vuelos.Add(new Vuelo
+            {
+                NumeroVuelo = "RD4001",
+                Fecha = fechaPresentacion.AddDays(3),
+                HoraSalida = new TimeSpan(7, 0, 0),
+                HoraLlegada = new TimeSpan(10, 30, 0),
+                Duracion = 210,
+                PrecioBase = 380.00m,
+                OrigenCodigo = "SDQ",
+                DestinoCodigo = "BOG",
+                Matricula = "HI-1001RD",
+                Estado = "Programado",
+                TipoVuelo = "SoloIda",
+                ClasesDisponibles = "Economica,Ejecutiva,Primera"
+            });
+
+            vuelos.Add(new Vuelo
+            {
+                NumeroVuelo = "RD4002",
+                Fecha = fechaPresentacion.AddDays(3),
+                HoraSalida = new TimeSpan(12, 0, 0),
+                HoraLlegada = new TimeSpan(15, 0, 0),
+                Duracion = 180,
+                PrecioBase = 420.00m,
+                OrigenCodigo = "SDQ",
+                DestinoCodigo = "CUN",
+                Matricula = "HI-1002RD",
+                Estado = "Programado",
+                TipoVuelo = "IdaYVuelta",
+                FechaRegreso = fechaPresentacion.AddDays(10),
+                ClasesDisponibles = "Economica,Ejecutiva,Primera"
+            });
+
+            // Día 23 - Vuelos nacionales
+            vuelos.Add(new Vuelo
+            {
+                NumeroVuelo = "RD5001",
+                Fecha = fechaPresentacion.AddDays(4),
+                HoraSalida = new TimeSpan(8, 0, 0),
+                HoraLlegada = new TimeSpan(8, 35, 0),
+                Duracion = 35,
+                PrecioBase = 120.00m,
+                OrigenCodigo = "SDQ",
+                DestinoCodigo = "STI",
+                Matricula = "HI-1001RD",
+                Estado = "Programado",
+                TipoVuelo = "SoloIda",
+                ClasesDisponibles = "Economica,Ejecutiva,Primera"
+            });
+
+            vuelos.Add(new Vuelo
+            {
+                NumeroVuelo = "RD5002",
+                Fecha = fechaPresentacion.AddDays(4),
+                HoraSalida = new TimeSpan(10, 0, 0),
+                HoraLlegada = new TimeSpan(10, 40, 0),
+                Duracion = 40,
+                PrecioBase = 130.00m,
+                OrigenCodigo = "SDQ",
+                DestinoCodigo = "POP",
+                Matricula = "HI-1002RD",
+                Estado = "Programado",
+                TipoVuelo = "SoloIda",
+                ClasesDisponibles = "Economica,Ejecutiva,Primera"
+            });
+
+            // Día 24 - Vuelo largo a Europa
+            vuelos.Add(new Vuelo
+            {
+                NumeroVuelo = "RD6001",
+                Fecha = fechaPresentacion.AddDays(5),
+                HoraSalida = new TimeSpan(21, 0, 0),
+                HoraLlegada = new TimeSpan(6, 30, 0), // Llega al día siguiente (+9h 30m)
+                Duracion = 570,
+                PrecioBase = 920.00m,
+                OrigenCodigo = "SDQ",
+                DestinoCodigo = "BCN",
+                Matricula = "HI-1001RD",
+                Estado = "Programado",
+                TipoVuelo = "IdaYVuelta",
+                FechaRegreso = fechaPresentacion.AddDays(12),
+                ClasesDisponibles = "Economica,Ejecutiva,Primera"
+            });
+
+            // Día 25 - Vuelos a Perú y Francia
+            vuelos.Add(new Vuelo
+            {
+                NumeroVuelo = "RD7001",
+                Fecha = fechaPresentacion.AddDays(6),
+                HoraSalida = new TimeSpan(6, 0, 0),
+                HoraLlegada = new TimeSpan(11, 30, 0),
+                Duracion = 330,
+                PrecioBase = 650.00m,
+                OrigenCodigo = "SDQ",
+                DestinoCodigo = "LIM",
+                Matricula = "HI-1001RD",
+                Estado = "Programado",
+                TipoVuelo = "SoloIda",
+                ClasesDisponibles = "Economica,Ejecutiva,Primera"
+            });
+
+            vuelos.Add(new Vuelo
+            {
+                NumeroVuelo = "RD7002",
+                Fecha = fechaPresentacion.AddDays(6),
+                HoraSalida = new TimeSpan(20, 0, 0),
+                HoraLlegada = new TimeSpan(5, 15, 0), // Llega al día siguiente
+                Duracion = 555,
+                PrecioBase = 950.00m,
+                OrigenCodigo = "SDQ",
+                DestinoCodigo = "CDG",
+                Matricula = "HI-1002RD",
+                Estado = "Programado",
+                TipoVuelo = "IdaYVuelta",
+                FechaRegreso = fechaPresentacion.AddDays(20),
+                ClasesDisponibles = "Economica,Ejecutiva,Primera"
+            });
+
+            // ═══════════════════════════════════════════════════════════════════
+            // 🧪 VUELOS PARA PROBAR VALIDACIÓN DE CAPACIDAD DE AEROPUERTO
+            // Aeropuerto TEST tiene capacidad de 1 vuelo por hora
+            // Ya hay 1 vuelo a las 10:00 - Si intentas agregar otro a las 10:XX fallará
+            // ═══════════════════════════════════════════════════════════════════
+            
+            // Vuelo que OCUPA la capacidad de las 10:00 (1 vuelo/hora)
+            vuelos.Add(new Vuelo
+            {
+                NumeroVuelo = "TEST-1000",
+                Fecha = fechaPresentacion,
+                HoraSalida = new TimeSpan(10, 0, 0),
+                HoraLlegada = new TimeSpan(10, 30, 0),
+                Duracion = 30,
+                PrecioBase = 100.00m,
+                OrigenCodigo = "TEST",
+                DestinoCodigo = "SDQ",
+                Matricula = "HI-1001RD",
+                Estado = "Programado",
+                TipoVuelo = "SoloIda",
+                ClasesDisponibles = "Economica,Ejecutiva,Primera"
+            });
+
+            // Vuelo que OCUPA la capacidad de las 11:00
+            vuelos.Add(new Vuelo
+            {
+                NumeroVuelo = "TEST-1100",
+                Fecha = fechaPresentacion,
+                HoraSalida = new TimeSpan(11, 0, 0),
+                HoraLlegada = new TimeSpan(11, 30, 0),
+                Duracion = 30,
+                PrecioBase = 100.00m,
+                OrigenCodigo = "TEST",
+                DestinoCodigo = "PUJ",
+                Matricula = "HI-1002RD",
+                Estado = "Programado",
+                TipoVuelo = "SoloIda",
+                ClasesDisponibles = "Economica,Ejecutiva,Primera"
+            });
+
+            // Vuelo que OCUPA la capacidad de las 12:00
+            vuelos.Add(new Vuelo
+            {
+                NumeroVuelo = "TEST-1200",
+                Fecha = fechaPresentacion,
+                HoraSalida = new TimeSpan(12, 0, 0),
+                HoraLlegada = new TimeSpan(12, 30, 0),
+                Duracion = 30,
+                PrecioBase = 100.00m,
+                OrigenCodigo = "TEST",
+                DestinoCodigo = "SDQ",
+                Matricula = "HI-1001RD",
+                Estado = "Programado",
+                TipoVuelo = "SoloIda",
+                ClasesDisponibles = "Economica,Ejecutiva,Primera"
+            });
+
+            // Vuelo que OCUPA la capacidad de las 14:00
+            vuelos.Add(new Vuelo
+            {
+                NumeroVuelo = "TEST-1400",
+                Fecha = fechaPresentacion,
+                HoraSalida = new TimeSpan(14, 0, 0),
+                HoraLlegada = new TimeSpan(14, 30, 0),
+                Duracion = 30,
+                PrecioBase = 100.00m,
+                OrigenCodigo = "TEST",
+                DestinoCodigo = "PUJ",
+                Matricula = "HI-1002RD",
+                Estado = "Programado",
+                TipoVuelo = "SoloIda",
+                ClasesDisponibles = "Economica,Ejecutiva,Primera"
+            });
+
+            // Vuelo que OCUPA la capacidad de las 15:00
+            vuelos.Add(new Vuelo
+            {
+                NumeroVuelo = "TEST-1500",
+                Fecha = fechaPresentacion,
+                HoraSalida = new TimeSpan(15, 0, 0),
+                HoraLlegada = new TimeSpan(15, 30, 0),
+                Duracion = 30,
+                PrecioBase = 100.00m,
+                OrigenCodigo = "TEST",
+                DestinoCodigo = "SDQ",
+                Matricula = "HI-1001RD",
+                Estado = "Programado",
+                TipoVuelo = "SoloIda",
+                ClasesDisponibles = "Economica,Ejecutiva,Primera"
+            });
 
             await context.Vuelos.AddRangeAsync(vuelos);
             await context.SaveChangesAsync();
 
- var totalVuelosCreados = vuelos.Count;
- var vuelosHI1002 = vuelos.Count(v => v.Matricula == "HI-1002RD");
- var vuelosHI1001 = vuelos.Count(v => v.Matricula == "HI-1001RD");
-
- Console.WriteLine($"Created {totalVuelosCreados} test flights.");
- Console.WriteLine($"TEST-LIVE: today {hoy:dd/MM/yyyy}10:30 -11:00");
- Console.WriteLine($"TEST airport saturated on {fechaBase:dd/MM/yyyy} with {aeropuertoPrueba.CapacidadVuelosPorHora} flight(s) per hour");
- Console.WriteLine($"Varied flights count: {rutasVariadas.Length *2}");
- Console.WriteLine($"STI flights (HI-1002RD): {vuelosHI1002}");
- Console.WriteLine($"HI-1001RD flights: {vuelosHI1001}");
- Console.WriteLine($"Base date: {fechaBase:dd/MM/yyyy}");
- Console.WriteLine("IMPORTANT: TEST airport saturated (no more hourly slots available)");
+            Console.WriteLine($"   ✅ {vuelos.Count} vuelos creados:");
+            Console.WriteLine($"      - 1 vuelo histórico (17/01/2026) - Completado");
+            Console.WriteLine($"      - Vuelos programados del 19/01/2026 al 25/01/2026");
+            Console.WriteLine($"      - 5 vuelos en aeropuerto TEST (10:00, 11:00, 12:00, 14:00, 15:00) - Capacidad 1/hora SATURADA");
+            Console.WriteLine($"      - Para probar: crear vuelo desde TEST a las 10:XX, 11:XX, 12:XX, 14:XX, 15:XX → DEBE FALLAR");
+            Console.WriteLine($"      - Horarios libres en TEST: 13:00, 16:00+");
+            Console.WriteLine($"      - {vuelos.Count(v => v.HoraLlegada < v.HoraSalida)} vuelos nocturnos (cruzan medianoche)");
+            Console.WriteLine($"      - Aeronaves: HI-1001RD (Equipo Alpha), HI-1002RD (Equipo Bravo)");
         }
-
         private static async Task SeedAsientosAsync(AppDbContext context)
         {
             // ⬅️ CAMBIO: Ahora los asientos pertenecen a AERONAVES, no a VUELOS
@@ -1051,6 +1313,65 @@ var vuelos = await context.Vuelos
 
             var rutas = new List<Ruta>();
 
+            // ========== RUTAS DESDE AEROPUERTO TEST (Para validaciones) ==========
+            // Rutas desde TEST hacia TODOS los aeropuertos
+            rutas.AddRange(new[]
+            {
+                // Nacionales RD
+                new Ruta { OrigenCodigo = "TEST", DestinoCodigo = "SDQ", DuracionMinutos = 30, DistanciaKm = 50 },
+                new Ruta { OrigenCodigo = "TEST", DestinoCodigo = "PUJ", DuracionMinutos = 35, DistanciaKm = 60 },
+                new Ruta { OrigenCodigo = "TEST", DestinoCodigo = "STI", DuracionMinutos = 25, DistanciaKm = 45 },
+                new Ruta { OrigenCodigo = "TEST", DestinoCodigo = "POP", DuracionMinutos = 30, DistanciaKm = 55 },
+                new Ruta { OrigenCodigo = "TEST", DestinoCodigo = "LRM", DuracionMinutos = 20, DistanciaKm = 40 },
+                
+                // Estados Unidos
+                new Ruta { OrigenCodigo = "TEST", DestinoCodigo = "JFK", DuracionMinutos = 255, DistanciaKm = 2540 },
+                new Ruta { OrigenCodigo = "TEST", DestinoCodigo = "MIA", DuracionMinutos = 150, DistanciaKm = 1350 },
+                new Ruta { OrigenCodigo = "TEST", DestinoCodigo = "EWR", DuracionMinutos = 260, DistanciaKm = 2500 },
+                new Ruta { OrigenCodigo = "TEST", DestinoCodigo = "FLL", DuracionMinutos = 155, DistanciaKm = 1350 },
+                new Ruta { OrigenCodigo = "TEST", DestinoCodigo = "ATL", DuracionMinutos = 200, DistanciaKm = 2050 },
+                
+                // Europa
+                new Ruta { OrigenCodigo = "TEST", DestinoCodigo = "MAD", DuracionMinutos = 540, DistanciaKm = 6900 },
+                new Ruta { OrigenCodigo = "TEST", DestinoCodigo = "BCN", DuracionMinutos = 570, DistanciaKm = 7100 },
+                new Ruta { OrigenCodigo = "TEST", DestinoCodigo = "CDG", DuracionMinutos = 555, DistanciaKm = 7050 },
+                
+                // Latinoamérica
+                new Ruta { OrigenCodigo = "TEST", DestinoCodigo = "CUN", DuracionMinutos = 180, DistanciaKm = 1750 },
+                new Ruta { OrigenCodigo = "TEST", DestinoCodigo = "PTY", DuracionMinutos = 195, DistanciaKm = 1900 },
+                new Ruta { OrigenCodigo = "TEST", DestinoCodigo = "BOG", DuracionMinutos = 210, DistanciaKm = 1950 },
+                new Ruta { OrigenCodigo = "TEST", DestinoCodigo = "LIM", DuracionMinutos = 330, DistanciaKm = 3600 },
+            });
+
+            // Rutas HACIA TEST desde todos los aeropuertos (para vuelos de regreso)
+            rutas.AddRange(new[]
+            {
+                // Nacionales RD
+                new Ruta { OrigenCodigo = "SDQ", DestinoCodigo = "TEST", DuracionMinutos = 30, DistanciaKm = 50 },
+                new Ruta { OrigenCodigo = "PUJ", DestinoCodigo = "TEST", DuracionMinutos = 35, DistanciaKm = 60 },
+                new Ruta { OrigenCodigo = "STI", DestinoCodigo = "TEST", DuracionMinutos = 25, DistanciaKm = 45 },
+                new Ruta { OrigenCodigo = "POP", DestinoCodigo = "TEST", DuracionMinutos = 30, DistanciaKm = 55 },
+                new Ruta { OrigenCodigo = "LRM", DestinoCodigo = "TEST", DuracionMinutos = 20, DistanciaKm = 40 },
+                
+                // Estados Unidos
+                new Ruta { OrigenCodigo = "JFK", DestinoCodigo = "TEST", DuracionMinutos = 255, DistanciaKm = 2540 },
+                new Ruta { OrigenCodigo = "MIA", DestinoCodigo = "TEST", DuracionMinutos = 150, DistanciaKm = 1350 },
+                new Ruta { OrigenCodigo = "EWR", DestinoCodigo = "TEST", DuracionMinutos = 260, DistanciaKm = 2500 },
+                new Ruta { OrigenCodigo = "FLL", DestinoCodigo = "TEST", DuracionMinutos = 155, DistanciaKm = 1350 },
+                new Ruta { OrigenCodigo = "ATL", DestinoCodigo = "TEST", DuracionMinutos = 200, DistanciaKm = 2050 },
+                
+                // Europa
+                new Ruta { OrigenCodigo = "MAD", DestinoCodigo = "TEST", DuracionMinutos = 540, DistanciaKm = 6900 },
+                new Ruta { OrigenCodigo = "BCN", DestinoCodigo = "TEST", DuracionMinutos = 570, DistanciaKm = 7100 },
+                new Ruta { OrigenCodigo = "CDG", DestinoCodigo = "TEST", DuracionMinutos = 555, DistanciaKm = 7050 },
+                
+                // Latinoamérica
+                new Ruta { OrigenCodigo = "CUN", DestinoCodigo = "TEST", DuracionMinutos = 180, DistanciaKm = 1750 },
+                new Ruta { OrigenCodigo = "PTY", DestinoCodigo = "TEST", DuracionMinutos = 195, DistanciaKm = 1900 },
+                new Ruta { OrigenCodigo = "BOG", DestinoCodigo = "TEST", DuracionMinutos = 210, DistanciaKm = 1950 },
+                new Ruta { OrigenCodigo = "LIM", DestinoCodigo = "TEST", DuracionMinutos = 330, DistanciaKm = 3600 },
+            });
+
             // ========== RUTAS DESDE REPÚBLICA DOMINICANA ==========
             
             // Desde Santo Domingo (SDQ)
@@ -1182,11 +1503,11 @@ var vuelos = await context.Vuelos
                 new Ruta { OrigenCodigo = "MAD", DestinoCodigo = "PUJ", DuracionMinutos = 555, DistanciaKm = 6950 },
                 new Ruta { OrigenCodigo = "MAD", DestinoCodigo = "JFK", DuracionMinutos = 450, DistanciaKm = 5760 },
                 new Ruta { OrigenCodigo = "MAD", DestinoCodigo = "MIA", DuracionMinutos = 540, DistanciaKm = 7150 },
-                new Ruta { OrigenCodigo = "MAD", DestinoCodigo = "BCN", DuracionMinutos = 75, DistanciaKm = 620 },    // 1h 15m
-                new Ruta { OrigenCodigo = "MAD", DestinoCodigo = "CDG", DuracionMinutos = 120, DistanciaKm = 1050 },  // 2h
-                new Ruta { OrigenCodigo = "MAD", DestinoCodigo = "CUN", DuracionMinutos = 660, DistanciaKm = 8850 },  // 11h
-                new Ruta { OrigenCodigo = "MAD", DestinoCodigo = "BOG", DuracionMinutos = 630, DistanciaKm = 8420 },  // 10h 30m
-                new Ruta { OrigenCodigo = "MAD", DestinoCodigo = "LIM", DuracionMinutos = 720, DistanciaKm = 9900 },  // 12h
+                new Ruta { OrigenCodigo = "MAD", DestinoCodigo = "BCN", DuracionMinutos = 75, DistanciaKm = 620 },
+                new Ruta { OrigenCodigo = "MAD", DestinoCodigo = "CDG", DuracionMinutos = 120, DistanciaKm = 1050 },
+                new Ruta { OrigenCodigo = "MAD", DestinoCodigo = "CUN", DuracionMinutos = 660, DistanciaKm = 8850 },
+                new Ruta { OrigenCodigo = "MAD", DestinoCodigo = "BOG", DuracionMinutos = 630, DistanciaKm = 8420 },
+                new Ruta { OrigenCodigo = "MAD", DestinoCodigo = "LIM", DuracionMinutos = 720, DistanciaKm = 9900 },
             });
 
             // Desde Barcelona (BCN)
@@ -1217,7 +1538,7 @@ var vuelos = await context.Vuelos
                 new Ruta { OrigenCodigo = "CUN", DestinoCodigo = "PUJ", DuracionMinutos = 195, DistanciaKm = 1800 },
                 new Ruta { OrigenCodigo = "CUN", DestinoCodigo = "MIA", DuracionMinutos = 90, DistanciaKm = 850 },
                 new Ruta { OrigenCodigo = "CUN", DestinoCodigo = "JFK", DuracionMinutos = 225, DistanciaKm = 2100 },
-                new Ruta { OrigenCodigo = "CUN", DestinoCodigo = "ATL", DuracionMinutos = 165, DistanciaKm = 1550 },
+                new Ruta { OrigenCodigo = "CUN", DestinoCodigo = "ATL", DuracionMinutos = 165, DistanciaKm = 1550 },  // 2h 45m
             });
 
             // Desde Panamá (PTY)

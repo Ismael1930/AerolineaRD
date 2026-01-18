@@ -80,6 +80,60 @@ namespace AerolineaRD.Controllers
         }
 
         /// <summary>
+        /// Obtiene las horas disponibles para crear un vuelo en una fecha específica
+        /// Considera la capacidad del aeropuerto de origen y los vuelos ya programados
+        /// </summary>
+        /// <param name="origen">Código del aeropuerto de origen (ej: TEST)</param>
+        /// <param name="destino">Código del aeropuerto de destino (ej: SDQ)</param>
+        /// <param name="fecha">Fecha del vuelo en formato yyyy-MM-dd</param>
+        /// <example>
+        /// GET /api/Ruta/horas-disponibles?origen=TEST&amp;destino=SDQ&amp;fecha=2026-01-19
+        /// </example>
+        [HttpGet("horas-disponibles")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ObtenerHorasDisponibles(
+            [FromQuery] string origen,
+            [FromQuery] string destino,
+            [FromQuery] DateTime fecha)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(origen) || string.IsNullOrWhiteSpace(destino))
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = "Debe especificar origen y destino"
+                    });
+                }
+
+                if (fecha.Date < DateTime.Today)
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = "La fecha no puede ser anterior a hoy"
+                    });
+                }
+
+                var resultado = await _rutaService.ObtenerHorasDisponiblesAsync(
+                    origen.ToUpper(),
+                    destino.ToUpper(),
+                    fecha);
+
+                return Ok(new
+                {
+                    success = true,
+                    data = resultado
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
         /// Obtiene todas las rutas activas
         /// </summary>
         [HttpGet]

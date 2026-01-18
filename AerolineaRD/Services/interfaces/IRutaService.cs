@@ -18,6 +18,11 @@ namespace AerolineaRD.Services.interfaces
         Task<RutaDuracionDto> ObtenerInfoRutaCompletaAsync(string origenCodigo, string destinoCodigo, TimeSpan? horaSalida = null);
 
         /// <summary>
+        /// Obtiene la duración, hora de llegada calculada y precio sugerido
+        /// </summary>
+        Task<HorasDisponiblesDto> ObtenerHorasDisponiblesAsync(string origenCodigo, string destinoCodigo, DateTime fecha);
+
+        /// <summary>
         /// Obtiene todas las rutas activas
         /// </summary>
         Task<List<RutaDto>> ObtenerTodasLasRutasAsync();

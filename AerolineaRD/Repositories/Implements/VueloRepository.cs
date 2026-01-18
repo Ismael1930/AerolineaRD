@@ -233,6 +233,41 @@ namespace AerolineaRD.Repositories.Implements
             return totalAsientos - asientosReservados;
         }
 
+        public async Task<List<Vuelo>> ObtenerVuelosPorOrigenYFechaAsync(string origenCodigo, DateTime fecha)
+        {
+            var fechaInicio = fecha.Date;
+            var fechaFin = fecha.Date.AddDays(1);
+
+            // Traer a memoria primero sin ordenar por TimeSpan
+            var vuelos = await _context.Vuelos
+                .AsNoTracking()
+                .Where(v => v.OrigenCodigo == origenCodigo 
+                         && v.Fecha >= fechaInicio 
+                         && v.Fecha < fechaFin
+                         && v.Estado != "Cancelado")
+                .ToListAsync();
+
+            // Ordenar en memoria (LINQ to Objects sí soporta TimeSpan)
+            return vuelos.OrderBy(v => v.HoraSalida).ToList();
+        }
+
+        public async Task<int> ContarVuelosEnHoraAsync(string origenCodigo, DateTime fecha, int hora)
+        {
+            var fechaInicio = fecha.Date;
+            var fechaFin = fecha.Date.AddDays(1);
+            var horaInicio = new TimeSpan(hora, 0, 0);
+            var horaFin = horaInicio.Add(TimeSpan.FromHours(1));
+
+            var vuelos = await _context.Vuelos
+                .Where(v => v.OrigenCodigo == origenCodigo 
+                         && v.Fecha >= fechaInicio 
+                         && v.Fecha < fechaFin
+                         && v.Estado != "Cancelado")
+                .ToListAsync();
+
+            return vuelos.Count(v => v.HoraSalida >= horaInicio && v.HoraSalida < horaFin);
+        }
+
         /// <summary>
         /// Normaliza el nombre de la clase para comparación
         /// "Primera Clase" -> "primera"

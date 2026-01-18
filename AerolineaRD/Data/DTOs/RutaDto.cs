@@ -49,6 +49,16 @@ namespace AerolineaRD.Data.DTOs
         public TimeSpan? HoraLlegadaCalculada { get; set; }
         public string? HoraLlegadaFormato { get; set; } // Ej: "2:30 PM"
         
+        /// <summary>
+        /// Indica si el vuelo cruza la medianoche (llega al día siguiente)
+        /// </summary>
+        public bool CruzaMedianoche { get; set; }
+        
+        /// <summary>
+        /// Mensaje informativo si cruza medianoche
+        /// </summary>
+        public string? NotaMedianoche { get; set; }
+        
         // ? NUEVO: Precio sugerido basado en duración
         public decimal? PrecioSugerido { get; set; }
         public string? PrecioFormato { get; set; } // Ej: "$450.00"
@@ -95,5 +105,97 @@ namespace AerolineaRD.Data.DTOs
         public int? DuracionMinutos { get; set; }
         public int? DistanciaKm { get; set; }
         public bool? Activa { get; set; }
+    }
+
+    /// <summary>
+    /// DTO para la respuesta de horas disponibles en un aeropuerto
+    /// </summary>
+    public class HorasDisponiblesDto
+    {
+        public string OrigenCodigo { get; set; } = null!;
+        public string DestinoCodigo { get; set; } = null!;
+        public DateTime Fecha { get; set; }
+        public string FechaFormato { get; set; } = null!;
+        
+        /// <summary>
+        /// Lista de horas disponibles para crear vuelos
+        /// </summary>
+        public List<HoraDisponibleDto> HorasDisponibles { get; set; } = new();
+        
+        /// <summary>
+        /// Lista de horas ocupadas (para referencia)
+        /// </summary>
+        public List<HoraOcupadaDto> HorasOcupadas { get; set; } = new();
+        
+        /// <summary>
+        /// Capacidad máxima del aeropuerto por hora
+        /// </summary>
+        public int CapacidadPorHora { get; set; }
+        
+        /// <summary>
+        /// Nombre del aeropuerto de origen
+        /// </summary>
+        public string? OrigenNombre { get; set; }
+        
+        /// <summary>
+        /// Información de la ruta (duración, precio, etc)
+        /// </summary>
+        public RutaDuracionDto? InfoRuta { get; set; }
+        
+        public string? Mensaje { get; set; }
+    }
+
+    /// <summary>
+    /// DTO para una hora disponible
+    /// </summary>
+    public class HoraDisponibleDto
+    {
+        /// <summary>
+        /// Hora en formato TimeSpan (para cálculos)
+        /// </summary>
+        public TimeSpan Hora { get; set; }
+        
+        /// <summary>
+        /// Hora formateada para mostrar (ej: "10:00 AM")
+        /// </summary>
+        public string HoraFormato { get; set; } = null!;
+        
+        /// <summary>
+        /// Valor para el input (ej: "10:00")
+        /// </summary>
+        public string Valor { get; set; } = null!;
+        
+        /// <summary>
+        /// Hora de llegada calculada si se selecciona esta hora
+        /// </summary>
+        public TimeSpan? HoraLlegada { get; set; }
+        
+        /// <summary>
+        /// Hora de llegada formateada
+        /// </summary>
+        public string? HoraLlegadaFormato { get; set; }
+        
+        /// <summary>
+        /// Indica si el vuelo cruza medianoche
+        /// </summary>
+        public bool CruzaMedianoche { get; set; }
+        
+        /// <summary>
+        /// Espacios disponibles en esta hora (capacidad - ocupados)
+        /// </summary>
+        public int EspaciosDisponibles { get; set; }
+    }
+
+    /// <summary>
+    /// DTO para una hora ocupada
+    /// </summary>
+    public class HoraOcupadaDto
+    {
+        public TimeSpan Hora { get; set; }
+        public string HoraFormato { get; set; } = null!;
+        public int VuelosProgramados { get; set; }
+        public int CapacidadMaxima { get; set; }
+        public bool Saturada { get; set; }
+        public List<string>? VuelosEnHora { get; set; } // Números de vuelo
     }
 }

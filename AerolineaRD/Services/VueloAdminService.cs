@@ -36,6 +36,76 @@ namespace AerolineaRD.Services
         {
             var errores = new List<ValidationError>();
 
+            // ✅ VALIDACIÓN 0: Validar que la fecha no sea del pasado
+            if (dto.Fecha.Date < DateTime.Today)
+            {
+                errores.Add(ValidationError.Create(
+                    campo: "Fecha",
+                    tipo: ValidationErrorType.FechaInvalida,
+                    mensaje: $"No se pueden programar vuelos en fechas pasadas. La fecha {dto.Fecha:dd/MM/yyyy} ya pasó.",
+                    detalles: new { fechaSolicitada = dto.Fecha, fechaActual = DateTime.Today }
+                ));
+            }
+
+            // ✅ VALIDACIÓN 0.1: Validar duración del vuelo (máximo 18 horas = 1080 minutos)
+            const int DURACION_MAXIMA_MINUTOS = 1080; // 18 horas (vuelos ultra-largos como Singapore-NY)
+            const int DURACION_MINIMA_MINUTOS = 15;   // Mínimo 15 minutos para vuelos muy cortos
+
+            // Calcular duración basada en horas de salida/llegada
+            int duracionCalculada;
+            bool cruzaMedianoche = dto.HoraLlegada < dto.HoraSalida;
+
+            if (cruzaMedianoche)
+            {
+                // Vuelo nocturno: llegada al día siguiente
+                duracionCalculada = (int)(TimeSpan.FromHours(24) - dto.HoraSalida + dto.HoraLlegada).TotalMinutes;
+            }
+            else
+            {
+                duracionCalculada = (int)(dto.HoraLlegada - dto.HoraSalida).TotalMinutes;
+            }
+
+            if (duracionCalculada < DURACION_MINIMA_MINUTOS)
+            {
+                errores.Add(ValidationError.Create(
+                    campo: "HoraLlegada",
+                    tipo: ValidationErrorType.DuracionInvalida,
+                    mensaje: $"La duración del vuelo ({duracionCalculada} minutos) es muy corta. " +
+                             $"El mínimo permitido es {DURACION_MINIMA_MINUTOS} minutos.",
+                    detalles: new
+                    {
+                        duracionCalculada,
+                        duracionMinima = DURACION_MINIMA_MINUTOS,
+                        horaSalida = dto.HoraSalida,
+                        horaLlegada = dto.HoraLlegada
+                    }
+                ));
+            }
+            else if (duracionCalculada > DURACION_MAXIMA_MINUTOS)
+            {
+                errores.Add(ValidationError.Create(
+                    campo: "HoraLlegada",
+                    tipo: ValidationErrorType.DuracionInvalida,
+                    mensaje: $"La duración del vuelo ({duracionCalculada} minutos ≈ {duracionCalculada / 60}h {duracionCalculada % 60}m) excede el máximo permitido. " +
+                             $"Ningún vuelo comercial dura más de {DURACION_MAXIMA_MINUTOS / 60} horas. " +
+                             $"Verifique las horas de salida ({dto.HoraSalida:hh\\:mm}) y llegada ({dto.HoraLlegada:hh\\:mm}).",
+                    detalles: new
+                    {
+                        duracionCalculada,
+                        duracionMaxima = DURACION_MAXIMA_MINUTOS,
+                        horaSalida = dto.HoraSalida,
+                        horaLlegada = dto.HoraLlegada,
+                        cruzaMedianoche
+                    }
+                ));
+            }
+
+            // Si hay errores de fecha/duración, no continuar
+            if (errores.Any())
+            {
+                return OperationResult<VueloDetalleDto>.ValidationFailure(errores);
+            }
+
             // ✅ VALIDACIÓN 1: Verificar que la aeronave existe, está operativa y tiene equipo asignado
             if (!string.IsNullOrEmpty(dto.Matricula))
             {
@@ -244,7 +314,7 @@ namespace AerolineaRD.Services
             // ? Todo válido, crear el vuelo
             var vuelo = _mapper.Map<Vuelo>(dto);
             vuelo.Estado = "Programado";
-            
+
             // ✅ NUEVO: Siempre establecer las 3 clases disponibles
             vuelo.ClasesDisponibles = "Economica,Ejecutiva,Primera";
 
@@ -408,21 +478,21 @@ Precio = vuelo.PrecioBase + 200m
  }
    };
 
-      // ? Agregar información de la aeronave si existe
-if (vuelo.Aeronave != null)
-          {
-         vueloDto.Aeronave = new AeronaveInfoDto
-       {
-          Matricula = vuelo.Aeronave.Matricula,
-         Modelo = vuelo.Aeronave.Modelo,
-           Capacidad = vuelo.Aeronave.Capacidad,
-    Estado = vuelo.Aeronave.Estado,
-      TiempoPreparacionMinutos = vuelo.Aeronave.TiempoPreparacionMinutos,
-    TotalAsientos = vuelo.Aeronave.Asientos?.Count ?? 0
-         };
+            // ? Agregar información de la aeronave si existe
+            if (vuelo.Aeronave != null)
+            {
+                vueloDto.Aeronave = new AeronaveInfoDto
+                {
+                    Matricula = vuelo.Aeronave.Matricula,
+                    Modelo = vuelo.Aeronave.Modelo,
+                    Capacidad = vuelo.Aeronave.Capacidad,
+                    Estado = vuelo.Aeronave.Estado,
+                    TiempoPreparacionMinutos = vuelo.Aeronave.TiempoPreparacionMinutos,
+                    TotalAsientos = vuelo.Aeronave.Asientos?.Count ?? 0
+                };
             }
 
-          return vueloDto;
+            return vueloDto;
         }
 
         public async Task<OperationResult<VueloDetalleDto>> ActualizarVueloAsync(ActualizarVueloDto dto)
@@ -568,7 +638,7 @@ if (vuelo.Aeronave != null)
             var vueloDto = _mapper.Map<VueloDetalleDto>(vueloActualizado);
 
             // ✅ Agregar información de las 3 clases disponibles con sus precios
-     vueloDto.ClasesDisponibles = new List<ClaseDisponibilidadDto>
+            vueloDto.ClasesDisponibles = new List<ClaseDisponibilidadDto>
      {
      new ClaseDisponibilidadDto
         {
@@ -590,18 +660,18 @@ Clase = "Primera",
      }
    };
 
-   if (vueloActualizado?.Aeronave != null)
-   {
-     vueloDto.Aeronave = new AeronaveInfoDto
- {
-    Matricula = vueloActualizado.Aeronave.Matricula,
- Modelo = vueloActualizado.Aeronave.Modelo,
-    Capacidad = vueloActualizado.Aeronave.Capacidad,
-  Estado = vueloActualizado.Aeronave.Estado,
-       TiempoPreparacionMinutos = vueloActualizado.Aeronave.TiempoPreparacionMinutos,
-  TotalAsientos = vueloActualizado.Aeronave.Asientos?.Count ?? 0
-    };
-         }
+            if (vueloActualizado?.Aeronave != null)
+            {
+                vueloDto.Aeronave = new AeronaveInfoDto
+                {
+                    Matricula = vueloActualizado.Aeronave.Matricula,
+                    Modelo = vueloActualizado.Aeronave.Modelo,
+                    Capacidad = vueloActualizado.Aeronave.Capacidad,
+                    Estado = vueloActualizado.Aeronave.Estado,
+                    TiempoPreparacionMinutos = vueloActualizado.Aeronave.TiempoPreparacionMinutos,
+                    TotalAsientos = vueloActualizado.Aeronave.Asientos?.Count ?? 0
+                };
+            }
 
             return OperationResult<VueloDetalleDto>.SuccessResult(
                 vueloDto,
@@ -639,16 +709,16 @@ Clase = "Primera",
             var vuelos = await _vueloRepository.GetAllAsync();
             var vuelosConDetalles = new List<VueloDetalleDto>();
 
-        foreach (var vuelo in vuelos)
- {
-      var vueloDetallado = await _vueloRepository.ObtenerVueloConDetallesAsync(vuelo.Id);
+            foreach (var vuelo in vuelos)
+            {
+                var vueloDetallado = await _vueloRepository.ObtenerVueloConDetallesAsync(vuelo.Id);
 
- if (vueloDetallado != null)
-     {
-        var vueloDto = _mapper.Map<VueloDetalleDto>(vueloDetallado);
+                if (vueloDetallado != null)
+                {
+                    var vueloDto = _mapper.Map<VueloDetalleDto>(vueloDetallado);
 
-      // ✅ Agregar información de las 3 clases disponibles con sus precios
-            vueloDto.ClasesDisponibles = new List<ClaseDisponibilidadDto>
+                    // ✅ Agregar información de las 3 clases disponibles con sus precios
+                    vueloDto.ClasesDisponibles = new List<ClaseDisponibilidadDto>
         {
  new ClaseDisponibilidadDto
         {
@@ -670,27 +740,27 @@ Clase = "Primera",
      }
          };
 
-  if (vueloDetallado.Aeronave != null)
-    {
-   vueloDto.Aeronave = new AeronaveInfoDto
-       {
-    Matricula = vueloDetallado.Aeronave.Matricula,
-            Modelo = vueloDetallado.Aeronave.Modelo,
-              Capacidad = vueloDetallado.Aeronave.Capacidad,
-        Estado = vueloDetallado.Aeronave.Estado,
-      TiempoPreparacionMinutos = vueloDetallado.Aeronave.TiempoPreparacionMinutos,
-         TotalAsientos = vueloDetallado.Aeronave.Asientos?.Count ?? 0
-         };
-         }
+                    if (vueloDetallado.Aeronave != null)
+                    {
+                        vueloDto.Aeronave = new AeronaveInfoDto
+                        {
+                            Matricula = vueloDetallado.Aeronave.Matricula,
+                            Modelo = vueloDetallado.Aeronave.Modelo,
+                            Capacidad = vueloDetallado.Aeronave.Capacidad,
+                            Estado = vueloDetallado.Aeronave.Estado,
+                            TiempoPreparacionMinutos = vueloDetallado.Aeronave.TiempoPreparacionMinutos,
+                            TotalAsientos = vueloDetallado.Aeronave.Asientos?.Count ?? 0
+                        };
+                    }
 
-       vuelosConDetalles.Add(vueloDto);
-     }
-     }
+                    vuelosConDetalles.Add(vueloDto);
+                }
+            }
 
- return vuelosConDetalles
-     .OrderBy(v => v.Fecha)
-           .ThenBy(v => v.HoraSalida)
-         .ToList();
-  }
+            return vuelosConDetalles
+                .OrderBy(v => v.Fecha)
+                      .ThenBy(v => v.HoraSalida)
+                    .ToList();
+        }
     }
 }
