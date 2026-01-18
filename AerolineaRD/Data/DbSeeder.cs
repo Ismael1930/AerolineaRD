@@ -371,7 +371,16 @@ TiempoDescansoMinutos = 480,
 new Personal { Nombre = "Sobrecargo Gabriela", Apellido = "Luna", Rol = "Sobrecargo", Licencia = "FA-S009", TiempoDescansoMinutos = 480, Estado = "Disponible", FechaContratacion = DateTime.Today.AddYears(-2), Activo = true },
       new Personal { Nombre = "Sobrecargo Manuel", Apellido = "Cruz", Rol = "Sobrecargo", Licencia = "FA-S010", TiempoDescansoMinutos = 480, Estado = "Disponible", FechaContratacion = DateTime.Today.AddYears(-5), Activo = true },
     new Personal { Nombre = "Sobrecargo Victoria", Apellido = "Pardo", Rol = "Sobrecargo", Licencia = "FA-S011", TiempoDescansoMinutos = 480, Estado = "Disponible", FechaContratacion = DateTime.Today.AddYears(-1), Activo = true },
-    new Personal { Nombre = "Sobrecargo Andrés", Apellido = "Campos", Rol = "Sobrecargo", Licencia = "FA-S012", TiempoDescansoMinutos = 480, Estado = "Disponible", FechaContratacion = DateTime.Today.AddYears(-1), Activo = true }
+    new Personal { Nombre = "Sobrecargo Andrés", Apellido = "Campos", Rol = "Sobrecargo", Licencia = "FA-S012", TiempoDescansoMinutos = 480, Estado = "Disponible", FechaContratacion = DateTime.Today.AddYears(-1), Activo = true },
+    // ✅ NUEVO: Más sobrecargos para equipos Delta y Echo
+    new Personal { Nombre = "Sobrecargo Carmen", Apellido = "Soto", Rol = "Sobrecargo", Licencia = "FA-S013", TiempoDescansoMinutos = 480, Estado = "Disponible", FechaContratacion = DateTime.Today.AddYears(-2), Activo = true },
+    new Personal { Nombre = "Sobrecargo Pablo", Apellido = "Díaz", Rol = "Sobrecargo", Licencia = "FA-S014", TiempoDescansoMinutos = 480, Estado = "Disponible", FechaContratacion = DateTime.Today.AddYears(-3), Activo = true },
+    new Personal { Nombre = "Sobrecargo Elena", Apellido = "Torres", Rol = "Sobrecargo", Licencia = "FA-S015", TiempoDescansoMinutos = 480, Estado = "Disponible", FechaContratacion = DateTime.Today.AddYears(-2), Activo = true },
+    new Personal { Nombre = "Sobrecargo Ricardo", Apellido = "Flores", Rol = "Sobrecargo", Licencia = "FA-S016", TiempoDescansoMinutos = 480, Estado = "Disponible", FechaContratacion = DateTime.Today.AddYears(-1), Activo = true },
+    new Personal { Nombre = "Sobrecargo Isabel", Apellido = "Ruiz", Rol = "Sobrecargo", Licencia = "FA-S017", TiempoDescansoMinutos = 480, Estado = "Disponible", FechaContratacion = DateTime.Today.AddYears(-2), Activo = true },
+    new Personal { Nombre = "Sobrecargo Diego", Apellido = "Vargas", Rol = "Sobrecargo", Licencia = "FA-S018", TiempoDescansoMinutos = 480, Estado = "Disponible", FechaContratacion = DateTime.Today.AddYears(-3), Activo = true },
+    new Personal { Nombre = "Sobrecargo Marta", Apellido = "López", Rol = "Sobrecargo", Licencia = "FA-S019", TiempoDescansoMinutos = 480, Estado = "Disponible", FechaContratacion = DateTime.Today.AddYears(-1), Activo = true },
+    new Personal { Nombre = "Sobrecargo Sergio", Apellido = "Martín", Rol = "Sobrecargo", Licencia = "FA-S020", TiempoDescansoMinutos = 480, Estado = "Disponible", FechaContratacion = DateTime.Today.AddYears(-2), Activo = true }
   });
 
             await context.Personal.AddRangeAsync(personal);
@@ -403,7 +412,24 @@ Nombre = "Equipo Charlie",
    Estado = "Incompleto", // ✅ Este NO tiene miembros asignados (para demostrar validación)
        FechaCreacion = DateTime.Today.AddMonths(-1),
         Activo = true
-  }
+  },
+    // ✅ NUEVO: Equipos adicionales para más aeronaves
+    new Equipo
+    {
+        Nombre = "Equipo Delta",
+        Codigo = "DELTA-01",
+        Estado = "Disponible",
+        FechaCreacion = DateTime.Today.AddMonths(-4),
+        Activo = true
+    },
+    new Equipo
+    {
+        Nombre = "Equipo Echo",
+        Codigo = "ECHO-01",
+        Estado = "Disponible",
+        FechaCreacion = DateTime.Today.AddMonths(-3),
+        Activo = true
+    }
         };
 
             await context.Equipos.AddRangeAsync(equipos);
@@ -441,6 +467,30 @@ new EquipoPersonal { IdEquipo = equipoBravo.Id, IdPersonal = personal[14].Id, Fe
 
             // ❌ EQUIPO CHARLIE no tiene miembros (para demostrar validación de equipo incompleto)
 
+            // ✅ EQUIPO DELTA (Completo y válido)
+            var equipoDelta = equipos[3];
+            equiposPersonal.AddRange(new[]
+            {
+                new EquipoPersonal { IdEquipo = equipoDelta.Id, IdPersonal = personal[2].Id, FechaAsignacion = DateTime.Today.AddMonths(-4), Activo = true }, // Piloto 3
+                new EquipoPersonal { IdEquipo = equipoDelta.Id, IdPersonal = personal[6].Id, FechaAsignacion = DateTime.Today.AddMonths(-4), Activo = true }, // Copiloto 3
+                new EquipoPersonal { IdEquipo = equipoDelta.Id, IdPersonal = personal[19].Id, FechaAsignacion = DateTime.Today.AddMonths(-4), Activo = true }, // Sobrecargo 13
+                new EquipoPersonal { IdEquipo = equipoDelta.Id, IdPersonal = personal[20].Id, FechaAsignacion = DateTime.Today.AddMonths(-4), Activo = true }, // Sobrecargo 14
+                new EquipoPersonal { IdEquipo = equipoDelta.Id, IdPersonal = personal[21].Id, FechaAsignacion = DateTime.Today.AddMonths(-4), Activo = true }, // Sobrecargo 15
+                new EquipoPersonal { IdEquipo = equipoDelta.Id, IdPersonal = personal[22].Id, FechaAsignacion = DateTime.Today.AddMonths(-4), Activo = true }  // Sobrecargo 16
+            });
+
+            // ✅ EQUIPO ECHO (Completo y válido)
+            var equipoEcho = equipos[4];
+            equiposPersonal.AddRange(new[]
+            {
+                new EquipoPersonal { IdEquipo = equipoEcho.Id, IdPersonal = personal[3].Id, FechaAsignacion = DateTime.Today.AddMonths(-3), Activo = true }, // Piloto 4
+                new EquipoPersonal { IdEquipo = equipoEcho.Id, IdPersonal = personal[7].Id, FechaAsignacion = DateTime.Today.AddMonths(-3), Activo = true }, // Copiloto 4
+                new EquipoPersonal { IdEquipo = equipoEcho.Id, IdPersonal = personal[23].Id, FechaAsignacion = DateTime.Today.AddMonths(-3), Activo = true }, // Sobrecargo 17
+                new EquipoPersonal { IdEquipo = equipoEcho.Id, IdPersonal = personal[24].Id, FechaAsignacion = DateTime.Today.AddMonths(-3), Activo = true }, // Sobrecargo 18
+                new EquipoPersonal { IdEquipo = equipoEcho.Id, IdPersonal = personal[25].Id, FechaAsignacion = DateTime.Today.AddMonths(-3), Activo = true }, // Sobrecargo 19
+                new EquipoPersonal { IdEquipo = equipoEcho.Id, IdPersonal = personal[26].Id, FechaAsignacion = DateTime.Today.AddMonths(-3), Activo = true }  // Sobrecargo 20
+            });
+
             await context.EquipoPersonal.AddRangeAsync(equiposPersonal);
             await context.SaveChangesAsync();
 
@@ -462,7 +512,25 @@ new AsignacionEquipoAeronave
 FechaAsignacion = DateTime.Today.AddMonths(-5),
   Activa = true,
          Observaciones = "Asignación inicial - Equipo Bravo certificado en Boeing 737-800"
-}
+},
+    // ✅ NUEVO: Asignar Equipo Delta a HI-1003RD
+    new AsignacionEquipoAeronave
+    {
+        IdEquipo = equipoDelta.Id,
+        Matricula = "HI-1003RD",
+        FechaAsignacion = DateTime.Today.AddMonths(-4),
+        Activa = true,
+        Observaciones = "Equipo Delta asignado a Airbus A320"
+    },
+    // ✅ NUEVO: Asignar Equipo Echo a HI-1004RD
+    new AsignacionEquipoAeronave
+    {
+        IdEquipo = equipoEcho.Id,
+        Matricula = "HI-1004RD",
+        FechaAsignacion = DateTime.Today.AddMonths(-3),
+        Activa = true,
+        Observaciones = "Equipo Echo asignado a Airbus A320"
+    }
   };
 
             await context.AsignacionesEquipoAeronave.AddRangeAsync(asignaciones);
@@ -1340,7 +1408,7 @@ var vuelos = await context.Vuelos
                 new Ruta { OrigenCodigo = "TEST", DestinoCodigo = "CUN", DuracionMinutos = 180, DistanciaKm = 1750 },
                 new Ruta { OrigenCodigo = "TEST", DestinoCodigo = "PTY", DuracionMinutos = 195, DistanciaKm = 1900 },
                 new Ruta { OrigenCodigo = "TEST", DestinoCodigo = "BOG", DuracionMinutos = 210, DistanciaKm = 1950 },
-                new Ruta { OrigenCodigo = "TEST", DestinoCodigo = "LIM", DuracionMinutos = 330, DistanciaKm = 3600 },
+                new Ruta { OrigenCodigo = "TEST", DestinoCodigo = "LIM", DuracionMinutos = 720, DistanciaKm = 9900 },
             });
 
             // Rutas HACIA TEST desde todos los aeropuertos (para vuelos de regreso)
@@ -1369,7 +1437,7 @@ var vuelos = await context.Vuelos
                 new Ruta { OrigenCodigo = "CUN", DestinoCodigo = "TEST", DuracionMinutos = 180, DistanciaKm = 1750 },
                 new Ruta { OrigenCodigo = "PTY", DestinoCodigo = "TEST", DuracionMinutos = 195, DistanciaKm = 1900 },
                 new Ruta { OrigenCodigo = "BOG", DestinoCodigo = "TEST", DuracionMinutos = 210, DistanciaKm = 1950 },
-                new Ruta { OrigenCodigo = "LIM", DestinoCodigo = "TEST", DuracionMinutos = 330, DistanciaKm = 3600 },
+                new Ruta { OrigenCodigo = "LIM", DestinoCodigo = "TEST", DuracionMinutos = 720, DistanciaKm = 9900 },
             });
 
             // ========== RUTAS DESDE REPÚBLICA DOMINICANA ==========
