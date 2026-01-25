@@ -154,6 +154,23 @@ namespace AerolineaRD.Services
                 .GroupBy(v => v.HoraSalida.Hours)
                 .ToDictionary(g => g.Key, g => g.ToList());
 
+            // ? NUEVO: Calcular hora mínima permitida si es hoy
+            var ahora = DateTime.Now;
+            var esHoy = fecha.Date == ahora.Date;
+            TimeSpan horaMinima = TimeSpan.Zero;
+            
+            if (esHoy)
+            {
+                // Agregar 2 horas de margen para preparación del vuelo
+                const int HORAS_PREPARACION = 2;
+                horaMinima = ahora.TimeOfDay.Add(TimeSpan.FromHours(HORAS_PREPARACION));
+                
+                // Redondear hacia arriba a la siguiente media hora
+                var minutosActuales = (int)horaMinima.TotalMinutes;
+                var minutosRedondeados = ((minutosActuales / 30) + 1) * 30;
+                horaMinima = TimeSpan.FromMinutes(minutosRedondeados);
+            }
+
             for (int hora = 5; hora <= 23; hora++)
             {
                 var horaTimeSpan = new TimeSpan(hora, 0, 0);
@@ -176,51 +193,70 @@ namespace AerolineaRD.Services
 
                 if (espaciosDisponibles > 0)
                 {
-                    var horaDisponible = new HoraDisponibleDto
+                    // ? NUEVO: Verificar hora en punto
+                    if (!esHoy || horaTimeSpan >= horaMinima)
                     {
-                        Hora = horaTimeSpan,
-                        HoraFormato = FormatearHora(horaTimeSpan),
-                        Valor = $"{hora:D2}:00",
-                        EspaciosDisponibles = espaciosDisponibles
-                    };
+                        var horaDisponible = new HoraDisponibleDto
+                        {
+                            Hora = horaTimeSpan,
+                            HoraFormato = FormatearHora(horaTimeSpan),
+                            Valor = $"{hora:D2}:00",
+                            EspaciosDisponibles = espaciosDisponibles
+                        };
 
-                    if (ruta != null)
-                    {
-                        var horaLlegada = CalcularHoraLlegada(horaTimeSpan, ruta.DuracionMinutos);
-                        horaDisponible.HoraLlegada = horaLlegada;
-                        horaDisponible.HoraLlegadaFormato = FormatearHora(horaLlegada);
-                        horaDisponible.CruzaMedianoche = horaLlegada < horaTimeSpan;
+                        if (ruta != null)
+                        {
+                            var horaLlegada = CalcularHoraLlegada(horaTimeSpan, ruta.DuracionMinutos);
+                            horaDisponible.HoraLlegada = horaLlegada;
+                            horaDisponible.HoraLlegadaFormato = FormatearHora(horaLlegada);
+                            horaDisponible.CruzaMedianoche = horaLlegada < horaTimeSpan;
+                        }
+
+                        resultado.HorasDisponibles.Add(horaDisponible);
                     }
 
-                    resultado.HorasDisponibles.Add(horaDisponible);
-
+                    // ? NUEVO: Verificar hora y media
                     var horaMediaTimeSpan = new TimeSpan(hora, 30, 0);
-                    var horaDisponibleMedia = new HoraDisponibleDto
+                    if (!esHoy || horaMediaTimeSpan >= horaMinima)
                     {
-                        Hora = horaMediaTimeSpan,
-                        HoraFormato = FormatearHora(horaMediaTimeSpan),
-                        Valor = $"{hora:D2}:30",
-                        EspaciosDisponibles = espaciosDisponibles
-                    };
+                        var horaDisponibleMedia = new HoraDisponibleDto
+                        {
+                            Hora = horaMediaTimeSpan,
+                            HoraFormato = FormatearHora(horaMediaTimeSpan),
+                            Valor = $"{hora:D2}:30",
+                            EspaciosDisponibles = espaciosDisponibles
+                        };
 
-                    if (ruta != null)
-                    {
-                        var horaLlegadaMedia = CalcularHoraLlegada(horaMediaTimeSpan, ruta.DuracionMinutos);
-                        horaDisponibleMedia.HoraLlegada = horaLlegadaMedia;
-                        horaDisponibleMedia.HoraLlegadaFormato = FormatearHora(horaLlegadaMedia);
-                        horaDisponibleMedia.CruzaMedianoche = horaLlegadaMedia < horaMediaTimeSpan;
+                        if (ruta != null)
+                        {
+                            var horaLlegadaMedia = CalcularHoraLlegada(horaMediaTimeSpan, ruta.DuracionMinutos);
+                            horaDisponibleMedia.HoraLlegada = horaLlegadaMedia;
+                            horaDisponibleMedia.HoraLlegadaFormato = FormatearHora(horaLlegadaMedia);
+                            horaDisponibleMedia.CruzaMedianoche = horaLlegadaMedia < horaMediaTimeSpan;
+                        }
+
+                        resultado.HorasDisponibles.Add(horaDisponibleMedia);
                     }
-
-                    resultado.HorasDisponibles.Add(horaDisponibleMedia);
                 }
             }
 
             resultado.HorasDisponibles = resultado.HorasDisponibles.OrderBy(h => h.Hora).ToList();
             resultado.HorasOcupadas = resultado.HorasOcupadas.OrderBy(h => h.Hora).ToList();
 
-            resultado.Mensaje = resultado.HorasDisponibles.Any()
-                ? $"{resultado.HorasDisponibles.Count} horarios disponibles encontrados"
-                : "No hay horarios disponibles para esta fecha. Todas las horas están saturadas.";
+            // ? NUEVO: Mensaje informativo si es hoy
+            if (esHoy && horaMinima > TimeSpan.Zero)
+            {
+                var horaMinFormateada = FormatearHora(horaMinima);
+                resultado.Mensaje = resultado.HorasDisponibles.Any()
+                    ? $"{resultado.HorasDisponibles.Count} horarios disponibles. Para vuelos de hoy, la hora mínima es {horaMinFormateada} (2 horas de preparación)."
+                    : $"No hay horarios disponibles para hoy. Los vuelos requieren al menos 2 horas de preparación (hora mínima: {horaMinFormateada}).";
+            }
+            else
+            {
+                resultado.Mensaje = resultado.HorasDisponibles.Any()
+                    ? $"{resultado.HorasDisponibles.Count} horarios disponibles encontrados"
+                    : "No hay horarios disponibles para esta fecha. Todas las horas están saturadas.";
+            }
 
             return resultado;
         }

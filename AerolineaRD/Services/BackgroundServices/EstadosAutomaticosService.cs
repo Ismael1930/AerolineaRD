@@ -70,7 +70,21 @@ var vuelosPendientes = await context.Vuelos
         foreach (var vuelo in vuelosPendientes)
          {
    var horaSalida = vuelo.Fecha.Date.Add(vuelo.HoraSalida);
-            var horaLlegada = vuelo.Fecha.Date.Add(vuelo.HoraLlegada);
+            
+            // ? CORREGIDO: Manejar vuelos que cruzan la medianoche
+            DateTime horaLlegada;
+            bool cruzaMedianoche = vuelo.HoraLlegada < vuelo.HoraSalida;
+            
+            if (cruzaMedianoche)
+            {
+                // El vuelo llega al día siguiente
+                horaLlegada = vuelo.Fecha.Date.AddDays(1).Add(vuelo.HoraLlegada);
+            }
+            else
+            {
+                horaLlegada = vuelo.Fecha.Date.Add(vuelo.HoraLlegada);
+            }
+            
      var horaCompletado = horaLlegada.AddMinutes(30);
            var estadoAnterior = vuelo.Estado;
 
@@ -90,7 +104,7 @@ var vuelosPendientes = await context.Vuelos
    if (estadoAnterior != vuelo.Estado)
          {
         _logger.LogInformation($"?? Vuelo {vuelo.NumeroVuelo} cambió de '{estadoAnterior}' a '{vuelo.Estado}' " +
-                  $"(Salida: {horaSalida:dd/MM/yyyy HH:mm}, Llegada: {horaLlegada:dd/MM/yyyy HH:mm}, Ahora: {ahora:dd/MM/yyyy HH:mm})");
+                  $"(Salida: {horaSalida:dd/MM/yyyy HH:mm}, Llegada: {horaLlegada:dd/MM/yyyy HH:mm}{(cruzaMedianoche ? " [+1 día]" : "")}, Ahora: {ahora:dd/MM/yyyy HH:mm})");
           }
             }
         }
@@ -178,8 +192,20 @@ aeronave.Estado = "En Vuelo";
 
        foreach (var vuelo in vuelosTerminados)
         {
-    var horaLlegada = vuelo.Fecha.Date.Add(vuelo.HoraLlegada);
-      _logger.LogInformation($"Procesando vuelo terminado {vuelo.NumeroVuelo} - Hora Llegada: {horaLlegada:dd/MM/yyyy HH:mm}");
+            // ? CORREGIDO: Manejar vuelos que cruzan la medianoche
+            DateTime horaLlegada;
+            bool cruzaMedianoche = vuelo.HoraLlegada < vuelo.HoraSalida;
+            
+            if (cruzaMedianoche)
+            {
+                horaLlegada = vuelo.Fecha.Date.AddDays(1).Add(vuelo.HoraLlegada);
+            }
+            else
+            {
+                horaLlegada = vuelo.Fecha.Date.Add(vuelo.HoraLlegada);
+            }
+            
+      _logger.LogInformation($"Procesando vuelo terminado {vuelo.NumeroVuelo} - Hora Llegada: {horaLlegada:dd/MM/yyyy HH:mm}{(cruzaMedianoche ? " [cruza medianoche]" : "")}");
       
  if (ahora >= horaLlegada)
   {
