@@ -110,17 +110,30 @@ namespace AerolineaRD.Data
                 await userManager.AddToRoleAsync(adminUser, "Admin");
             }
 
-            // Cliente de prueba
-            if (await userManager.FindByEmailAsync("cliente@test.com") == null)
+            // Cliente de prueba - Email consistente
+            if (await userManager.FindByEmailAsync("ismaelfelizestudios@gmail.com") == null)
             {
                 var clienteUser = new IdentityUser
                 {
-                    UserName = "cliente@test.com",
-                    Email = "cliente@test.com",
+                    UserName = "ismaelfelizestudios@gmail.com",
+                    Email = "ismaelfelizestudios@gmail.com",
                     EmailConfirmed = true
                 };
                 await userManager.CreateAsync(clienteUser, "Cliente123!");
                 await userManager.AddToRoleAsync(clienteUser, "Cliente");
+            }
+
+            // Segundo cliente de prueba - Ramón Sánchez
+            if (await userManager.FindByEmailAsync("ramonsanchez3177@gmail.com") == null)
+            {
+                var clienteUser2 = new IdentityUser
+                {
+                    UserName = "ramonsanchez3177@gmail.com",
+                    Email = "ramonsanchez3177@gmail.com",
+                    EmailConfirmed = true
+                };
+                await userManager.CreateAsync(clienteUser2, "Cliente123!");
+                await userManager.AddToRoleAsync(clienteUser2, "Cliente");
             }
         }
 
@@ -748,7 +761,7 @@ FechaAsignacion = DateTime.Today.AddMonths(-5),
                 PrecioBase = 420.00m,
                 OrigenCodigo = "SDQ",
                 DestinoCodigo = "PTY",
-                Matricula = "HI-1002RD",
+                Matricula = "HI-1001RD",
                 Estado = "Programado",
                 TipoVuelo = "IdaYVuelta",
                 FechaRegreso = hoy.AddDays(8),
@@ -805,7 +818,6 @@ FechaAsignacion = DateTime.Today.AddMonths(-5),
                 TipoVuelo = "SoloIda",
                 ClasesDisponibles = "Economica,Ejecutiva,Primera"
             });
-
             vuelos.Add(new Vuelo
             {
                 NumeroVuelo = "RD5002",
@@ -1101,39 +1113,55 @@ FechaAsignacion = DateTime.Today.AddMonths(-5),
 
         private static async Task SeedClientesAsync(AppDbContext context, UserManager<IdentityUser> userManager)
         {
-            var clienteUser = await userManager.FindByEmailAsync("cliente@test.com");
+            // Si ya existen clientes, no duplicar
+            if (await context.Clientes.AnyAsync())
+            {
+                Console.WriteLine("⏭️  Clientes ya existen, saltando seed");
+                return;
+            }
 
             var clientes = new List<Cliente>();
 
-            // Crear cliente vinculado al usuario si no existe
-            if (clienteUser != null && !await context.Clientes.AnyAsync(c => c.Email == clienteUser.Email))
+            // Cliente 1: Ismael (vinculado a usuario)
+            var ismaelUser = await userManager.FindByEmailAsync("ismaelfelizestudios@gmail.com");
+            if (ismaelUser != null)
             {
                 clientes.Add(new Cliente
                 {
-                    Nombre = "Juan Cliente",
-                    Email = clienteUser.Email,
+                    Nombre = "Ismael Féliz",
+                    Email = "ismaelfelizestudios@gmail.com",
                     Telefono = "+1809-555-0001",
-                    UserId = clienteUser.Id
+                    UserId = ismaelUser.Id
                 });
             }
 
-            // Clientes adicionales (solo se crean si no existen ya)
-            var adicionales = new[]
+            // Cliente 2: Ramón Sánchez (vinculado a usuario)
+            var ramonUser = await userManager.FindByEmailAsync("ramonsanchez3177@gmail.com");
+            if (ramonUser != null)
             {
-                new Cliente { Nombre = "María González", Email = "maria.gonzalez@example.com", Telefono = "+1809-555-0002" },
-                new Cliente { Nombre = "Pedro Sánchez", Email = "pedro.sanchez@example.com", Telefono = "+1809-555-0003" }
-            };
-
-            foreach (var c in adicionales)
-            {
-                if (!await context.Clientes.AnyAsync(x => x.Email == c.Email))
-                    clientes.Add(c);
+                clientes.Add(new Cliente
+                {
+                    Nombre = "Ramón Sánchez",
+                    Email = "ramonsanchez3177@gmail.com",
+                    Telefono = "+1809-555-0002",
+                    UserId = ramonUser.Id
+                });
             }
 
-            if (clientes.Any())
+            // Clientes adicionales sin usuario (para pruebas)
+            clientes.AddRange(new[]
             {
-                await context.Clientes.AddRangeAsync(clientes);
-                await context.SaveChangesAsync();
+                new Cliente { Nombre = "María González", Email = "maria.gonzalez@example.com", Telefono = "+1809-555-0003" },
+                new Cliente { Nombre = "Pedro Martínez", Email = "pedro.martinez@example.com", Telefono = "+1809-555-0004" }
+            });
+
+            await context.Clientes.AddRangeAsync(clientes);
+            await context.SaveChangesAsync();
+
+            Console.WriteLine($"   ✅ {clientes.Count} clientes creados");
+            foreach (var c in clientes)
+            {
+                Console.WriteLine($"      - {c.Nombre} ({c.Email}) - UserId: {c.UserId ?? "N/A"}");
             }
         }
 
@@ -1149,87 +1177,60 @@ FechaAsignacion = DateTime.Today.AddMonths(-5),
 
             // Evitar duplicar si ya existen pasajeros
             if (await context.Pasajeros.AnyAsync())
+            {
+                Console.WriteLine("⏭️  Pasajeros ya existen, saltando seed");
                 return;
+            }
+
+            // Obtener clientes existentes para vincular pasajeros
+            var clientes = await context.Clientes.ToListAsync();
+
+            if (!clientes.Any())
+            {
+                Console.WriteLine("⚠️  No hay clientes para vincular pasajeros");
+                return;
+            }
 
             var pasajeros = new List<Pasajero>();
 
-            // Obtener clientes existentes para vincular algunos pasajeros
-            var clientes = await context.Clientes.ToListAsync();
-
-            // Crear pasajeros, asignando IdCliente cuando sea posible
-            var nombres = new[] { "Juan", "María", "Pedro", "Ana", "Luis" };
-            var apellidos = new[] { "Cliente", "González", "Sánchez", "Martínez", "Rodríguez" };
-
-            for (int i = 0; i < nombres.Length; i++)
+            // Crear un pasajero para cada cliente (vinculado)
+            foreach (var cliente in clientes)
             {
                 string pasaporte;
-                // Generar pasaporte único
                 do
                 {
                     pasaporte = GeneratePasaporte(rnd);
-                } while (await context.Pasajeros.AnyAsync(p => p.Pasaporte == pasaporte));
+                } while (pasajeros.Any(p => p.Pasaporte == pasaporte));
+
+                // Extraer nombre y apellido del cliente
+                var nombreCompleto = cliente.Nombre ?? "Cliente Desconocido";
+                var partes = nombreCompleto.Split(' ', 2);
+                var nombre = partes[0];
+                var apellido = partes.Length > 1 ? partes[1] : "Sin Apellido";
 
                 var pasajero = new Pasajero
                 {
-                    Nombre = nombres[i],
-                    Apellido = apellidos[i],
+                    Nombre = nombre,
+                    Apellido = apellido,
                     Pasaporte = pasaporte,
-                    IdCliente = clientes.Count > i ? clientes[i].Id : (int?)null
+                    IdCliente = cliente.Id // ✅ Vinculado al cliente
                 };
                 pasajeros.Add(pasajero);
+
+                Console.WriteLine($"   👤 Pasajero: {nombre} {apellido} → Cliente ID: {cliente.Id} ({cliente.Email})");
             }
 
             await context.Pasajeros.AddRangeAsync(pasajeros);
             await context.SaveChangesAsync();
+
+            Console.WriteLine($"   ✅ {pasajeros.Count} pasajeros creados y vinculados a clientes");
         }
 
         private static async Task SeedReservasAsync(AppDbContext context)
         {
-            // ⚠️ RESERVAS COMENTADAS - Dependen de vuelos que no existen
-            Console.WriteLine("⚠️  Creación de reservas deshabilitada - Sin vuelos para reservar");
+            // ⚠️ RESERVAS DESHABILITADAS - El usuario las creará manualmente
+            Console.WriteLine("⏭️  Seed de reservas deshabilitado - Crear reservas manualmente via API");
             return;
-
-            /* ========== CÓDIGO COMENTADO ==========
-var vuelos = await context.Vuelos
-        .Include(v => v.Aeronave)
-        .ThenInclude(a => a.Asientos)
-    .Take(5)
-     .ToListAsync();
-
-     var clientes = await context.Clientes.ToListAsync();
-            var pasajeros = await context.Pasajeros.ToListAsync();
-
-            if (!vuelos.Any() || !clientes.Any() || !pasajeros.Any())
-       return;
-
-      var reservas = new List<Reserva>();
-
-            // Para cada vuelo, tomar un asiento económico de su aeronave
-   for (int i = 0; i < Math.Min(3, vuelos.Count); i++)
-            {
-     var vuelo = vuelos[i];
-     var asientoDisponible = vuelo.Aeronave?.Asientos?
-          .FirstOrDefault(a => a.Clase == "Economica");
-
-      if (asientoDisponible == null) continue;
-
-      reservas.Add(new Reserva
-         {
-    Codigo = $"RES{(i + 1):000}",
-    IdVuelo = vuelo.Id,
-     IdCliente = clientes[i % clientes.Count].Id,
-       IdPasajero = pasajeros[i % pasajeros.Count].Id,
-        NumAsiento = asientoDisponible.NumeroAsiento,
-             Clase = "Economica",
-        FechaReserva = DateTime.Today.AddDays(-(5 - i)),
-  Estado = "Confirmada",
-         PrecioTotal = vuelo.PrecioBase
- });
-   }
-
-       await context.Reservas.AddRangeAsync(reservas);
-            await context.SaveChangesAsync();
-            ========== FIN CÓDIGO COMENTADO ========== */
         }
         private static async Task SeedFacturasAsync(AppDbContext context)
         {
@@ -1475,12 +1476,12 @@ var vuelos = await context.Vuelos
                 new Ruta { OrigenCodigo = "TEST", DestinoCodigo = "EWR", DuracionMinutos = 260, DistanciaKm = 2500 },
   new Ruta { OrigenCodigo = "TEST", DestinoCodigo = "FLL", DuracionMinutos = 155, DistanciaKm = 1350 },
      new Ruta { OrigenCodigo = "TEST", DestinoCodigo = "ATL", DuracionMinutos = 200, DistanciaKm = 2050 },
-                
+
                 // Europa
       new Ruta { OrigenCodigo = "TEST", DestinoCodigo = "MAD", DuracionMinutos = 540, DistanciaKm = 6900 },
    new Ruta { OrigenCodigo = "TEST", DestinoCodigo = "BCN", DuracionMinutos = 570, DistanciaKm = 7100 },
      new Ruta { OrigenCodigo = "TEST", DestinoCodigo = "CDG", DuracionMinutos = 555, DistanciaKm = 7050 },
-                
+        
         // Latinoamérica
  new Ruta { OrigenCodigo = "TEST", DestinoCodigo = "CUN", DuracionMinutos = 180, DistanciaKm = 1750 },
     new Ruta { OrigenCodigo = "TEST", DestinoCodigo = "PTY", DuracionMinutos = 195, DistanciaKm = 1900 },

@@ -28,6 +28,10 @@ namespace AerolineaRD.Controllers
                 var reserva = await _reservaService.CrearReservaAsync(dto);
                 return Ok(new { success = true, data = reserva, message = "Reserva creada exitosamente" });
             }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { success = false, message = ex.Message });
+            }
             catch (InvalidOperationException ex)
             {
                 return BadRequest(new { success = false, message = ex.Message });

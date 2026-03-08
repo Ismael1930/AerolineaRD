@@ -3,7 +3,7 @@ using AerolineaRD.Entity;
 using AerolineaRD.Repositories.interfaces;
 using AerolineaRD.Services.interfaces;
 using AutoMapper;
-using Microsoft.EntityFrameworkCore; // ✅ AGREGAR
+using Microsoft.EntityFrameworkCore;
 
 namespace AerolineaRD.Services
 {
@@ -13,7 +13,8 @@ namespace AerolineaRD.Services
         private readonly IEstadoVueloRepository _estadoVueloRepository;
         private readonly ITripulacionRepository _tripulacionRepository;
         private readonly IAeronaveRepository _aeronaveRepository;
-        private readonly IEquipoRepository _equipoRepository; // ✅ NUEVO
+        private readonly IEquipoRepository _equipoRepository;
+        private readonly IEmailService _emailService; // ✅ NUEVO
         private readonly IMapper _mapper;
 
         public VueloAdminService(
@@ -21,14 +22,16 @@ namespace AerolineaRD.Services
             IEstadoVueloRepository estadoVueloRepository,
             ITripulacionRepository tripulacionRepository,
             IAeronaveRepository aeronaveRepository,
-            IEquipoRepository equipoRepository, // ✅ NUEVO
+            IEquipoRepository equipoRepository,
+            IEmailService emailService, // ✅ NUEVO
             IMapper mapper)
         {
             _vueloRepository = vueloRepository;
             _estadoVueloRepository = estadoVueloRepository;
             _tripulacionRepository = tripulacionRepository;
             _aeronaveRepository = aeronaveRepository;
-            _equipoRepository = equipoRepository; // ✅ NUEVO
+            _equipoRepository = equipoRepository;
+            _emailService = emailService; // ✅ NUEVO
             _mapper = mapper;
         }
 
@@ -511,11 +514,20 @@ Precio = vuelo.PrecioBase + 200m
                 return OperationResult<VueloDetalleDto>.ValidationFailure(errores);
             }
 
-            // ? Validación: Si se está cambiando la aeronave o el horario, verificar disponibilidad
+            // ✅ NUEVO: Guardar valores anteriores para notificaciones
+            var fechaAnterior = vuelo.Fecha;
+            var horaSalidaAnterior = vuelo.HoraSalida;
+            var horaLlegadaAnterior = vuelo.HoraLlegada;
+            var estadoAnterior = vuelo.Estado;
+            var origenAnterior = vuelo.OrigenCodigo;
+            var destinoAnterior = vuelo.DestinoCodigo;
+
+            // ✅ Validación: Si se está cambiando la aeronave o el horario, verificar disponibilidad
             bool cambioAeronave = !string.IsNullOrEmpty(dto.Matricula) && dto.Matricula != vuelo.Matricula;
             bool cambioFecha = dto.Fecha.HasValue && dto.Fecha.Value.Date != vuelo.Fecha.Date;
             bool cambioHoraSalida = dto.HoraSalida.HasValue && dto.HoraSalida.Value != vuelo.HoraSalida;
             bool cambioHoraLlegada = dto.HoraLlegada.HasValue && dto.HoraLlegada.Value != vuelo.HoraLlegada;
+            bool cambioEstado = !string.IsNullOrEmpty(dto.Estado) && dto.Estado != vuelo.Estado;
 
             if (cambioAeronave || cambioFecha || cambioHoraSalida || cambioHoraLlegada)
             {
@@ -527,79 +539,52 @@ Precio = vuelo.PrecioBase + 200m
                 if (!string.IsNullOrEmpty(matriculaValidar))
                 {
                     bool aeronaveDisponible = await _vueloRepository.EstaAeronaveDisponibleAsync(
-                  matriculaValidar,
-            fechaValidar,
-                      horaSalidaValidar,
-             horaLlegadaValidar,
-          dto.Id);
+                        matriculaValidar,
+                        fechaValidar,
+                        horaSalidaValidar,
+                        horaLlegadaValidar,
+                        dto.Id);
 
                     if (!aeronaveDisponible)
                     {
                         errores.Add(ValidationError.Create(
-                              campo: "Matricula",
-                         tipo: ValidationErrorType.AeronaveNoDisponible,
-                           mensaje: $"La aeronave con matrícula '{matriculaValidar}' no está disponible en el horario especificado. " +
-                            $"Ya tiene un vuelo asignado que se solapa con el horario {horaSalidaValidar:hh\\:mm} - {horaLlegadaValidar:hh\\:mm} el {fechaValidar:dd/MM/yyyy}. " +
-                             $"Recuerde que se requiere un tiempo mínimo de preparación entre vuelos.",
-                                     detalles: new
-                                     {
-                                         matricula = matriculaValidar,
-                                         fecha = fechaValidar,
-                                         horaSalida = horaSalidaValidar,
-                                         horaLlegada = horaLlegadaValidar,
-                                         vueloId = dto.Id
-                                     }
-                          ));
+                            campo: "Matricula",
+                            tipo: ValidationErrorType.AeronaveNoDisponible,
+                            mensaje: $"La aeronave con matrícula '{matriculaValidar}' no está disponible en el horario especificado.",
+                            detalles: new { matricula = matriculaValidar, fecha = fechaValidar }
+                        ));
                     }
                 }
 
                 if (!string.IsNullOrEmpty(dto.OrigenCodigo))
                 {
                     bool origenTieneCapacidad = await _vueloRepository.AeropuertoTieneCapacidadAsync(
-                 dto.OrigenCodigo,
-                  fechaValidar,
-              horaSalidaValidar,
-                    true);
+                        dto.OrigenCodigo, fechaValidar, horaSalidaValidar, true);
 
                     if (!origenTieneCapacidad)
                     {
                         errores.Add(ValidationError.Create(
-                   campo: "OrigenCodigo",
-                         tipo: ValidationErrorType.AeropuertoSinCapacidad,
-                         mensaje: $"El aeropuerto de origen '{dto.OrigenCodigo}' ha alcanzado su capacidad máxima de despegues " +
-                           $"en el horario {horaSalidaValidar:hh\\:mm} el {fechaValidar:dd/MM/yyyy}.",
-                          detalles: new
-                          {
-                              codigoAeropuerto = dto.OrigenCodigo,
-                              fecha = fechaValidar,
-                              horario = horaSalidaValidar
-                          }
-                              ));
+                            campo: "OrigenCodigo",
+                            tipo: ValidationErrorType.AeropuertoSinCapacidad,
+                            mensaje: $"El aeropuerto de origen ha alcanzado su capacidad máxima.",
+                            detalles: new { codigoAeropuerto = dto.OrigenCodigo }
+                        ));
                     }
                 }
 
                 if (!string.IsNullOrEmpty(dto.DestinoCodigo))
                 {
                     bool destinoTieneCapacidad = await _vueloRepository.AeropuertoTieneCapacidadAsync(
-                     dto.DestinoCodigo,
-                         fechaValidar,
-                        horaLlegadaValidar,
-                    false);
+                        dto.DestinoCodigo, fechaValidar, horaLlegadaValidar, false);
 
                     if (!destinoTieneCapacidad)
                     {
                         errores.Add(ValidationError.Create(
-                  campo: "DestinoCodigo",
-                       tipo: ValidationErrorType.AeropuertoSinCapacidad,
-                      mensaje: $"El aeropuerto de destino '{dto.DestinoCodigo}' ha alcanzado su capacidad máxima de aterrizajes " +
-                           $"en el horario {horaLlegadaValidar:hh\\:mm} el {fechaValidar:dd/MM/yyyy}.",
-                                detalles: new
-                                {
-                                    codigoAeropuerto = dto.DestinoCodigo,
-                                    fecha = fechaValidar,
-                                    horario = horaLlegadaValidar
-                                }
-                           ));
+                            campo: "DestinoCodigo",
+                            tipo: ValidationErrorType.AeropuertoSinCapacidad,
+                            mensaje: $"El aeropuerto de destino ha alcanzado su capacidad máxima.",
+                            detalles: new { codigoAeropuerto = dto.DestinoCodigo }
+                        ));
                     }
                 }
             }
@@ -609,6 +594,7 @@ Precio = vuelo.PrecioBase + 200m
                 return OperationResult<VueloDetalleDto>.ValidationFailure(errores);
             }
 
+            // Aplicar cambios
             if (!string.IsNullOrEmpty(dto.NumeroVuelo)) vuelo.NumeroVuelo = dto.NumeroVuelo;
             if (dto.Fecha.HasValue) vuelo.Fecha = dto.Fecha.Value;
             if (dto.HoraSalida.HasValue) vuelo.HoraSalida = dto.HoraSalida.Value;
@@ -634,31 +620,63 @@ Precio = vuelo.PrecioBase + 200m
             _vueloRepository.Update(vuelo);
             await _vueloRepository.SaveAsync();
 
+            // ✅ NUEVO: Enviar notificaciones si hubo cambios relevantes
+            string mensajeNotificacion = "";
+            if (cambioFecha || cambioHoraSalida || cambioHoraLlegada || cambioEstado)
+            {
+                var tipoCambio = DeterminarTipoCambio(
+                    fechaAnterior, vuelo.Fecha,
+                    horaSalidaAnterior, vuelo.HoraSalida,
+                    estadoAnterior, vuelo.Estado);
+
+                var cambioInfo = new CambioVueloInfo
+                {
+                    NumeroVuelo = vuelo.NumeroVuelo ?? $"Vuelo #{vuelo.Id}",
+                    Origen = vuelo.OrigenCodigo ?? origenAnterior ?? "",
+                    Destino = vuelo.DestinoCodigo ?? destinoAnterior ?? "",
+                    FechaAnterior = cambioFecha ? fechaAnterior : null,
+                    FechaNueva = cambioFecha ? vuelo.Fecha : null,
+                    HoraSalidaAnterior = cambioHoraSalida ? horaSalidaAnterior : null,
+                    HoraSalidaNueva = cambioHoraSalida ? vuelo.HoraSalida : null,
+                    HoraLlegadaAnterior = cambioHoraLlegada ? horaLlegadaAnterior : null,
+                    HoraLlegadaNueva = cambioHoraLlegada ? vuelo.HoraLlegada : null,
+                    EstadoAnterior = cambioEstado ? estadoAnterior : null,
+                    EstadoNuevo = cambioEstado ? vuelo.Estado : null,
+                    TipoCambio = tipoCambio,
+                    MensajeAdicional = dto.MensajeNotificacion
+                };
+
+                var resultadoNotificacion = await _emailService.NotificarCambioVueloAsync(dto.Id, cambioInfo);
+                mensajeNotificacion = resultadoNotificacion.Exitoso 
+                    ? $" {resultadoNotificacion.Mensaje}"
+                    : $" (Notificaciones: {resultadoNotificacion.Mensaje})";
+            }
+
             var vueloActualizado = await _vueloRepository.ObtenerVueloConDetallesAsync(dto.Id);
             var vueloDto = _mapper.Map<VueloDetalleDto>(vueloActualizado);
 
-            // ✅ Agregar información de las 3 clases disponibles con sus precios
+            // Agregar información de clases disponibles
             vueloDto.ClasesDisponibles = new List<ClaseDisponibilidadDto>
-     {
-     new ClaseDisponibilidadDto
-        {
-   Clase = "Economica",
-    AsientosDisponibles = vueloActualizado?.Aeronave?.Asientos?.Count(a => a.Clase == "Economica") ?? 0,
-       Precio = vueloActualizado?.PrecioBase ?? 0m
-        },
-   new ClaseDisponibilidadDto
-         {
- Clase = "Ejecutiva",
-  AsientosDisponibles = vueloActualizado?.Aeronave?.Asientos?.Count(a => a.Clase == "Ejecutiva") ?? 0,
-          Precio = (vueloActualizado?.PrecioBase ?? 0m) + 100m
-       },
-     new ClaseDisponibilidadDto
-{
-Clase = "Primera",
-      AsientosDisponibles = vueloActualizado?.Aeronave?.Asientos?.Count(a => a.Clase == "Primera") ?? 0,
-       Precio = (vueloActualizado?.PrecioBase ?? 0m) + 200m
-     }
-   };
+            {
+                new ClaseDisponibilidadDto
+                {
+                    Clase = "Economica",
+                    AsientosDisponibles = vueloActualizado?.Aeronave?.Asientos?.Count(a => a.Clase == "Economica") ?? 0,
+                    Precio = vueloActualizado?.PrecioBase ?? 0m
+                },
+                new ClaseDisponibilidadDto
+                {
+                    Clase = "Ejecutiva",
+                    AsientosDisponibles = vueloActualizado?.Aeronave?.Asientos?.Count(a => a.Clase == "Ejecutiva") ?? 0,
+                    Precio = (vueloActualizado?.PrecioBase ?? 0m) + 100m
+                },
+                new ClaseDisponibilidadDto
+                {
+                    Clase = "Primera",
+                    AsientosDisponibles = vueloActualizado?.Aeronave?.Asientos?.Count(a => a.Clase == "Primera") ?? 0,
+                    Precio = (vueloActualizado?.PrecioBase ?? 0m) + 200m
+                }
+            };
 
             if (vueloActualizado?.Aeronave != null)
             {
@@ -675,8 +693,37 @@ Clase = "Primera",
 
             return OperationResult<VueloDetalleDto>.SuccessResult(
                 vueloDto,
-         "Vuelo actualizado exitosamente"
-           );
+                $"Vuelo actualizado exitosamente.{mensajeNotificacion}"
+            );
+        }
+
+        /// <summary>
+        /// Determina el tipo de cambio basado en las diferencias
+        /// </summary>
+        private static TipoCambioVuelo DeterminarTipoCambio(
+            DateTime fechaAnterior, DateTime fechaNueva,
+            TimeSpan horaSalidaAnterior, TimeSpan horaSalidaNueva,
+            string? estadoAnterior, string? estadoNuevo)
+        {
+            // Si el estado cambió a Cancelado
+            if (estadoNuevo == "Cancelado")
+                return TipoCambioVuelo.Cancelacion;
+
+            // Si cambió la fecha
+            if (fechaAnterior.Date != fechaNueva.Date)
+                return TipoCambioVuelo.Reprogramacion;
+
+            // Si cambió la hora de salida
+            if (horaSalidaAnterior != horaSalidaNueva)
+            {
+                // Si la nueva hora es después, es un retraso
+                if (horaSalidaNueva > horaSalidaAnterior)
+                    return TipoCambioVuelo.Retraso;
+                else
+                    return TipoCambioVuelo.Adelanto;
+            }
+
+            return TipoCambioVuelo.CambioEstado;
         }
 
         public async Task<bool> EliminarVueloAsync(int id)

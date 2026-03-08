@@ -33,6 +33,12 @@ namespace AerolineaRD.Data.DTOs
         public string? TipoVuelo { get; set; } // "SoloIda", "IdaYVuelta"
         public string? Clase { get; set; }
         public DateTime? FechaRegreso { get; set; } // ? AGREGADO: Solo para vuelos de ida y vuelta
+        
+        /// <summary>
+        /// Mensaje opcional para incluir en la notificación a los clientes
+        /// cuando se cambia la fecha u horario del vuelo
+        /// </summary>
+        public string? MensajeNotificacion { get; set; }
     }
 
     public class VueloDetalleDto : VueloResponseDto

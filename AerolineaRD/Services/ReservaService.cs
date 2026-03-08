@@ -37,6 +37,27 @@ namespace AerolineaRD.Services
 
         public async Task<ReservaResponseDto> CrearReservaAsync(CrearReservaDto dto)
         {
+            // VALIDACIÓN: Verificar que el cliente existe
+            var cliente = await _clienteRepository.GetByIdAsync(dto.IdCliente);
+            if (cliente == null)
+            {
+                throw new KeyNotFoundException($"Cliente con ID {dto.IdCliente} no encontrado.");
+            }
+
+            // VALIDACIÓN: Verificar que el pasajero existe
+            var pasajero = await _pasajeroRepository.GetByIdAsync(dto.IdPasajero);
+            if (pasajero == null)
+            {
+                throw new KeyNotFoundException($"Pasajero con ID {dto.IdPasajero} no encontrado.");
+            }
+
+            // VALIDACIÓN: Verificar que el vuelo existe
+            var vuelo = await _vueloRepository.ObtenerVueloConDetallesAsync(dto.IdVuelo);
+            if (vuelo == null)
+            {
+                throw new KeyNotFoundException($"Vuelo con ID {dto.IdVuelo} no encontrado.");
+            }
+
             // VALIDACIÓN: Verificar que el vuelo tiene asientos disponibles
             int asientosDisponibles = await _vueloRepository.ObtenerAsientosDisponiblesAsync(dto.IdVuelo);
 
@@ -46,7 +67,7 @@ namespace AerolineaRD.Services
                     $"El vuelo está lleno. No hay asientos disponibles.");
             }
 
-            // VALIDACIÓN: Verificar que el asiento específico no esté reservado
+            // VALIDACIÓN: Verificar que el asiento específico no está reservado
             var reservaExistente = await _reservaRepository.ObtenerPorVueloYAsientoAsync(dto.IdVuelo, dto.NumAsiento);
             if (reservaExistente != null && reservaExistente.Estado == "Confirmada")
             {
@@ -64,7 +85,6 @@ namespace AerolineaRD.Services
             await _reservaRepository.SaveAsync();
 
             // ? NUEVO: Crear factura automáticamente
-            var vuelo = await _vueloRepository.ObtenerVueloConDetallesAsync(dto.IdVuelo);
             if (vuelo != null)
             {
                 // ? Calcular precio total según clase solicitada

@@ -4,7 +4,7 @@ using AerolineaRD.Repositories.Implements;
 using AerolineaRD.Repositories.interfaces;
 using AerolineaRD.Services;
 using AerolineaRD.Services.interfaces;
-using AerolineaRD.Services.BackgroundServices; // ? NUEVO
+using AerolineaRD.Services.BackgroundServices;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -64,6 +64,10 @@ builder.Services.AddScoped<IClienteService, ClienteService>();
 builder.Services.AddScoped<IEquipoService, EquipoService>();
 // ? RUTAS AÉREAS
 builder.Services.AddScoped<IRutaService, RutaService>();
+
+// ? SERVICIO DE EMAIL
+builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 // Configuración de Entity Framework con SQLite
 builder.Services.AddDbContext<AppDbContext>(options =>
