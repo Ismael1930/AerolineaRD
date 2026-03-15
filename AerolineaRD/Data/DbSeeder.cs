@@ -560,23 +560,23 @@ FechaAsignacion = DateTime.Today.AddMonths(-5),
         }
         private static async Task SeedVuelosAsync(AppDbContext context)
         {
-            // ✅ FECHAS RELATIVAS - Siempre serán futuras
-            var hoy = DateTime.Today;
-            var manana = hoy.AddDays(1);
-            var pasadoManana = hoy.AddDays(2);
+            // ✅ FECHAS FIJAS - Abril 2026 en adelante
+            var fechaBase = new DateTime(2026, 4, 1); // 1 de abril 2026
+            var dia1 = fechaBase;
+            var dia2 = fechaBase.AddDays(1);
+            var dia3 = fechaBase.AddDays(2);
 
             var vuelos = new List<Vuelo>();
 
             // ═══════════════════════════════════════════════════════════════════
-            // ✈️ VUELOS DE HOY (para probar estados en tiempo real)
-            // Hora actual debe ser antes de las 11:00 para ver estos vuelos como "Programado"
+            // ✈️ VUELOS DEL DÍA 1 (1 de Abril 2026)
             // ═══════════════════════════════════════════════════════════════════
             
-            // Vuelo de hoy a las 11:00 AM
+            // Vuelo a las 11:00 AM
             vuelos.Add(new Vuelo
             {
-                NumeroVuelo = "RD-HOY-1100",
-                Fecha = hoy,
+                NumeroVuelo = "RD-ABR-1100",
+                Fecha = dia1,
                 HoraSalida = new TimeSpan(11, 0, 0),
                 HoraLlegada = new TimeSpan(13, 30, 0),
                 Duracion = 150,
@@ -589,11 +589,11 @@ FechaAsignacion = DateTime.Today.AddMonths(-5),
                 ClasesDisponibles = "Economica,Ejecutiva,Primera"
             });
 
-            // Vuelo de hoy a las 15:00 PM
+            // Vuelo a las 15:00 PM
             vuelos.Add(new Vuelo
             {
-                NumeroVuelo = "RD-HOY-1500",
-                Fecha = hoy,
+                NumeroVuelo = "RD-ABR-1500",
+                Fecha = dia1,
                 HoraSalida = new TimeSpan(15, 0, 0),
                 HoraLlegada = new TimeSpan(19, 15, 0),
                 Duracion = 255,
@@ -603,18 +603,18 @@ FechaAsignacion = DateTime.Today.AddMonths(-5),
                 Matricula = "HI-1002RD",
                 Estado = "Programado",
                 TipoVuelo = "IdaYVuelta",
-                FechaRegreso = hoy.AddDays(7),
+                FechaRegreso = dia1.AddDays(7),
                 ClasesDisponibles = "Economica,Ejecutiva,Primera"
             });
 
             // ═══════════════════════════════════════════════════════════════════
-            // ✈️ VUELOS DE MAÑANA
+            // ✈️ VUELOS DEL DÍA 2 (2 de Abril 2026)
             // ═══════════════════════════════════════════════════════════════════
             
             vuelos.Add(new Vuelo
             {
                 NumeroVuelo = "RD1001",
-                Fecha = manana,
+                Fecha = dia2,
                 HoraSalida = new TimeSpan(6, 0, 0),
                 HoraLlegada = new TimeSpan(8, 30, 0),
                 Duracion = 150,
@@ -630,7 +630,7 @@ FechaAsignacion = DateTime.Today.AddMonths(-5),
             vuelos.Add(new Vuelo
             {
                 NumeroVuelo = "RD1002",
-                Fecha = manana,
+                Fecha = dia2,
                 HoraSalida = new TimeSpan(11, 0, 0),
                 HoraLlegada = new TimeSpan(15, 15, 0),
                 Duracion = 255,
@@ -640,14 +640,14 @@ FechaAsignacion = DateTime.Today.AddMonths(-5),
                 Matricula = "HI-1001RD",
                 Estado = "Programado",
                 TipoVuelo = "IdaYVuelta",
-                FechaRegreso = manana.AddDays(7),
+                FechaRegreso = dia2.AddDays(7),
                 ClasesDisponibles = "Economica,Ejecutiva,Primera"
             });
 
             vuelos.Add(new Vuelo
             {
                 NumeroVuelo = "RD1003",
-                Fecha = manana,
+                Fecha = dia2,
                 HoraSalida = new TimeSpan(14, 0, 0),
                 HoraLlegada = new TimeSpan(16, 45, 0),
                 Duracion = 165,
@@ -664,7 +664,7 @@ FechaAsignacion = DateTime.Today.AddMonths(-5),
             vuelos.Add(new Vuelo
             {
                 NumeroVuelo = "RD1004-NOCHE",
-                Fecha = manana,
+                Fecha = dia2,
                 HoraSalida = new TimeSpan(22, 15, 0),
                 HoraLlegada = new TimeSpan(0, 45, 0),
                 Duracion = 150,
@@ -678,13 +678,13 @@ FechaAsignacion = DateTime.Today.AddMonths(-5),
             });
 
             // ═══════════════════════════════════════════════════════════════════
-            // ✈️ VUELOS DE PASADO MAÑANA
+            // ✈️ VUELOS DEL DÍA 3 (3 de Abril 2026)
             // ═══════════════════════════════════════════════════════════════════
             
             vuelos.Add(new Vuelo
             {
                 NumeroVuelo = "RD2001",
-                Fecha = pasadoManana,
+                Fecha = dia3,
                 HoraSalida = new TimeSpan(7, 30, 0),
                 HoraLlegada = new TimeSpan(8, 0, 0),
                 Duracion = 30,
@@ -700,7 +700,7 @@ FechaAsignacion = DateTime.Today.AddMonths(-5),
             vuelos.Add(new Vuelo
             {
                 NumeroVuelo = "RD2002",
-                Fecha = pasadoManana,
+                Fecha = dia3,
                 HoraSalida = new TimeSpan(10, 0, 0),
                 HoraLlegada = new TimeSpan(19, 0, 0),
                 Duracion = 540,
@@ -710,14 +710,14 @@ FechaAsignacion = DateTime.Today.AddMonths(-5),
                 Matricula = "HI-1001RD",
                 Estado = "Programado",
                 TipoVuelo = "IdaYVuelta",
-                FechaRegreso = pasadoManana.AddDays(14),
+                FechaRegreso = dia3.AddDays(14),
                 ClasesDisponibles = "Economica,Ejecutiva,Primera"
             });
 
             vuelos.Add(new Vuelo
             {
                 NumeroVuelo = "RD2003",
-                Fecha = pasadoManana,
+                Fecha = dia3,
                 HoraSalida = new TimeSpan(9, 0, 0),
                 HoraLlegada = new TimeSpan(13, 30, 0),
                 Duracion = 270,
@@ -731,14 +731,14 @@ FechaAsignacion = DateTime.Today.AddMonths(-5),
             });
 
             // ═══════════════════════════════════════════════════════════════════
-            // ✈️ VUELOS DÍAS 3-7 (Más variedad)
+            // ✈️ VUELOS DÍAS 4-8 (4-8 de Abril 2026)
             // ═══════════════════════════════════════════════════════════════════
             
-            // Día 3
+            // Día 4 (4 de Abril)
             vuelos.Add(new Vuelo
             {
                 NumeroVuelo = "RD3001",
-                Fecha = hoy.AddDays(3),
+                Fecha = fechaBase.AddDays(3),
                 HoraSalida = new TimeSpan(6, 30, 0),
                 HoraLlegada = new TimeSpan(9, 50, 0),
                 Duracion = 200,
@@ -754,7 +754,7 @@ FechaAsignacion = DateTime.Today.AddMonths(-5),
             vuelos.Add(new Vuelo
             {
                 NumeroVuelo = "RD3002",
-                Fecha = hoy.AddDays(3),
+                Fecha = fechaBase.AddDays(3),
                 HoraSalida = new TimeSpan(8, 0, 0),
                 HoraLlegada = new TimeSpan(11, 15, 0),
                 Duracion = 195,
@@ -764,15 +764,15 @@ FechaAsignacion = DateTime.Today.AddMonths(-5),
                 Matricula = "HI-1001RD",
                 Estado = "Programado",
                 TipoVuelo = "IdaYVuelta",
-                FechaRegreso = hoy.AddDays(8),
+                FechaRegreso = fechaBase.AddDays(8),
                 ClasesDisponibles = "Economica,Ejecutiva,Primera"
             });
 
-            // Día 4 - Vuelos a Colombia y México
+            // Día 5 (5 de Abril) - Vuelos a Colombia y México
             vuelos.Add(new Vuelo
             {
                 NumeroVuelo = "RD4001",
-                Fecha = hoy.AddDays(4),
+                Fecha = fechaBase.AddDays(4),
                 HoraSalida = new TimeSpan(7, 0, 0),
                 HoraLlegada = new TimeSpan(10, 30, 0),
                 Duracion = 210,
@@ -788,7 +788,7 @@ FechaAsignacion = DateTime.Today.AddMonths(-5),
             vuelos.Add(new Vuelo
             {
                 NumeroVuelo = "RD4002",
-                Fecha = hoy.AddDays(4),
+                Fecha = fechaBase.AddDays(4),
                 HoraSalida = new TimeSpan(12, 0, 0),
                 HoraLlegada = new TimeSpan(15, 0, 0),
                 Duracion = 180,
@@ -798,15 +798,15 @@ FechaAsignacion = DateTime.Today.AddMonths(-5),
                 Matricula = "HI-1002RD",
                 Estado = "Programado",
                 TipoVuelo = "IdaYVuelta",
-                FechaRegreso = hoy.AddDays(14),
+                FechaRegreso = fechaBase.AddDays(14),
                 ClasesDisponibles = "Economica,Ejecutiva,Primera"
             });
 
-            // Día 5 - Vuelos nacionales
+            // Día 6 (6 de Abril) - Vuelos nacionales
             vuelos.Add(new Vuelo
             {
                 NumeroVuelo = "RD5001",
-                Fecha = hoy.AddDays(5),
+                Fecha = fechaBase.AddDays(5),
                 HoraSalida = new TimeSpan(8, 0, 0),
                 HoraLlegada = new TimeSpan(8, 35, 0),
                 Duracion = 35,
@@ -818,10 +818,11 @@ FechaAsignacion = DateTime.Today.AddMonths(-5),
                 TipoVuelo = "SoloIda",
                 ClasesDisponibles = "Economica,Ejecutiva,Primera"
             });
+
             vuelos.Add(new Vuelo
             {
                 NumeroVuelo = "RD5002",
-                Fecha = hoy.AddDays(5),
+                Fecha = fechaBase.AddDays(5),
                 HoraSalida = new TimeSpan(10, 0, 0),
                 HoraLlegada = new TimeSpan(10, 40, 0),
                 Duracion = 40,
@@ -834,11 +835,11 @@ FechaAsignacion = DateTime.Today.AddMonths(-5),
                 ClasesDisponibles = "Economica,Ejecutiva,Primera"
             });
 
-            // Día 6 - Vuelo largo a Europa (nocturno)
+            // Día 7 (7 de Abril) - Vuelo largo a Europa (nocturno)
             vuelos.Add(new Vuelo
             {
                 NumeroVuelo = "RD6001",
-                Fecha = hoy.AddDays(6),
+                Fecha = fechaBase.AddDays(6),
                 HoraSalida = new TimeSpan(21, 0, 0),
                 HoraLlegada = new TimeSpan(6, 30, 0),
                 Duracion = 570,
@@ -848,15 +849,15 @@ FechaAsignacion = DateTime.Today.AddMonths(-5),
                 Matricula = "HI-1001RD",
                 Estado = "Programado",
                 TipoVuelo = "IdaYVuelta",
-                FechaRegreso = hoy.AddDays(18),
+                FechaRegreso = fechaBase.AddDays(18),
                 ClasesDisponibles = "Economica,Ejecutiva,Primera"
             });
 
-            // Día 7 - Vuelos a Perú y Francia
+            // Día 8 (8 de Abril) - Vuelos a Perú y Francia
             vuelos.Add(new Vuelo
             {
                 NumeroVuelo = "RD7001",
-                Fecha = hoy.AddDays(7),
+                Fecha = fechaBase.AddDays(7),
                 HoraSalida = new TimeSpan(6, 0, 0),
                 HoraLlegada = new TimeSpan(11, 30, 0),
                 Duracion = 330,
@@ -872,7 +873,7 @@ FechaAsignacion = DateTime.Today.AddMonths(-5),
             vuelos.Add(new Vuelo
             {
                 NumeroVuelo = "RD7002",
-                Fecha = hoy.AddDays(7),
+                Fecha = fechaBase.AddDays(7),
                 HoraSalida = new TimeSpan(20, 0, 0),
                 HoraLlegada = new TimeSpan(5, 15, 0),
                 Duracion = 555,
@@ -882,7 +883,7 @@ FechaAsignacion = DateTime.Today.AddMonths(-5),
                 Matricula = "HI-1002RD",
                 Estado = "Programado",
                 TipoVuelo = "IdaYVuelta",
-                FechaRegreso = hoy.AddDays(21),
+                FechaRegreso = fechaBase.AddDays(21),
                 ClasesDisponibles = "Economica,Ejecutiva,Primera"
             });
 
@@ -891,11 +892,11 @@ FechaAsignacion = DateTime.Today.AddMonths(-5),
             // Aeropuerto TEST tiene capacidad de 1 vuelo por hora
             // ═══════════════════════════════════════════════════════════════════
             
-            // VUELOS DE HOY en TEST (para probar saturación con hora >= 11:00)
+            // VUELOS DEL DÍA 1 en TEST (1 de Abril)
             vuelos.Add(new Vuelo
             {
-                NumeroVuelo = "TEST-HOY-1100",
-                Fecha = hoy,
+                NumeroVuelo = "TEST-ABR-1100",
+                Fecha = dia1,
                 HoraSalida = new TimeSpan(11, 0, 0),
                 HoraLlegada = new TimeSpan(11, 30, 0),
                 Duracion = 30,
@@ -910,8 +911,8 @@ FechaAsignacion = DateTime.Today.AddMonths(-5),
 
             vuelos.Add(new Vuelo
             {
-                NumeroVuelo = "TEST-HOY-1200",
-                Fecha = hoy,
+                NumeroVuelo = "TEST-ABR-1200",
+                Fecha = dia1,
                 HoraSalida = new TimeSpan(12, 0, 0),
                 HoraLlegada = new TimeSpan(12, 30, 0),
                 Duracion = 30,
@@ -926,8 +927,8 @@ FechaAsignacion = DateTime.Today.AddMonths(-5),
 
             vuelos.Add(new Vuelo
             {
-                NumeroVuelo = "TEST-HOY-1400",
-                Fecha = hoy,
+                NumeroVuelo = "TEST-ABR-1400",
+                Fecha = dia1,
                 HoraSalida = new TimeSpan(14, 0, 0),
                 HoraLlegada = new TimeSpan(14, 30, 0),
                 Duracion = 30,
@@ -942,8 +943,8 @@ FechaAsignacion = DateTime.Today.AddMonths(-5),
 
             vuelos.Add(new Vuelo
             {
-                NumeroVuelo = "TEST-HOY-1500",
-                Fecha = hoy,
+                NumeroVuelo = "TEST-ABR-1500",
+                Fecha = dia1,
                 HoraSalida = new TimeSpan(15, 0, 0),
                 HoraLlegada = new TimeSpan(15, 30, 0),
                 Duracion = 30,
@@ -956,11 +957,11 @@ FechaAsignacion = DateTime.Today.AddMonths(-5),
                 ClasesDisponibles = "Economica,Ejecutiva,Primera"
             });
 
-            // VUELOS DE MAÑANA en TEST
+            // VUELOS DEL DÍA 2 en TEST (2 de Abril)
             vuelos.Add(new Vuelo
             {
                 NumeroVuelo = "TEST-1000",
-                Fecha = manana,
+                Fecha = dia2,
                 HoraSalida = new TimeSpan(10, 0, 0),
                 HoraLlegada = new TimeSpan(10, 30, 0),
                 Duracion = 30,
@@ -976,7 +977,7 @@ FechaAsignacion = DateTime.Today.AddMonths(-5),
             vuelos.Add(new Vuelo
             {
                 NumeroVuelo = "TEST-1100",
-                Fecha = manana,
+                Fecha = dia2,
                 HoraSalida = new TimeSpan(11, 0, 0),
                 HoraLlegada = new TimeSpan(11, 30, 0),
                 Duracion = 30,
@@ -992,7 +993,7 @@ FechaAsignacion = DateTime.Today.AddMonths(-5),
             vuelos.Add(new Vuelo
             {
                 NumeroVuelo = "TEST-1200",
-                Fecha = manana,
+                Fecha = dia2,
                 HoraSalida = new TimeSpan(12, 0, 0),
                 HoraLlegada = new TimeSpan(12, 30, 0),
                 Duracion = 30,
@@ -1008,7 +1009,7 @@ FechaAsignacion = DateTime.Today.AddMonths(-5),
             vuelos.Add(new Vuelo
             {
                 NumeroVuelo = "TEST-1400",
-                Fecha = manana,
+                Fecha = dia2,
                 HoraSalida = new TimeSpan(14, 0, 0),
                 HoraLlegada = new TimeSpan(14, 30, 0),
                 Duracion = 30,
@@ -1024,7 +1025,7 @@ FechaAsignacion = DateTime.Today.AddMonths(-5),
             vuelos.Add(new Vuelo
             {
                 NumeroVuelo = "TEST-1500",
-                Fecha = manana,
+                Fecha = dia2,
                 HoraSalida = new TimeSpan(15, 0, 0),
                 HoraLlegada = new TimeSpan(15, 30, 0),
                 Duracion = 30,
@@ -1041,14 +1042,13 @@ FechaAsignacion = DateTime.Today.AddMonths(-5),
             await context.SaveChangesAsync();
 
             Console.WriteLine($"   ✅ {vuelos.Count} vuelos creados:");
-            Console.WriteLine($"      - Fecha base: HOY = {hoy:dd/MM/yyyy}");
-            Console.WriteLine($"      - 2 vuelos HOY (11:00 y 15:00) para probar estados en tiempo real");
-            Console.WriteLine($"      - 4 vuelos HOY en aeropuerto TEST (11:00, 12:00, 14:00, 15:00)");
-            Console.WriteLine($"      - 5 vuelos MAÑANA en aeropuerto TEST (10:00, 11:00, 12:00, 14:00, 15:00)");
-            Console.WriteLine($"      - Horas LIBRES en TEST HOY: 13:00, 16:00+");
-            Console.WriteLine($"      - Horas LIBRES en TEST MAÑANA: 13:00, 16:00+");
+            Console.WriteLine($"      - Fecha base: {fechaBase:dd/MM/yyyy} (Abril 2026)");
+            Console.WriteLine($"      - 2 vuelos del 1 de Abril (11:00 y 15:00)");
+            Console.WriteLine($"      - 4 vuelos del 1 de Abril en aeropuerto TEST");
+            Console.WriteLine($"      - 5 vuelos del 2 de Abril en aeropuerto TEST");
+            Console.WriteLine($"      - Horas LIBRES en TEST: 13:00, 16:00+");
             Console.WriteLine($"      - {vuelos.Count(v => v.HoraLlegada < v.HoraSalida)} vuelos nocturnos (cruzan medianoche)");
-            Console.WriteLine($"      - Aeronaves usadas: HI-1001RD, HI-1002RD, HI-1003RD, HI-1004RD");
+            Console.WriteLine($"      - Aeronaves utilizadas: HI-1001RD, HI-1002RD, HI-1003RD, HI-1004RD");
         }
         private static async Task SeedAsientosAsync(AppDbContext context)
         {
@@ -1554,13 +1554,13 @@ FechaAsignacion = DateTime.Today.AddMonths(-5),
                 // Nacionales
                 new Ruta { OrigenCodigo = "PUJ", DestinoCodigo = "SDQ", DuracionMinutos = 30, DistanciaKm = 150 },
                 new Ruta { OrigenCodigo = "PUJ", DestinoCodigo = "STI", DuracionMinutos = 45, DistanciaKm = 200 },
-                new Ruta { OrigenCodigo = "PUJ", DestinoCodigo = "POP", DuracionMinutos = 50, DistanciaKm = 230 },
+                new Ruta { OrigenCodigo = "PUJ", DestinoCodigo = "POP", DuracionMinutos = 50, DistanciaKm = 230 },  // NUEVO
                 new Ruta { OrigenCodigo = "PUJ", DestinoCodigo = "LRM", DuracionMinutos = 20, DistanciaKm = 70 },
                 
                 // Estados Unidos
                 new Ruta { OrigenCodigo = "PUJ", DestinoCodigo = "JFK", DuracionMinutos = 270, DistanciaKm = 2600 },  // 4h 30m
                 new Ruta { OrigenCodigo = "PUJ", DestinoCodigo = "MIA", DuracionMinutos = 165, DistanciaKm = 1400 },  // 2h 45m
-                new Ruta { OrigenCodigo = "PUJ", DestinoCodigo = "EWR", DuracionMinutos = 275, DistanciaKm = 2550 },  // 4h 35m
+                new Ruta { OrigenCodigo = "PUJ", DestinoCodigo = "EWR", DuracionMinutos = 275, DistanciaKm = 2550 },
                 new Ruta { OrigenCodigo = "PUJ", DestinoCodigo = "FLL", DuracionMinutos = 170, DistanciaKm = 1420 },  // 2h 50m
                 new Ruta { OrigenCodigo = "PUJ", DestinoCodigo = "ATL", DuracionMinutos = 185, DistanciaKm = 2100 },  // 3h 05m
                 
@@ -1581,16 +1581,27 @@ FechaAsignacion = DateTime.Today.AddMonths(-5),
             {
                 new Ruta { OrigenCodigo = "STI", DestinoCodigo = "SDQ", DuracionMinutos = 35, DistanciaKm = 155 },
                 new Ruta { OrigenCodigo = "STI", DestinoCodigo = "PUJ", DuracionMinutos = 45, DistanciaKm = 200 },
-                new Ruta { OrigenCodigo = "STI", DestinoCodigo = "MIA", DuracionMinutos = 150, DistanciaKm = 1320 },  // 2h 30m
-                new Ruta { OrigenCodigo = "STI", DestinoCodigo = "JFK", DuracionMinutos = 250, DistanciaKm = 2480 },  // 4h 10m
+                new Ruta { OrigenCodigo = "STI", DestinoCodigo = "POP", DuracionMinutos = 25, DistanciaKm = 100 },  // NUEVO
+                new Ruta { OrigenCodigo = "STI", DestinoCodigo = "LRM", DuracionMinutos = 40, DistanciaKm = 180 },  // NUEVO
+                new Ruta { OrigenCodigo = "STI", DestinoCodigo = "MIA", DuracionMinutos = 150, DistanciaKm = 1320 },
+                new Ruta { OrigenCodigo = "STI", DestinoCodigo = "JFK", DuracionMinutos = 250, DistanciaKm = 2480 },
+                new Ruta { OrigenCodigo = "STI", DestinoCodigo = "EWR", DuracionMinutos = 255, DistanciaKm = 2450 },
+                new Ruta { OrigenCodigo = "STI", DestinoCodigo = "FLL", DuracionMinutos = 155, DistanciaKm = 1340 },
+                new Ruta { OrigenCodigo = "STI", DestinoCodigo = "ATL", DuracionMinutos = 195, DistanciaKm = 2000 },
             });
 
             // Desde Puerto Plata (POP)
             rutas.AddRange(new[]
             {
                 new Ruta { OrigenCodigo = "POP", DestinoCodigo = "SDQ", DuracionMinutos = 40, DistanciaKm = 215 },
-                new Ruta { OrigenCodigo = "POP", DestinoCodigo = "JFK", DuracionMinutos = 240, DistanciaKm = 2400 },  // 4h
-                new Ruta { OrigenCodigo = "POP", DestinoCodigo = "MIA", DuracionMinutos = 155, DistanciaKm = 1300 },  // 2h 35m
+                new Ruta { OrigenCodigo = "POP", DestinoCodigo = "PUJ", DuracionMinutos = 50, DistanciaKm = 230 },  // NUEVO
+                new Ruta { OrigenCodigo = "POP", DestinoCodigo = "STI", DuracionMinutos = 25, DistanciaKm = 100 },  // NUEVO
+                new Ruta { OrigenCodigo = "POP", DestinoCodigo = "LRM", DuracionMinutos = 45, DistanciaKm = 200 },  // NUEVO
+                new Ruta { OrigenCodigo = "POP", DestinoCodigo = "JFK", DuracionMinutos = 240, DistanciaKm = 2400 },
+                new Ruta { OrigenCodigo = "POP", DestinoCodigo = "MIA", DuracionMinutos = 155, DistanciaKm = 1300 },
+                new Ruta { OrigenCodigo = "POP", DestinoCodigo = "EWR", DuracionMinutos = 245, DistanciaKm = 2380 },
+                new Ruta { OrigenCodigo = "POP", DestinoCodigo = "FLL", DuracionMinutos = 160, DistanciaKm = 1320 },
+                new Ruta { OrigenCodigo = "POP", DestinoCodigo = "ATL", DuracionMinutos = 190, DistanciaKm = 1980 },
             });
 
             // Desde La Romana (LRM)
@@ -1598,127 +1609,71 @@ FechaAsignacion = DateTime.Today.AddMonths(-5),
             {
                 new Ruta { OrigenCodigo = "LRM", DestinoCodigo = "SDQ", DuracionMinutos = 25, DistanciaKm = 110 },
                 new Ruta { OrigenCodigo = "LRM", DestinoCodigo = "PUJ", DuracionMinutos = 20, DistanciaKm = 70 },
-                new Ruta { OrigenCodigo = "LRM", DestinoCodigo = "MIA", DuracionMinutos = 160, DistanciaKm = 1360 },  // 2h 40m
+                new Ruta { OrigenCodigo = "LRM", DestinoCodigo = "STI", DuracionMinutos = 40, DistanciaKm = 180 },
+                new Ruta { OrigenCodigo = "LRM", DestinoCodigo = "POP", DuracionMinutos = 45, DistanciaKm = 200 },
+                new Ruta { OrigenCodigo = "LRM", DestinoCodigo = "MIA", DuracionMinutos = 160, DistanciaKm = 1360 },
+                new Ruta { OrigenCodigo = "LRM", DestinoCodigo = "JFK", DuracionMinutos = 265, DistanciaKm = 2560 },
+                new Ruta { OrigenCodigo = "LRM", DestinoCodigo = "EWR", DuracionMinutos = 270, DistanciaKm = 2520 },
+                new Ruta { OrigenCodigo = "LRM", DestinoCodigo = "FLL", DuracionMinutos = 165, DistanciaKm = 1380 },
+                new Ruta { OrigenCodigo = "LRM", DestinoCodigo = "ATL", DuracionMinutos = 205, DistanciaKm = 2080 },
             });
 
-            // ========== RUTAS DESDE ESTADOS UNIDOS ==========
+            // ========== RUTAS ADICIONALES DESDE EE.UU. ==========
             
-            // Desde JFK (Nueva York)
+            // Desde Newark (EWR)
             rutas.AddRange(new[]
             {
-                new Ruta { OrigenCodigo = "JFK", DestinoCodigo = "SDQ", DuracionMinutos = 255, DistanciaKm = 2540 },
-                new Ruta { OrigenCodigo = "JFK", DestinoCodigo = "PUJ", DuracionMinutos = 270, DistanciaKm = 2600 },
-                new Ruta { OrigenCodigo = "JFK", DestinoCodigo = "MIA", DuracionMinutos = 180, DistanciaKm = 1750 },  // 3h
-                new Ruta { OrigenCodigo = "JFK", DestinoCodigo = "MAD", DuracionMinutos = 450, DistanciaKm = 5760 },  // 7h 30m
-                new Ruta { OrigenCodigo = "JFK", DestinoCodigo = "CDG", DuracionMinutos = 435, DistanciaKm = 5840 },  // 7h 15m
-                new Ruta { OrigenCodigo = "JFK", DestinoCodigo = "CUN", DuracionMinutos = 225, DistanciaKm = 2100 },  // 3h 45m
-                new Ruta { OrigenCodigo = "JFK", DestinoCodigo = "PTY", DuracionMinutos = 330, DistanciaKm = 3550 },  // 5h 30m
-                new Ruta { OrigenCodigo = "JFK", DestinoCodigo = "BOG", DuracionMinutos = 360, DistanciaKm = 3900 },  // 6h
+                new Ruta { OrigenCodigo = "EWR", DestinoCodigo = "SDQ", DuracionMinutos = 260, DistanciaKm = 2500 },
+                new Ruta { OrigenCodigo = "EWR", DestinoCodigo = "PUJ", DuracionMinutos = 275, DistanciaKm = 2550 },
+                new Ruta { OrigenCodigo = "EWR", DestinoCodigo = "STI", DuracionMinutos = 255, DistanciaKm = 2450 },
+                new Ruta { OrigenCodigo = "EWR", DestinoCodigo = "POP", DuracionMinutos = 245, DistanciaKm = 2380 },
+                new Ruta { OrigenCodigo = "EWR", DestinoCodigo = "LRM", DuracionMinutos = 270, DistanciaKm = 2520 },
+                new Ruta { OrigenCodigo = "EWR", DestinoCodigo = "MIA", DuracionMinutos = 185, DistanciaKm = 1760 },
+                new Ruta { OrigenCodigo = "EWR", DestinoCodigo = "JFK", DuracionMinutos = 30, DistanciaKm = 35 },
+                new Ruta { OrigenCodigo = "EWR", DestinoCodigo = "FLL", DuracionMinutos = 190, DistanciaKm = 1780 },
+                new Ruta { OrigenCodigo = "EWR", DestinoCodigo = "ATL", DuracionMinutos = 140, DistanciaKm = 1210 },
+                new Ruta { OrigenCodigo = "EWR", DestinoCodigo = "MAD", DuracionMinutos = 455, DistanciaKm = 5780 },
+                new Ruta { OrigenCodigo = "EWR", DestinoCodigo = "CDG", DuracionMinutos = 440, DistanciaKm = 5850 },
+                new Ruta { OrigenCodigo = "EWR", DestinoCodigo = "BCN", DuracionMinutos = 470, DistanciaKm = 6100 },
+                new Ruta { OrigenCodigo = "EWR", DestinoCodigo = "CUN", DuracionMinutos = 230, DistanciaKm = 2120 },
+                new Ruta { OrigenCodigo = "EWR", DestinoCodigo = "PTY", DuracionMinutos = 335, DistanciaKm = 3570 },
+                new Ruta { OrigenCodigo = "EWR", DestinoCodigo = "BOG", DuracionMinutos = 365, DistanciaKm = 3920 },
+                new Ruta { OrigenCodigo = "EWR", DestinoCodigo = "LIM", DuracionMinutos = 480, DistanciaKm = 5400 },
             });
 
-            // Desde Miami (MIA)
+            // Desde Fort Lauderdale (FLL)
             rutas.AddRange(new[]
             {
-                new Ruta { OrigenCodigo = "MIA", DestinoCodigo = "SDQ", DuracionMinutos = 150, DistanciaKm = 1330 },
-                new Ruta { OrigenCodigo = "MIA", DestinoCodigo = "PUJ", DuracionMinutos = 165, DistanciaKm = 1400 },
-                new Ruta { OrigenCodigo = "MIA", DestinoCodigo = "STI", DuracionMinutos = 150, DistanciaKm = 1320 },
-                new Ruta { OrigenCodigo = "MIA", DestinoCodigo = "JFK", DuracionMinutos = 180, DistanciaKm = 1750 },
-                new Ruta { OrigenCodigo = "MIA", DestinoCodigo = "CUN", DuracionMinutos = 90, DistanciaKm = 850 },     // 1h 30m
-                new Ruta { OrigenCodigo = "MIA", DestinoCodigo = "PTY", DuracionMinutos = 180, DistanciaKm = 2050 },  // 3h
-                new Ruta { OrigenCodigo = "MIA", DestinoCodigo = "BOG", DuracionMinutos = 225, DistanciaKm = 2600 },  // 3h 45m
-                new Ruta { OrigenCodigo = "MIA", DestinoCodigo = "LIM", DuracionMinutos = 330, DistanciaKm = 4180 },  // 5h 30m
-                new Ruta { OrigenCodigo = "MIA", DestinoCodigo = "MAD", DuracionMinutos = 540, DistanciaKm = 7150 },  // 9h
+                new Ruta { OrigenCodigo = "FLL", DestinoCodigo = "SDQ", DuracionMinutos = 155, DistanciaKm = 1350 },
+                new Ruta { OrigenCodigo = "FLL", DestinoCodigo = "PUJ", DuracionMinutos = 170, DistanciaKm = 1420 },
+                new Ruta { OrigenCodigo = "FLL", DestinoCodigo = "STI", DuracionMinutos = 155, DistanciaKm = 1340 },
+                new Ruta { OrigenCodigo = "FLL", DestinoCodigo = "POP", DuracionMinutos = 160, DistanciaKm = 1320 },
+                new Ruta { OrigenCodigo = "FLL", DestinoCodigo = "LRM", DuracionMinutos = 165, DistanciaKm = 1380 },
+                new Ruta { OrigenCodigo = "FLL", DestinoCodigo = "MIA", DuracionMinutos = 30, DistanciaKm = 45 },
+                new Ruta { OrigenCodigo = "FLL", DestinoCodigo = "JFK", DuracionMinutos = 175, DistanciaKm = 1700 },
+                new Ruta { OrigenCodigo = "FLL", DestinoCodigo = "EWR", DuracionMinutos = 190, DistanciaKm = 1780 },
+                new Ruta { OrigenCodigo = "FLL", DestinoCodigo = "ATL", DuracionMinutos = 110, DistanciaKm = 1000 },
+                new Ruta { OrigenCodigo = "FLL", DestinoCodigo = "CUN", DuracionMinutos = 95, DistanciaKm = 870 },
+                new Ruta { OrigenCodigo = "FLL", DestinoCodigo = "PTY", DuracionMinutos = 185, DistanciaKm = 2070 },
+                new Ruta { OrigenCodigo = "FLL", DestinoCodigo = "BOG", DuracionMinutos = 230, DistanciaKm = 2620 },
+                new Ruta { OrigenCodigo = "FLL", DestinoCodigo = "LIM", DuracionMinutos = 335, DistanciaKm = 4200 },
             });
 
-            // Desde Atlanta (ATL)
+            // Completar rutas desde Atlanta (ATL)
             rutas.AddRange(new[]
             {
-                new Ruta { OrigenCodigo = "ATL", DestinoCodigo = "SDQ", DuracionMinutos = 200, DistanciaKm = 2050 },
-                new Ruta { OrigenCodigo = "ATL", DestinoCodigo = "PUJ", DuracionMinutos = 185, DistanciaKm = 2100 },
-                new Ruta { OrigenCodigo = "ATL", DestinoCodigo = "MIA", DuracionMinutos = 105, DistanciaKm = 970 },   // 1h 45m
-                new Ruta { OrigenCodigo = "ATL", DestinoCodigo = "JFK", DuracionMinutos = 135, DistanciaKm = 1220 },  // 2h 15m
-                new Ruta { OrigenCodigo = "ATL", DestinoCodigo = "CUN", DuracionMinutos = 165, DistanciaKm = 1550 },  // 2h 45m
-            });
-
-            // ========== RUTAS DESDE EUROPA ==========
-            
-            // Desde Madrid (MAD)
-            rutas.AddRange(new[]
-            {
-                new Ruta { OrigenCodigo = "MAD", DestinoCodigo = "SDQ", DuracionMinutos = 540, DistanciaKm = 6900 },
-                new Ruta { OrigenCodigo = "MAD", DestinoCodigo = "PUJ", DuracionMinutos = 555, DistanciaKm = 6950 },
-                new Ruta { OrigenCodigo = "MAD", DestinoCodigo = "JFK", DuracionMinutos = 450, DistanciaKm = 5760 },
-                new Ruta { OrigenCodigo = "MAD", DestinoCodigo = "MIA", DuracionMinutos = 540, DistanciaKm = 7150 },
-                new Ruta { OrigenCodigo = "MAD", DestinoCodigo = "BCN", DuracionMinutos = 75, DistanciaKm = 620 },
-                new Ruta { OrigenCodigo = "MAD", DestinoCodigo = "CDG", DuracionMinutos = 120, DistanciaKm = 1050 },
-                new Ruta { OrigenCodigo = "MAD", DestinoCodigo = "CUN", DuracionMinutos = 660, DistanciaKm = 8850 },
-                new Ruta { OrigenCodigo = "MAD", DestinoCodigo = "BOG", DuracionMinutos = 630, DistanciaKm = 8420 },
-                new Ruta { OrigenCodigo = "MAD", DestinoCodigo = "LIM", DuracionMinutos = 720, DistanciaKm = 9900 },
-            });
-
-            // Desde Barcelona (BCN)
-            rutas.AddRange(new[]
-            {
-                new Ruta { OrigenCodigo = "BCN", DestinoCodigo = "SDQ", DuracionMinutos = 570, DistanciaKm = 7100 },
-                new Ruta { OrigenCodigo = "BCN", DestinoCodigo = "PUJ", DuracionMinutos = 585, DistanciaKm = 7150 },
-                new Ruta { OrigenCodigo = "BCN", DestinoCodigo = "MAD", DuracionMinutos = 75, DistanciaKm = 620 },
-                new Ruta { OrigenCodigo = "BCN", DestinoCodigo = "CDG", DuracionMinutos = 105, DistanciaKm = 840 },   // 1h 45m
-            });
-
-            // Desde París (CDG)
-            rutas.AddRange(new[]
-            {
-                new Ruta { OrigenCodigo = "CDG", DestinoCodigo = "SDQ", DuracionMinutos = 555, DistanciaKm = 7050 },
-                new Ruta { OrigenCodigo = "CDG", DestinoCodigo = "PUJ", DuracionMinutos = 570, DistanciaKm = 7100 },
-                new Ruta { OrigenCodigo = "CDG", DestinoCodigo = "JFK", DuracionMinutos = 435, DistanciaKm = 5840 },
-                new Ruta { OrigenCodigo = "CDG", DestinoCodigo = "MAD", DuracionMinutos = 120, DistanciaKm = 1050 },
-                new Ruta { OrigenCodigo = "CDG", DestinoCodigo = "BCN", DuracionMinutos = 105, DistanciaKm = 840 },
-            });
-
-            // ========== RUTAS DESDE LATINOAMÉRICA ==========
-            
-            // Desde Cancún (CUN)
-            rutas.AddRange(new[]
-            {
-                new Ruta { OrigenCodigo = "CUN", DestinoCodigo = "SDQ", DuracionMinutos = 180, DistanciaKm = 1750 },
-                new Ruta { OrigenCodigo = "CUN", DestinoCodigo = "PUJ", DuracionMinutos = 195, DistanciaKm = 1800 },
-                new Ruta { OrigenCodigo = "CUN", DestinoCodigo = "MIA", DuracionMinutos = 90, DistanciaKm = 850 },
-                new Ruta { OrigenCodigo = "CUN", DestinoCodigo = "JFK", DuracionMinutos = 225, DistanciaKm = 2100 },
-                new Ruta { OrigenCodigo = "CUN", DestinoCodigo = "ATL", DuracionMinutos = 165, DistanciaKm = 1550 },  // 2h 45m
-            });
-
-            // Desde Panamá (PTY)
-            rutas.AddRange(new[]
-            {
-                new Ruta { OrigenCodigo = "PTY", DestinoCodigo = "SDQ", DuracionMinutos = 195, DistanciaKm = 1900 },
-                new Ruta { OrigenCodigo = "PTY", DestinoCodigo = "PUJ", DuracionMinutos = 210, DistanciaKm = 1950 },
-                new Ruta { OrigenCodigo = "PTY", DestinoCodigo = "MIA", DuracionMinutos = 180, DistanciaKm = 2050 },
-                new Ruta { OrigenCodigo = "PTY", DestinoCodigo = "JFK", DuracionMinutos = 330, DistanciaKm = 3550 },
-                new Ruta { OrigenCodigo = "PTY", DestinoCodigo = "BOG", DuracionMinutos = 75, DistanciaKm = 700 },    // 1h 15m
-                new Ruta { OrigenCodigo = "PTY", DestinoCodigo = "LIM", DuracionMinutos = 180, DistanciaKm = 1960 },  // 3h
-            });
-
-            // Desde Bogotá (BOG)
-            rutas.AddRange(new[]
-            {
-                new Ruta { OrigenCodigo = "BOG", DestinoCodigo = "SDQ", DuracionMinutos = 210, DistanciaKm = 1950 },
-                new Ruta { OrigenCodigo = "BOG", DestinoCodigo = "PUJ", DuracionMinutos = 225, DistanciaKm = 2000 },
-                new Ruta { OrigenCodigo = "BOG", DestinoCodigo = "MIA", DuracionMinutos = 225, DistanciaKm = 2600 },
-                new Ruta { OrigenCodigo = "BOG", DestinoCodigo = "JFK", DuracionMinutos = 360, DistanciaKm = 3900 },
-                new Ruta { OrigenCodigo = "BOG", DestinoCodigo = "PTY", DuracionMinutos = 75, DistanciaKm = 700 },
-                new Ruta { OrigenCodigo = "BOG", DestinoCodigo = "LIM", DuracionMinutos = 135, DistanciaKm = 1870 },  // 2h 15m
-                new Ruta { OrigenCodigo = "BOG", DestinoCodigo = "MAD", DuracionMinutos = 630, DistanciaKm = 8420 },
-            });
-
-            // Desde Lima (LIM)
-            rutas.AddRange(new[]
-            {
-                new Ruta { OrigenCodigo = "LIM", DestinoCodigo = "SDQ", DuracionMinutos = 330, DistanciaKm = 3600 },
-                new Ruta { OrigenCodigo = "LIM", DestinoCodigo = "PUJ", DuracionMinutos = 345, DistanciaKm = 3650 },
-                new Ruta { OrigenCodigo = "LIM", DestinoCodigo = "MIA", DuracionMinutos = 330, DistanciaKm = 4180 },
-                new Ruta { OrigenCodigo = "LIM", DestinoCodigo = "PTY", DuracionMinutos = 180, DistanciaKm = 1960 },
-                new Ruta { OrigenCodigo = "LIM", DestinoCodigo = "BOG", DuracionMinutos = 135, DistanciaKm = 1870 },
-                new Ruta { OrigenCodigo = "LIM", DestinoCodigo = "MAD", DuracionMinutos = 720, DistanciaKm = 9900 },
+                new Ruta { OrigenCodigo = "ATL", DestinoCodigo = "SDQ", DuracionMinutos = 210, DistanciaKm = 2050 },
+                new Ruta { OrigenCodigo = "ATL", DestinoCodigo = "PUJ", DuracionMinutos = 220, DistanciaKm = 2150 },
+                new Ruta { OrigenCodigo = "ATL", DestinoCodigo = "STI", DuracionMinutos = 195, DistanciaKm = 2000 },
+                new Ruta { OrigenCodigo = "ATL", DestinoCodigo = "POP", DuracionMinutos = 190, DistanciaKm = 1980 },
+                new Ruta { OrigenCodigo = "ATL", DestinoCodigo = "LRM", DuracionMinutos = 205, DistanciaKm = 2080 },
+                new Ruta { OrigenCodigo = "ATL", DestinoCodigo = "EWR", DuracionMinutos = 140, DistanciaKm = 1210 },
+                new Ruta { OrigenCodigo = "ATL", DestinoCodigo = "FLL", DuracionMinutos = 110, DistanciaKm = 1000 },
+                new Ruta { OrigenCodigo = "ATL", DestinoCodigo = "PTY", DuracionMinutos = 240, DistanciaKm = 2650 },
+                new Ruta { OrigenCodigo = "ATL", DestinoCodigo = "BOG", DuracionMinutos = 270, DistanciaKm = 3100 },
+                new Ruta { OrigenCodigo = "ATL", DestinoCodigo = "LIM", DuracionMinutos = 390, DistanciaKm = 4600 },
+                new Ruta { OrigenCodigo = "ATL", DestinoCodigo = "MAD", DuracionMinutos = 510, DistanciaKm = 6800 },
+                new Ruta { OrigenCodigo = "ATL", DestinoCodigo = "CDG", DuracionMinutos = 525, DistanciaKm = 7000 },
             });
 
             // Marcar todas las rutas como activas
